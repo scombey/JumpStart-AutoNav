@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "jumpstart://spec-metadata",
+  "title": "Jump Start Spec Metadata",
+  "description": "Schema for the YAML frontmatter metadata block required in every spec artifact.",
+  "type": "object",
+  "required": ["id", "phase", "agent", "status", "created"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for this artifact (e.g., 'challenger-brief', 'prd', 'architecture')."
+    },
+    "phase": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4,
+      "description": "Phase number (0-4) that produced this artifact."
+    },
+    "agent": {
+      "type": "string",
+      "enum": ["Challenger", "Analyst", "PM", "Architect", "Developer", "Scout"],
+      "description": "Agent persona that generates this artifact."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["Draft", "In Review", "Approved", "Superseded", "Archived"],
+      "description": "Current lifecycle status."
+    },
+    "created": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 creation date."
+    },
+    "updated": {
+      "type": "string",
+      "format": "date",
+      "description": "ISO 8601 last-updated date."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of this artifact (e.g., '1.0.0')."
+    },
+    "approved_by": {
+      "type": ["string", "null"],
+      "description": "Name of the approver, or null/Pending."
+    },
+    "approval_date": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "ISO 8601 approval date, or null."
+    },
+    "upstream_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Paths to upstream artifacts this one depends on."
+    },
+    "dependencies": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Artifact IDs this spec depends on."
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Assessed risk level of this artifact's scope."
+    },
+    "owners": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Human owners or responsible parties."
+    },
+    "sha256": {
+      "type": ["string", "null"],
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Content hash for integrity verification (populated by tooling)."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,100 @@
+---
+id: sprint-status
+phase: "4"
+agent: scrum-master
+status: draft
+created: ""
+updated: ""
+version: "1.0.0"
+upstream_refs:
+  - implementation-plan
+  - prd
+---
+
+# Sprint Status: {{Project Name}}
+
+## Sprint Overview
+
+sprint_number: 1
+sprint_goal: "{{Goal for this sprint}}"
+start_date: "{{YYYY-MM-DD}}"
+end_date: "{{YYYY-MM-DD}}"
+status: "in_progress"  # planned | in_progress | completed
+
+## Task Board
+
+### Not Started
+
+- task_id: "{{T-XX}}"
+  title: "{{Task title}}"
+  story_ref: "{{E01-S01}}"
+  complexity: "M"  # S | M | L | XL
+  blocked_by: []
+  ready: true  # false if missing AC or dependencies
+
+### In Progress
+
+- task_id: "{{T-XX}}"
+  title: "{{Task title}}"
+  story_ref: "{{E01-S02}}"
+  complexity: "S"
+  started: "{{YYYY-MM-DD}}"
+  assignee: "Developer Agent"
+  notes: "{{Progress notes}}"
+
+### Completed
+
+- task_id: "{{T-XX}}"
+  title: "{{Task title}}"
+  story_ref: "{{E01-S03}}"
+  complexity: "S"
+  completed: "{{YYYY-MM-DD}}"
+  tests_passing: true
+
+### Blocked
+
+- task_id: "{{T-XX}}"
+  title: "{{Task title}}"
+  blocker: "{{Description of what's blocking}}"
+  blocked_since: "{{YYYY-MM-DD}}"
+  escalation: "{{Recommended action}}"
+
+## Dependency Map
+
+```
+{{T-01}} --> {{T-03}}
+{{T-02}} --> {{T-03}}
+{{T-03}} --> {{T-05}}
+{{T-04}} (independent)
+```
+
+## Blockers and Risks
+
+| ID | Description | Impact | Status | Escalation |
+|---|---|---|---|---|
+| B-001 | {{Blocker description}} | {{Tasks affected}} | Open / Resolved | {{Action}} |
+
+## Velocity Metrics
+
+| Sprint | Planned | Completed | Velocity | Notes |
+|---|---|---|---|---|
+| Sprint 1 | {{n}} | {{n}} | {{n}} | {{First sprint — establishing baseline}} |
+
+## Burndown
+
+| Day | Remaining Tasks | Notes |
+|---|---|---|
+| Day 1 | {{n}} | Sprint start |
+| Day 2 | {{n}} | |
+
+## Sprint Retrospective (completed sprints)
+
+### What went well
+- {{Item}}
+
+### What needs improvement
+- {{Item}}
+
+### Action items
+- {{Item with owner}}
+

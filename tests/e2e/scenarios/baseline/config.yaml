@@ -1,0 +1,15 @@
+# Baseline Scenario Configuration  
+# Minimal scenario for quick testing
+
+project:
+  name: "baseline-test"
+  type: "greenfield"
+  domain: "general"
+
+settings:
+  test_drive_mandate: false
+  verify_subagents: false
+
+metadata:
+  created_at: "2026-02-09"
+  description: "Minimal baseline scenario for holodeck testing"

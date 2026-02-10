@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Question Carousel: Elicitation Depth",
+  "description": "Set the depth of problem elicitation for Phase 0",
+  "phase": 0,
+  "agent": "challenger",
+  "question": {
+    "header": "Depth",
+    "text": "How deep should the problem discovery process go?",
+    "multiSelect": false,
+    "allowFreeformInput": false,
+    "options": [
+      {
+        "label": "Quick",
+        "description": "3 assumption checks, linear root cause analysis (~3 layers), minimal stakeholder mapping",
+        "value": "quick",
+        "consequences": "Faster (15-20 min) but may miss non-obvious root causes"
+      },
+      {
+        "label": "Standard",
+        "description": "5-7 assumption checks, recursive root cause analysis (~5 layers), full stakeholder map",
+        "value": "standard",
+        "consequences": "Balanced depth (30-45 min), good for most projects",
+        "recommended": true
+      },
+      {
+        "label": "Deep",
+        "description": "10+ assumption checks, multi-branch analysis, stakeholder interviews simulation, competitive framing",
+        "value": "deep",
+        "consequences": "Thorough (1-2 hours), best for complex or high-risk projects"
+      }
+    ],
+    "default": "standard"
+  },
+  "config_update": {
+    "path": "agents.challenger.elicitation_depth",
+    "value_from": "selected_option.value"
+  }
+}

@@ -1,0 +1,44 @@
+# Jump Start Framework Rules
+
+This project uses the Jump Start spec-driven agentic coding framework.
+
+## Context7 MCP Mandate (HIGH PRIORITY)
+
+**CRITICAL RULE:** When referencing any external library, framework, CLI tool, or service — you MUST use Context7 MCP to fetch live, verified documentation. Never rely on training data for API signatures, configuration flags, version compatibility, or setup instructions.
+
+**How to use Context7:**
+1. Resolve the library ID: `mcp_context7_resolve-library-id` with `libraryName` and `query` parameters
+2. Fetch current docs: `mcp_context7_query-docs` with `libraryId` (e.g., `/vercel/next.js`) and `query` parameters
+3. Add `[Context7: library@version]` citation marker in output
+
+> **Full documentation:** `.jumpstart/guides/context7-usage.md`
+
+**When required:** Architect Phase 3 (freshness audit), Developer Phase 4 (external API code), Analyst Phase 1 (tech evaluation), any agent making technology claims.
+
+## Spec-First Power Inversion
+
+Specs are the source of truth. Code is derived. If mismatch exists between spec and code, update the spec first or regenerate the code. Never silently diverge.
+
+## Command Routing
+
+- `/jumpstart.scout`     -> Check `project.type` is `brownfield`. Read and follow `.jumpstart/agents/scout.md`
+- `/jumpstart.challenge` -> Read and follow `.jumpstart/agents/challenger.md`
+- `/jumpstart.analyze`   -> Read and follow `.jumpstart/agents/analyst.md`
+- `/jumpstart.plan`      -> Read and follow `.jumpstart/agents/pm.md`
+- `/jumpstart.architect` -> Read and follow `.jumpstart/agents/architect.md`
+- `/jumpstart.build`     -> Read and follow `.jumpstart/agents/developer.md`
+- `/jumpstart.party`      -> Read and follow `.jumpstart/agents/facilitator.md` (Party Mode: multi-agent collaboration)
+- `/jumpstart.status`    -> Check all spec files and report workflow state
+- `/jumpstart.review`    -> Validate artifacts against templates
+
+## Rules
+
+1. Phases are sequential. Do not start a phase unless all preceding phases are approved.
+2. Follow agent personas exactly. Read the agent file before starting.
+3. Always ask for explicit human approval between phases.
+4. Use templates from `.jumpstart/templates/`.
+5. Read `.jumpstart/config.yaml` for settings.
+6. Specs go in `specs/`. Code in `src/`. Tests in `tests/`.
+7. Read `.jumpstart/roadmap.md` at activation. Roadmap principles are non-negotiable and supersede agent-specific instructions.
+8. Read `.jumpstart/roadmap.md` for engineering articles governing code quality and architecture decisions.
+9. Use Context7 MCP for ALL external documentation lookups. Never guess API details from training data.

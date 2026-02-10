@@ -1,0 +1,122 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Developer to QA Handoff Schema",
+  "description": "Validates the implementation report payload from Phase 4 (Developer) to QA. Ensures test readiness context is present.",
+  "type": "object",
+  "required": ["implemented_tasks", "test_coverage", "build_artifacts", "environment_setup"],
+  "properties": {
+    "implemented_tasks": {
+      "type": "array",
+      "description": "Tasks completed with implementation details",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "status", "files_changed"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^M\\d+-T\\d+$"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["completed", "partial", "skipped"]
+          },
+          "files_changed": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          },
+          "tests_written": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "test_coverage": {
+      "type": "object",
+      "description": "Test coverage summary",
+      "required": ["unit_tests", "coverage_pct"],
+      "properties": {
+        "unit_tests": {
+          "type": "number",
+          "minimum": 0
+        },
+        "integration_tests": {
+          "type": "number",
+          "minimum": 0
+        },
+        "coverage_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "uncovered_areas": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "known_issues": {
+      "type": "array",
+      "description": "Known bugs, limitations, or technical debt",
+      "items": {
+        "type": "object",
+        "required": ["description", "severity"],
+        "properties": {
+          "description": { "type": "string" },
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "major", "minor", "trivial"]
+          },
+          "workaround": { "type": "string" },
+          "related_task": { "type": "string" }
+        }
+      }
+    },
+    "build_artifacts": {
+      "type": "object",
+      "description": "Build output information",
+      "required": ["build_command", "output_dir"],
+      "properties": {
+        "build_command": { "type": "string" },
+        "output_dir": { "type": "string" },
+        "build_status": {
+          "type": "string",
+          "enum": ["success", "warning", "failure"]
+        }
+      }
+    },
+    "environment_setup": {
+      "type": "object",
+      "description": "Instructions for setting up the test environment",
+      "required": ["prerequisites", "setup_steps"],
+      "properties": {
+        "prerequisites": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "setup_steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "environment_variables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "required": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

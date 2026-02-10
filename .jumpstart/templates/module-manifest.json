@@ -1,0 +1,17 @@
+{
+  "name": "my-module",
+  "version": "1.0.0",
+  "description": "A custom Jump Start module that adds [describe purpose]",
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "jumpstart": ">=1.0.0"
+  },
+  "agents": [],
+  "templates": [],
+  "commands": [],
+  "checks": [],
+  "skills": [],
+  "dependencies": [],
+  "keywords": []
+}

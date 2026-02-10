@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "jumpstart://prd",
+  "title": "Jump Start PRD Schema",
+  "description": "Schema for validating Product Requirements Document structure.",
+  "type": "object",
+  "required": ["metadata", "product_overview", "epics"],
+  "properties": {
+    "metadata": {
+      "$ref": "spec-metadata.schema.json"
+    },
+    "product_overview": {
+      "type": "string",
+      "minLength": 50,
+      "description": "Summary paragraph tying together problem, vision, personas, and MVP scope."
+    },
+    "epics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description", "scope_tier", "stories"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^E\\d+$",
+            "description": "Epic identifier (e.g., 'E1')."
+          },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "primary_persona": { "type": "string" },
+          "scope_tier": {
+            "type": "string",
+            "enum": ["Must Have", "Should Have", "Could Have", "Won't Have"]
+          },
+          "validation_criterion": { "type": "string" },
+          "stories": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["id", "title", "story", "acceptance_criteria"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^S\\d+$",
+                  "description": "Story identifier (e.g., 'S01')."
+                },
+                "title": { "type": "string" },
+                "story": {
+                  "type": "string",
+                  "description": "User story or job story text."
+                },
+                "acceptance_criteria": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "type": "string" }
+                },
+                "priority": {
+                  "type": "string",
+                  "enum": ["Must Have", "Should Have", "Could Have"]
+                },
+                "estimation": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "non_functional_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "requirement"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^NFR-\\d+$" },
+          "category": {
+            "type": "string",
+            "enum": ["Performance", "Security", "Accessibility", "Reliability", "Scalability", "Maintainability", "Compliance"]
+          },
+          "requirement": { "type": "string" },
+          "measurable_target": { "type": "string" },
+          "priority": { "type": "string" }
+        }
+      }
+    },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "goal"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^M\\d+$" },
+          "name": { "type": "string" },
+          "goal": { "type": "string" },
+          "stories": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "task_breakdown": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^T\\d+$" },
+          "title": { "type": "string" },
+          "story_ref": { "type": "string" },
+          "priority": { "type": "string" }
+        }
+      }
+    }
+  }
+}

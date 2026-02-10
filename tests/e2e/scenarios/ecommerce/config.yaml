@@ -1,0 +1,22 @@
+# Ecommerce Platform Scenario Configuration
+# This scenario simulates a full Jump Start lifecycle for an e-commerce platform
+
+project:
+  name: "ecommerce-platform"
+  type: "greenfield"
+  domain: "retail"
+
+settings:
+  test_drive_mandate: true
+  verify_subagents: true
+  
+expected_subagents:
+  architect:
+    - "Jump Start: Security"
+    - "Jump Start: Performance"
+  developer:
+    - "Jump Start: QA"
+
+metadata:
+  created_at: "2026-02-09"
+  description: "E-commerce platform with user auth, product catalog, and checkout"

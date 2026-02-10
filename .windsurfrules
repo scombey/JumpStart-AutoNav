@@ -1,0 +1,25 @@
+# Jump Start Framework Rules
+
+This project uses the Jump Start spec-driven agentic coding framework.
+
+## Command Routing
+
+- `/jumpstart.scout`     -> Check `project.type` is `brownfield`. Read and follow `.jumpstart/agents/scout.md`
+- `/jumpstart.challenge` -> Read and follow `.jumpstart/agents/challenger.md`
+- `/jumpstart.analyze`   -> Read and follow `.jumpstart/agents/analyst.md`
+- `/jumpstart.plan`      -> Read and follow `.jumpstart/agents/pm.md`
+- `/jumpstart.architect` -> Read and follow `.jumpstart/agents/architect.md`
+- `/jumpstart.build`     -> Read and follow `.jumpstart/agents/developer.md`
+- `/jumpstart.party`     -> Read and follow `.jumpstart/agents/facilitator.md` (Party Mode: multi-agent collaboration)
+- `/jumpstart.status`    -> Check all spec files and report workflow state
+- `/jumpstart.review`    -> Validate artifacts against templates
+
+## Rules
+
+1. Phases are sequential. Do not start a phase unless all preceding phases are approved.
+2. Follow agent personas exactly. Read the agent file before starting.
+3. Always ask for explicit human approval between phases.
+4. Use templates from `.jumpstart/templates/`.
+5. Read `.jumpstart/config.yaml` for settings.
+6. Specs go in `specs/`. Code in `src/`. Tests in `tests/`.
+7. Read `.jumpstart/roadmap.md` at activation. Roadmap principles are non-negotiable and supersede agent-specific instructions.

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Question Carousel: Tech Stack Priorities",
+  "description": "Gather technology preferences for Phase 3 architecture decisions",
+  "phase": 3,
+  "agent": "architect",
+  "question": {
+    "header": "TechPriority",
+    "text": "What is the primary technology selection priority for this project?",
+    "multiSelect": false,
+    "allowFreeformInput": true,
+    "options": [
+      {
+        "label": "Team Familiarity",
+        "description": "Prioritise technologies the team already knows",
+        "value": "familiarity",
+        "consequences": "Faster development, lower learning curve, may miss better-fit alternatives"
+      },
+      {
+        "label": "Best Fit",
+        "description": "Choose the best technology for the problem regardless of current expertise",
+        "value": "best-fit",
+        "consequences": "Optimal solution, potentially slower ramp-up, may require training"
+      },
+      {
+        "label": "Ecosystem",
+        "description": "Prioritise a cohesive ecosystem (e.g., all-in on Next.js, or all-in on Django)",
+        "value": "ecosystem",
+        "consequences": "Consistent patterns, shared tooling, fewer integration challenges"
+      },
+      {
+        "label": "Cost",
+        "description": "Minimise infrastructure and licensing costs",
+        "value": "cost",
+        "consequences": "Budget-friendly, may require trade-offs on features or performance"
+      }
+    ],
+    "default": "best-fit"
+  }
+}

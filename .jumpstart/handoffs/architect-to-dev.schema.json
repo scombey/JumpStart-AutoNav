@@ -1,0 +1,172 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Architect to Developer Handoff Schema",
+  "description": "Validates the technical blueprint payload from Phase 3 (Architect) to Phase 4 (Developer). Ensures all implementation context is present.",
+  "type": "object",
+  "required": ["technology_stack", "components", "data_model", "task_list", "deployment_strategy"],
+  "properties": {
+    "technology_stack": {
+      "type": "object",
+      "description": "Selected technology stack with justifications",
+      "required": ["runtime", "framework"],
+      "properties": {
+        "runtime": {
+          "type": "object",
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" },
+            "justification": { "type": "string" }
+          }
+        },
+        "framework": {
+          "type": "object",
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" },
+            "justification": { "type": "string" }
+          }
+        },
+        "database": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" },
+            "justification": { "type": "string" }
+          }
+        },
+        "additional": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "purpose"],
+            "properties": {
+              "name": { "type": "string" },
+              "version": { "type": "string" },
+              "purpose": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "description": "System components with interfaces and dependencies",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "purpose", "interface"],
+        "properties": {
+          "name": { "type": "string" },
+          "purpose": { "type": "string" },
+          "interface": { "type": "string" },
+          "dependencies": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "source_requirements": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "data_model": {
+      "type": "object",
+      "description": "Data model entities and relationships",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "fields"],
+            "properties": {
+              "name": { "type": "string" },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["name", "type"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "type": { "type": "string" },
+                    "constraints": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "relationships": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "type": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "api_contracts": {
+      "type": "array",
+      "description": "API endpoint specifications",
+      "items": {
+        "type": "object",
+        "required": ["method", "path"],
+        "properties": {
+          "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+          "path": { "type": "string" },
+          "description": { "type": "string" },
+          "request_body": { "type": "object" },
+          "response": { "type": "object" },
+          "source_story": { "type": "string" }
+        }
+      }
+    },
+    "task_list": {
+      "type": "array",
+      "description": "Ordered implementation tasks",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "milestone"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^M\\d+-T\\d+$"
+          },
+          "title": { "type": "string" },
+          "milestone": { "type": "string" },
+          "files": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "dependencies": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "source_stories": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "deployment_strategy": {
+      "type": "object",
+      "description": "Deployment and infrastructure plan",
+      "required": ["environment"],
+      "properties": {
+        "environment": { "type": "string" },
+        "hosting": { "type": "string" },
+        "ci_cd": { "type": "string" },
+        "containers": { "type": "boolean" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

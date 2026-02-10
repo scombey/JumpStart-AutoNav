@@ -1,0 +1,83 @@
+{
+  "id": "gate-checklist",
+  "version": "1.0.0",
+  "description": "Interactive gate approval checklist for each phase",
+  "phases": {
+    "-1": {
+      "name": "Pre-Phase: Scout",
+      "agent": "scout",
+      "artifact": "specs/codebase-context.md",
+      "checklist": [
+        "Existing codebase analyzed with C4 diagrams",
+        "Technology stack identified and documented",
+        "Pain points and tech debt catalogued",
+        "Integration boundaries mapped",
+        "Risk areas flagged"
+      ]
+    },
+    "0": {
+      "name": "Phase 0: Challenge",
+      "agent": "challenger",
+      "artifact": "specs/challenger-brief.md",
+      "checklist": [
+        "Problem statement validated (not solution-shaped)",
+        "Root causes identified (5 Whys applied)",
+        "Assumptions surfaced and challenged",
+        "Success criteria defined and measurable",
+        "Scope boundaries established"
+      ]
+    },
+    "1": {
+      "name": "Phase 1: Analyze",
+      "agent": "analyst",
+      "artifact": "specs/product-brief.md",
+      "checklist": [
+        "User personas defined with demographics and pain points",
+        "User journeys mapped (happy path + edge cases)",
+        "MVP scope justified and bounded",
+        "Competitive landscape assessed",
+        "Risk register populated"
+      ]
+    },
+    "2": {
+      "name": "Phase 2: Plan",
+      "agent": "pm",
+      "artifact": "specs/prd.md",
+      "checklist": [
+        "All user stories in Given/When/Then format",
+        "Acceptance criteria are testable",
+        "Non-functional requirements quantified",
+        "Story priority (Must/Should/Could) assigned",
+        "Effort estimates provided",
+        "No [NEEDS CLARIFICATION] tags unresolved"
+      ]
+    },
+    "3": {
+      "name": "Phase 3: Architect",
+      "agent": "architect",
+      "artifact": "specs/architecture.md",
+      "checklist": [
+        "Technology stack justified with alternatives considered",
+        "Data model defined and matches PRD entities",
+        "API contracts specified and match data model",
+        "Component diagram includes all system boundaries",
+        "Implementation plan has build-order tasks",
+        "Documentation freshness audit passed (≥80%)",
+        "ADRs recorded for significant decisions"
+      ]
+    },
+    "4": {
+      "name": "Phase 4: Build",
+      "agent": "developer",
+      "artifact": "src/",
+      "checklist": [
+        "All tasks implemented per implementation plan",
+        "Tests written and passing",
+        "Red-Green-Refactor evidence captured (if TDD mandated)",
+        "No spec drift detected",
+        "README.md updated with setup and run instructions",
+        "Linting passes with zero errors"
+      ]
+    }
+  }
+}

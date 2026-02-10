@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Question Carousel: Project Type",
+  "description": "Determine whether the project is greenfield or brownfield",
+  "phase": 0,
+  "agent": "challenger",
+  "question": {
+    "header": "ProjectType",
+    "text": "Is this a new project (greenfield) or are you working with an existing codebase (brownfield)?",
+    "multiSelect": false,
+    "allowFreeformInput": false,
+    "options": [
+      {
+        "label": "Greenfield",
+        "description": "New project built from scratch — no existing codebase",
+        "value": "greenfield",
+        "consequences": "Full 5-phase workflow starting from problem discovery"
+      },
+      {
+        "label": "Brownfield",
+        "description": "Extending, refactoring, or adding features to an existing codebase",
+        "value": "brownfield",
+        "consequences": "Scout agent runs first to analyse existing codebase before Phase 0"
+      }
+    ],
+    "default": null
+  },
+  "config_update": {
+    "path": "project.type",
+    "value_from": "selected_option.value"
+  }
+}

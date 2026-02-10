@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "description": "Protocol progress tracking for agent step-by-step execution.",
+  "active_phase": null,
+  "active_agent": null,
+  "todos": [],
+  "completed": [],
+  "history": []
+}

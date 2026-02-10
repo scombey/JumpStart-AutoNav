@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "description": "Workflow state persistence for Jump Start framework.",
+  "current_phase": null,
+  "current_agent": null,
+  "current_step": null,
+  "last_completed_step": null,
+  "active_artifacts": [],
+  "approved_artifacts": [],
+  "phase_history": [],
+  "resume_context": null,
+  "last_updated": null
+}

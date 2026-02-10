@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Question Carousel: Scope Method",
+  "description": "Determine scope approach for Phase 1 analysis",
+  "phase": 1,
+  "agent": "analyst",
+  "question": {
+    "header": "ScopeMethod",
+    "text": "How should the initial scope be defined?",
+    "multiSelect": false,
+    "allowFreeformInput": false,
+    "options": [
+      {
+        "label": "MVP",
+        "description": "Recommend a minimum viable scope — smallest version that validates the core hypothesis",
+        "value": "mvp",
+        "consequences": "Fastest to market, focused on learning, may require follow-up releases",
+        "recommended": true
+      },
+      {
+        "label": "Phased",
+        "description": "Recommend multiple release phases with progressive capability delivery",
+        "value": "phased",
+        "consequences": "Balanced approach, clear roadmap, moderate initial delivery time"
+      },
+      {
+        "label": "Full",
+        "description": "Document complete vision without scoping down — everything in one release",
+        "value": "full",
+        "consequences": "Longest delivery time, highest risk, but delivers complete solution at once"
+      }
+    ],
+    "default": "mvp"
+  },
+  "config_update": {
+    "path": "agents.analyst.scope_method",
+    "value_from": "selected_option.value"
+  }
+}

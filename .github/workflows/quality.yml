@@ -1,0 +1,48 @@
+name: Spec Quality Gate
+
+on:
+  pull_request:
+    paths:
+      - 'specs/**'
+      - '.jumpstart/**'
+      - 'tests/**'
+  push:
+    branches: [main]
+    paths:
+      - 'specs/**'
+      - '.jumpstart/**'
+      - 'tests/**'
+
+jobs:
+  quality-gate:
+    name: 5-Layer Quality Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Layer 1 — Schema & Formatting
+        run: npx vitest run tests/test-schema.test.js --reporter=verbose
+
+      - name: Layer 2 — Handoff Contracts
+        run: npx vitest run tests/test-handoffs.test.js --reporter=verbose
+
+      - name: Layer 3 — Unit Tests for English
+        run: npx vitest run tests/test-spec-quality.test.js --reporter=verbose
+
+      - name: Layer 5 — Regression Golden Masters
+        run: npx vitest run tests/test-regression.test.js --reporter=verbose
+
+      - name: All Tests Summary
+        if: always()
+        run: npx vitest run --reporter=verbose

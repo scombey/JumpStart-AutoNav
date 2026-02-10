@@ -1,0 +1,500 @@
+# ============================================================================
+# Jump Start Framework Configuration
+# ============================================================================
+# This file controls the behavior of the Jump Start agentic coding workflow.
+# Edit values below to customise the framework for your project.
+# ============================================================================
+
+project:
+  name: ""                              # Your project name (populated by `jumpstart init`)
+  description: ""                       # One-line project description
+  created_at: ""                        # ISO date, auto-populated
+  approver: ""                          # Name or team name for phase gate approvals (set during initial setup)
+  type: null                            # greenfield | brownfield (null = not yet determined)
+                                        #   greenfield: New project built from scratch
+                                        #   brownfield: Existing codebase being extended or refactored
+                                        #   Detected by CLI at install time, confirmed by Challenger at Phase 0
+  domain: null                          # auto | healthcare | fintech | govtech | edtech | aerospace
+                                        #   automotive | scientific | legaltech | insuretech | energy
+                                        #   process_control | building_automation | gaming | general
+                                        #   null/auto: detected from Challenger Brief domain signals
+                                        #   When set, enables domain-adaptive planning rigor
+
+# ---------------------------------------------------------------------------
+# Roadmap & Architectural Gates
+# ---------------------------------------------------------------------------
+# The roadmap defines non-negotiable principles governing all agent behavior.
+# See .jumpstart/roadmap.md for the full document.
+roadmap:
+  enabled: true                         # Enforce roadmap checks at agent activation
+  path: ".jumpstart/roadmap.md"         # Path to the roadmap file
+  test_drive_mandate: false             # true = strict TDD gate per Article III
+                                        #   When true: Developer must write failing tests first,
+                                        #   get human approval, then implement (Red-Green-Refactor)
+                                        #   When false: Tests recommended but not gated
+
+# Versioned Artifacts (Item 6)
+versioning:
+  enabled: true                         # Enable git-based version tagging for approved artifacts
+  tag_prefix: "spec"                    # Git tag prefix (e.g., spec/v1.0.0)
+  auto_tag_on_approval: false           # Automatically create git tags when artifacts are approved
+
+# Environment Invariants (Item 15)
+invariants:
+  enabled: true                         # Enforce environment invariants at phase gates
+  path: ".jumpstart/invariants.md"      # Path to invariants file
+  fail_on_violation: true               # Fail phase gate if invariants are not addressed
+
+# Schema Enforcement (Item 5)
+schema_enforcement:
+  enabled: true                         # Validate artifact structure against JSON schemas
+  schemas_dir: ".jumpstart/schemas"     # Path to schema directory
+  validate_on_write: true               # Validate artifacts when they are written
+
+# Content Integrity (Item 12)
+content_integrity:
+  enabled: true                         # Track content hashes for artifact integrity
+  manifest_path: ".jumpstart/manifest.json"  # Path to content manifest
+
+# Dependency Graph (Item 13)
+dependency_graph:
+  enabled: true                         # Maintain spec-to-code dependency mapping
+  graph_path: ".jumpstart/spec-graph.json"   # Path to dependency graph
+
+# Template Hot-Reloading (Item 14)
+template_watching:
+  enabled: true                         # Watch for template changes and prompt spec updates
+  snapshot_path: ".jumpstart/state/template-snapshot.json"  # Path to template snapshots
+
+# Simplicity Gate (Item 9)
+simplicity_gate:
+  enabled: true                         # Enforce max top-level directory count
+  max_top_level_dirs: 3                 # Maximum allowed top-level directories under source root
+  require_justification: true           # Require justification for exceeding the limit
+
+# Context7 Documentation Freshness (Item 101)
+context7:
+  enabled: true                         # Mandate Context7 MCP for live documentation
+  freshness_threshold: 80               # Minimum freshness score (%) for Phase 3 approval
+  require_audit: true                   # Require documentation audit before architecture approval
+  citation_marker: "[Context7: {lib}@{version}]"  # Citation format for docs
+
+# ---------------------------------------------------------------------------
+# Workflow Settings
+# ---------------------------------------------------------------------------
+workflow:
+  require_gate_approval: true           # Require explicit human approval between phases
+  auto_commit_artifacts: false          # Auto-commit spec files to git after generation
+  allow_phase_skip: false               # If true, allows jumping to a later phase
+  auto_handoff: true                    # Automatically proceed to next phase after approval
+  archive_on_restart: true               # Archive existing artifacts before regenerating (rename with date suffix)
+  current_phase: null                   # Tracks active phase (0-4), managed by framework
+  qa_log: true                          # Log every agent question and human response to specs/qa-log.md
+                                        #   Creates an audit trail of all decisions across phases
+                                        #   Agents append entries using the template in .jumpstart/templates/qa-log.md
+
+# ---------------------------------------------------------------------------
+# Agent Configuration
+# ---------------------------------------------------------------------------
+agents:
+
+  scout:
+    persona_file: "agents/scout.md"
+    capture_insights: true              # Capture observations and patterns discovered during codebase analysis
+    c4_levels:                          # Which C4 diagram levels to generate (list)
+      - context                         #   context:   System context -- external actors and systems
+      - container                       #   container: Container-level -- apps, datastores, services
+      # - component                     #   component: Component-level -- internal modules and their interactions
+      # - code                          #   code:      Code-level -- class/function relationships (very detailed)
+    max_file_scan_depth: 6              # How deep to walk the directory tree (0 = unlimited)
+    include_dependency_analysis: true   # Parse package managers and map dependency graph
+    include_debt_assessment: true       # Flag apparent technical debt, security concerns, outdated deps
+    exclude_jumpstart_paths:            # Paths created by JumpStart install — excluded from brownfield analysis
+      - ".jumpstart/"
+      - "specs/"
+      - "AGENTS.md"
+      - "CLAUDE.md"
+      - ".cursorrules"
+      - ".github/copilot-instructions.md"
+      - ".github/agents/"
+      - ".github/prompts/"
+      - ".github/instructions/"
+      - ".vscode/mcp.json"
+      - ".cursor/mcp.json"
+
+  challenger:
+    persona_file: "agents/challenger.md"
+    capture_insights: true              # Capture decision rationale and alternatives considered
+    elicitation_depth: standard         # quick | standard | deep
+    #   quick:    3 assumption checks, linear root cause analysis (approx 3 layers), minimal stakeholder mapping
+    #   standard: 5-7 assumption checks, recursive root cause analysis (drill until root found, usually ~5 layers), full stakeholder map
+    #   deep:     10+ assumption checks, multi-branch root cause analysis (Ishikawa/Fishbone style), stakeholder
+    #             interviews simulation, competitive problem framing
+    max_assumptions: 10                 # Cap on surfaced assumptions
+    require_reframe: true               # Force at least one problem reframe
+
+  analyst:
+    persona_file: "agents/analyst.md"
+    capture_insights: true              # Capture decision rationale and alternatives considered
+    include_competitive_analysis: true  # Include competitive landscape section
+    persona_count: auto                 # auto | 1 | 2 | 3 | 4 | 5
+    #   auto: derive persona count from stakeholder map in Phase 0
+    include_journey_maps: true          # Generate current/future state journeys
+    scope_method: "mvp"                 # mvp | phased | full
+    #   mvp:    Recommend a minimum viable scope
+    #   phased: Recommend multiple release phases
+    #   full:   Document complete vision without scoping down
+
+  pm:
+    persona_file: "agents/pm.md"
+    capture_insights: true              # Capture decision rationale and alternatives considered
+    story_format: "user_story"          # user_story | job_story
+    #   user_story: "As a [persona], I want [action] so that [outcome]"
+    #   job_story:  "When [situation], I want to [motivation] so I can [outcome]"
+    prioritization: "moscow"            # moscow | rice | ice
+    #   moscow: Must/Should/Could/Won't
+    #   rice:   Reach, Impact, Confidence, Effort scoring
+    #   ice:    Impact, Confidence, Ease scoring
+    acceptance_criteria_format: "gherkin"  # gherkin | checklist
+    #   gherkin:   Given/When/Then format
+    #   checklist: Simple bullet-point criteria
+    require_nfrs: true                  # Require non-functional requirements section
+
+  architect:
+    persona_file: "agents/architect.md"
+    capture_insights: true              # Capture decision rationale and alternatives considered
+    adr_required: true                  # Require Architecture Decision Records
+    diagram_format: "mermaid"           # mermaid | text | ascii
+    generate_api_contracts: true        # Generate API contract specifications
+    generate_data_model: true           # Generate entity/relationship definitions
+    generate_agents_md: true            # Generate per-directory AGENTS.md files (greenfield only)
+    implementation_plan_style: "task"   # task | story | ticket
+    #   task:   Granular developer tasks with file paths
+    #   story:  Story-level chunks mapped to PRD stories
+    #   ticket: Issue-tracker style with labels and estimates
+
+  developer:
+    persona_file: "agents/developer.md"
+    capture_insights: true              # Capture decision rationale and alternatives considered
+    test_framework: auto                # auto | jest | pytest | vitest | mocha | etc.
+    run_tests_after_each_task: true     # Run test suite after completing each task
+    commit_after_each_task: false       # Auto-commit after each task
+    commit_message_prefix: "jumpstart"  # Prefix for commit messages
+    update_readme: true                 # Update README.md after implementation
+    lint_on_save: true                  # Run linter after writing files
+    lint_command: null                  # Custom lint command (null = auto-detect from project)
+    lint_fix: false                     # Auto-fix lint issues when possible
+    agents_md_depth: "module"           # Depth for per-directory AGENTS.md generation (greenfield only)
+                                        #   all:       Every directory with source code gets an AGENTS.md
+                                        #   module:    Major module directories only (e.g., src/api/, src/services/)
+                                        #   top-level: Only top-level directories under src/
+                                        #   2, 3, etc: Numeric depth limit from source root
+
+  # --- Advisory / Sidecar Agents ---
+  # These agents are not part of the main phase sequence.
+  # They are invoked on demand via slash commands.
+
+  ux-designer:
+    persona_file: "agents/ux-designer.md"
+    capture_insights: true
+    # Emotional response mapping for each persona across key journey steps
+    # Outputs: specs/ux-design.md
+
+  qa:
+    persona_file: "agents/qa.md"
+    capture_insights: true
+    qa_gate_required: false             # Set to true to require QA sign-off before release
+    # Test strategy, requirement traceability, release readiness
+    # Outputs: specs/test-plan.md, specs/test-report.md
+
+  scrum-master:
+    persona_file: "agents/scrum-master.md"
+    capture_insights: true
+    sprint_capacity: auto               # auto | number of tasks per sprint
+    # Sprint planning, dependency mapping, blocker detection
+    # Outputs: specs/sprint-status.yaml
+
+  security:
+    persona_file: "agents/security.md"
+    capture_insights: true
+    # STRIDE threat modelling, OWASP Top 10 audit, invariant compliance
+    # Outputs: specs/security-review.md
+
+  performance:
+    persona_file: "agents/performance.md"
+    capture_insights: true
+    # NFR quantification, load profiles, cost budgets, bottleneck analysis
+    # Outputs: specs/nfrs.md
+
+  tech-writer:
+    persona_file: "agents/tech-writer.md"
+    capture_insights: true
+    # Documentation freshness audit, README updates, AGENTS.md maintenance
+    # Outputs: specs/doc-update-checklist.md
+
+  researcher:
+    persona_file: "agents/researcher.md"
+    capture_insights: true
+    # Context7-verified technology evaluation, version pinning, library health
+    # Outputs: specs/research/{topic}.md
+
+  refactor:
+    persona_file: "agents/refactor.md"
+    capture_insights: true
+    complexity_threshold: 10            # Cyclomatic complexity threshold for flagging
+    # Complexity analysis, code smells, structural improvement recommendations
+    # Outputs: specs/refactor-report.md
+
+  maintenance:
+    persona_file: "agents/maintenance.md"
+    capture_insights: true
+    # Dependency drift, spec drift, technical debt inventory
+    # Outputs: specs/drift-report.md
+
+  quick-dev:
+    persona_file: "agents/quick-dev.md"
+    capture_insights: true
+    # Abbreviated 3-step workflow for bug fixes and tiny features
+    # Outputs: specs/quickflow-{description}.md
+    max_files_changed: 5                # Scope guard: max files for Quick Flow eligibility
+    max_loc_changed: 200                # Scope guard: max lines of code changed
+
+  retrospective:
+    persona_file: "agents/retrospective.md"
+    capture_insights: true
+    # Post-build analysis of plan vs reality, tech debt, process improvements
+    # Outputs: specs/retrospective.md, specs/insights/retrospective-insights.md
+
+  facilitator:
+    persona_file: "agents/facilitator.md"
+    capture_insights: true
+    # Multi-agent Party Mode advisory discussions
+    # Outputs: specs/party-session-{topic}.md
+    max_rounds: 3                       # Maximum discussion rounds per party session
+    default_agents:                     # Default agents invited to party sessions
+      - adversary
+      - researcher
+      - security
+
+# ---------------------------------------------------------------------------
+# Adaptive Planning (Item 33)
+# ---------------------------------------------------------------------------
+adaptive_planning:
+  enabled: true                         # Enable adaptive planning depth based on complexity
+  auto_detect: true                     # Auto-detect complexity from project signals
+  thresholds:                           # Score thresholds for depth categories
+    quick: 30                           # Score <= 30: quick elicitation depth
+    standard: 65                        # Score 31-65: standard elicitation depth
+    deep: 100                           # Score 66+: deep elicitation depth
+  scoring_weights:                      # Weights for complexity dimensions
+    risk_keywords: 25
+    codebase_size: 20
+    dependencies: 15
+    domain: 20
+    integrations: 15
+    stakeholders: 10
+
+# ---------------------------------------------------------------------------
+# State Persistence (Item 39)
+# ---------------------------------------------------------------------------
+state:
+  enabled: true                         # Enable stateful workflow persistence
+  state_file: ".jumpstart/state/state.json"    # Path to workflow state
+  todos_file: ".jumpstart/state/todos.json"    # Path to protocol progress tracking
+  adr_index_file: ".jumpstart/state/adr-index.json"  # Path to ADR search index
+  auto_save: true                       # Auto-save state after each agent action
+
+# ---------------------------------------------------------------------------
+# Rollback & Archive (Items 40/50)
+# ---------------------------------------------------------------------------
+rollback:
+  enabled: true                         # Enable artifact rollback workflows
+  archive_dir: ".jumpstart/archive"     # Directory for archived artifacts
+  create_metadata: true                 # Create .meta.json files alongside archives
+  git_restore: true                     # Attempt git restore when reverting
+
+# ---------------------------------------------------------------------------
+# Multi-Model Orchestration (Item 41)
+# ---------------------------------------------------------------------------
+models:
+  enabled: false                        # Enable per-phase model assignment
+  default_provider: "auto"              # auto | openai | anthropic | google | local
+  default_model: "auto"                 # auto = use whatever the IDE provides
+  phase_assignments: {}                 # Override per phase: { "0": { "provider": "anthropic", "model": "claude-4-opus" } }
+  advisory_assignments: {}              # Override per advisory agent
+
+# ---------------------------------------------------------------------------
+# Conflict Detection (Item 45)
+# ---------------------------------------------------------------------------
+locks:
+  enabled: true                         # Enable file locking for multi-agent scenarios
+  lock_dir: ".jumpstart/state/locks"    # Directory for lock files
+  stale_timeout_ms: 300000              # Lock timeout in ms (5 minutes default)
+  auto_release_on_phase_change: true    # Release all locks when phase changes
+
+# ---------------------------------------------------------------------------
+# Integration Settings
+# ---------------------------------------------------------------------------
+integrations:
+  ai_assistant: "copilot"              # copilot | claude-code | cursor | gemini | windsurf | codex
+  git_branch_per_phase: false           # Create a branch for each phase
+  branch_naming: "jumpstart/phase-{n}-{name}"  # Branch name template
+
+# ---------------------------------------------------------------------------
+# Hooks (Optional)
+# ---------------------------------------------------------------------------
+# Hooks run after a phase completes. Each hook is a shell command.
+# Available variables: {phase}, {phase_name}, {artifact_path}, {project_name}
+hooks:
+  post_phase: []
+  # Examples:
+  # - "echo 'Phase {phase} complete' >> .jumpstart/log.txt"
+  # - "gh issue create --title 'Review: {phase_name}' --body 'Artifact: {artifact_path}'"
+  # - "curl -X POST $SLACK_WEBHOOK -d '{\"text\": \"Jump Start: {phase_name} complete\"}'"
+
+# ---------------------------------------------------------------------------
+# Diagram Verification
+# ---------------------------------------------------------------------------
+diagram_verification:
+  enabled: true                        # Enable Mermaid diagram verification
+  auto_verify_at_gate: true            # Automatically run verifier before phase gate approval
+  scan_dirs: ["specs"]                 # Directories to scan for Mermaid diagrams
+  strict_c4_semantics: true            # Enforce strict C4 level consistency rules
+  # The verifier can be invoked manually via:
+  #   /jumpstart.verify              (in VS Code Copilot Chat)
+  #   npx jumpstart-mode verify      (in terminal)
+
+# ---------------------------------------------------------------------------
+# User Preferences (Items 76, 78)
+# ---------------------------------------------------------------------------
+user:
+  skill_level: null                     # beginner | intermediate | expert
+                                        #   beginner:     Detailed explanations, examples, verbose gates
+                                        #   intermediate: Standard explanations, brief gates
+                                        #   expert:       Minimal explanations, quick gates
+  explanation_level: "standard"         # detailed | standard | minimal (derived from skill_level)
+  show_hints: false                     # Show contextual hints during phases
+
+# ---------------------------------------------------------------------------
+# Global Config Overrides (Item 78)
+# ---------------------------------------------------------------------------
+config_loader:
+  enabled: true                         # Enable merging global ~/.jumpstart/config.yaml
+  global_path: "~/.jumpstart/config.yaml"  # Path to global config file
+  precedence: "project"                 # project | global — which config wins on conflict
+
+# ---------------------------------------------------------------------------
+# Output Paths
+# ---------------------------------------------------------------------------
+paths:
+  specs_dir: "specs"
+  decisions_dir: "specs/decisions"
+  research_dir: "specs/research"
+  insights_dir: "specs/insights"      # Stores insight files capturing decision rationale
+  qa_log: "specs/qa-log.md"           # Q&A decision log — audit trail of all agent-human exchanges
+  codebase_context: "specs/codebase-context.md"  # Scout agent output (brownfield projects)
+  roadmap: ".jumpstart/roadmap.md"       # Project roadmap (non-negotiable principles)
+  domain_complexity: ".jumpstart/domain-complexity.csv"  # Domain-adaptive planning rigor data
+  source_dir: "src"                   # Default for greenfield; brownfield uses existing structure
+  tests_dir: "tests"                  # Default for greenfield; brownfield uses existing structure
+
+# ---------------------------------------------------------------------------
+# VS Code Chat Tools (Optional)
+# ---------------------------------------------------------------------------
+# These settings control the use of VS Code Chat's native tools.
+# These tools are only available when using GitHub Copilot in VS Code.
+# The framework works perfectly without them in other AI assistants.
+vscode_tools:
+  use_ask_questions: true         # Use interactive question carousels for user input
+  use_todo_lists: true            # Use todo lists to track protocol progress
+  
+  # ask_questions usage:
+  # - Gather clarifications and choices during agent workflows
+  # - Display multiple-choice options with single or multi-select
+  # - Mark recommended options when guiding user decisions
+  # - Support free-text input when appropriate
+  # Note: Do NOT use for testing user knowledge (no quiz-style questions)
+  
+  # manage_todo_list usage:
+  # - Track progress through multi-step protocols
+  # - Show completion status for milestones and tasks
+  # - Provide transparency during long-running phases
+  # - Help users resume work after interruptions
+
+# ---------------------------------------------------------------------------
+# Testing Configuration — 5-Layer Quality Gate
+# ---------------------------------------------------------------------------
+testing:
+  # Layer 1: Schema & Formatting
+  schema_validation: true
+
+  # Layer 2: Handoff Contracts
+  handoff_validation: true
+  handoffs_dir: .jumpstart/handoffs
+
+  # Layer 3: Unit Tests for English (spec-tester + smell-detector)
+  spec_quality:
+    ambiguity_max: 5              # Max vague adjectives without metrics
+    passive_voice_max: 10         # Max passive voice instances per document
+    metric_coverage_min: 80       # Min % of stories with quantified criteria
+    smell_density_max: 5.0        # Max smells per 100 prose lines
+    overall_score_min: 70         # Min overall quality score (0-100)
+
+  # Layer 4: LLM-as-a-Judge
+  adversarial_required: false     # Set to true to require adversarial review
+  peer_review_required: false     # Set to true to require peer review
+  peer_review_dimensions:         # Scoring dimensions for peer review (Item 70)
+    - completeness
+    - consistency
+    - clarity
+    - feasibility
+  peer_review_min_score: 70       # Minimum average score across dimensions
+
+  # Layer 5: Regression Golden Masters
+  golden_masters_dir: tests/golden-masters
+  similarity_threshold: 85        # Min structural similarity % for regression
+
+  # Coverage
+  story_coverage_required: true   # Require 100% story-to-task mapping
+
+# ---------------------------------------------------------------------------
+# Module System (Item 91)
+# ---------------------------------------------------------------------------
+# Pluggable add-on modules that extend agents, templates, commands, and checks.
+modules:
+  enabled: true
+  dir: .jumpstart/modules          # Directory containing installed modules
+  enabled_list: []                 # List of module names to load (empty = load all)
+
+# ---------------------------------------------------------------------------
+# Template Inheritance (Item 93)
+# ---------------------------------------------------------------------------
+# Merge organization-wide base templates with project-level overrides.
+template_inheritance:
+  enabled: false                   # Set to true to enable base template merging
+  base_path: .jumpstart/base       # Organization-wide defaults directory
+  merge_strategy: project-wins     # project-wins | base-wins
+
+# ---------------------------------------------------------------------------
+# Skills (Item 96)
+# ---------------------------------------------------------------------------
+# Skill-based injection for specialized domain knowledge.
+skills:
+  enabled: true
+  dir: .jumpstart/skills           # Directory containing installed skills
+
+# ---------------------------------------------------------------------------
+# Design System (Item 97)
+# ---------------------------------------------------------------------------
+# Enterprise design system reference for consistent UI/UX.
+design_system:
+  enabled: false                   # Set to true when using a design system
+  path: .jumpstart/templates/design-system.md
+
+# ---------------------------------------------------------------------------
+# Self-Evolve (Item 100)
+# ---------------------------------------------------------------------------
+# Framework self-improvement proposals based on usage analysis.
+self_evolve:
+  enabled: false                   # Set to true to enable self-evolve analysis
+  auto_propose: false              # Auto-generate proposals at phase gates

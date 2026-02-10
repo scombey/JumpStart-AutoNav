@@ -1,0 +1,23 @@
+# Exclude development and output directories
+specs/
+src/
+tests/
+
+# Exclude development files
+.git
+.gitignore
+.vscode/
+.idea/
+
+# Exclude bash installer (superseded by npm CLI)
+install.sh
+
+# Exclude documentation that's not needed in package
+CLAUDE.md
+
+# Keep these important files
+!.cursorrules
+!AGENTS.md
+!README.md
+!LICENSE
+TODO.md

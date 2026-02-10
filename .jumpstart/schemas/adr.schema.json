@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "jumpstart://adr",
+  "title": "Jump Start ADR Schema",
+  "description": "Schema for validating Architecture Decision Record structure.",
+  "type": "object",
+  "required": ["metadata", "context", "decision", "consequences"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["id", "title", "status", "date"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ADR-\\d{3}$",
+          "description": "ADR identifier (e.g., 'ADR-001')."
+        },
+        "title": { "type": "string", "minLength": 5 },
+        "status": {
+          "type": "string",
+          "enum": ["Proposed", "Accepted", "Deprecated", "Superseded"]
+        },
+        "date": { "type": "string", "format": "date" },
+        "decision_maker": { "type": "string" },
+        "superseded_by": {
+          "type": ["string", "null"],
+          "description": "ADR ID that supersedes this one."
+        }
+      }
+    },
+    "context": {
+      "type": "string",
+      "minLength": 20,
+      "description": "What issue or question motivates this decision."
+    },
+    "decision": {
+      "type": "string",
+      "minLength": 10,
+      "description": "The change or choice being made."
+    },
+    "consequences": {
+      "type": "object",
+      "required": ["positive", "negative"],
+      "properties": {
+        "positive": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "negative": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "neutral": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "alternatives_considered": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "reason_rejected"],
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "pros": { "type": "array", "items": { "type": "string" } },
+          "cons": { "type": "array", "items": { "type": "string" } },
+          "reason_rejected": { "type": "string" }
+        }
+      }
+    }
+  }
+}
