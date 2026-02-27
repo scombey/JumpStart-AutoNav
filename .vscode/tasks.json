@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Upgrade Tests",
+			"type": "shell",
+			"command": "npx vitest run tests/test-upgrade.test.js",
+			"group": "test"
+		}
+	]
+}

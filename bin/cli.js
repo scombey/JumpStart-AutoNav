@@ -117,7 +117,9 @@ function showHelp() {
   console.log('  uninstall <item>     Uninstall a marketplace item');
   console.log('  status               Show installed marketplace items');
   console.log('  integrate            Rebuild skill integration files');
-  console.log('  update [item]        Update installed items to latest\n');
+  console.log('  update [item]        Update installed items to latest');
+  console.log('  upgrade              Safely upgrade framework files (preserves user content)');
+  console.log('  upgrade --restore    Restore files from upgrade backups\n');
   console.log(chalk.bold('OPTIONS:'));
   console.log('  <directory>        Target directory (default: current directory)');
   console.log('  --name <name>      Set project name in config');
@@ -154,7 +156,10 @@ function showHelp() {
   console.log('  npx jumpstart-mode checkpoint list');
   console.log('  npx jumpstart-mode checkpoint restore cp-1234567890');
   console.log('  npx jumpstart-mode handoff');
-  console.log('  npx jumpstart-mode handoff --output ./export/handoff.md --json\n');
+  console.log('  npx jumpstart-mode handoff --output ./export/handoff.md --json');
+  console.log('  npx jumpstart-mode upgrade');
+  console.log('  npx jumpstart-mode upgrade --dry-run');
+  console.log('  npx jumpstart-mode upgrade --restore\n');
 }
 
 // Detect whether a target directory is a greenfield or brownfield project
@@ -485,6 +490,14 @@ async function runInteractive() {
     console.log(chalk.yellow('\n⚠️  The following files/directories already exist:'));
     conflicts.forEach(c => console.log(chalk.yellow(`   - ${c}`)));
     
+    // Check if this is an existing jumpstart project
+    const hasManifest = fs.existsSync(path.join(targetPath, '.jumpstart', 'framework-manifest.json'));
+    const hasConfig = fs.existsSync(path.join(targetPath, '.jumpstart', 'config.yaml'));
+    if (hasManifest || hasConfig) {
+      console.log(chalk.cyan('\n💡 Tip: Use "npx jumpstart-mode upgrade" to safely update framework files'));
+      console.log(chalk.cyan('   while preserving your config, state, specs, and custom agents.'));
+    }
+
     const { overwrite } = await prompts({
       type: 'confirm',
       name: 'overwrite',
@@ -506,6 +519,20 @@ async function runInteractive() {
 // Main installation function
 async function install(config) {
   const targetPath = path.resolve(config.targetDir);
+
+  // Safeguard: warn if --force is used on an existing jumpstart project
+  if (config.force && !config.interactive) {
+    const manifestPath = path.join(targetPath, '.jumpstart', 'framework-manifest.json');
+    const configPath = path.join(targetPath, '.jumpstart', 'config.yaml');
+    if (fs.existsSync(manifestPath) || fs.existsSync(configPath)) {
+      console.log(chalk.yellow.bold('\n⚠️  WARNING: --force will overwrite ALL files including:'));
+      console.log(chalk.yellow('   - .jumpstart/config.yaml (your custom settings)'));
+      console.log(chalk.yellow('   - .jumpstart/state/ (your workflow state)'));
+      console.log(chalk.yellow('   - .jumpstart/agents/ (any agent customizations)'));
+      console.log(chalk.yellow('\n💡 Consider using "npx jumpstart-mode upgrade" instead.'));
+      console.log(chalk.yellow('   It preserves user content and backs up modified files.\n'));
+    }
+  }
 
   console.log(chalk.bold.blue('\n🚀 Installing Jump Start Framework...\n'));
   console.log(chalk.gray(`Target: ${targetPath}`));
@@ -627,6 +654,28 @@ async function install(config) {
   if (stats.skipped.length > 0 && !config.force) {
     console.log(chalk.yellow(`⚠️  Files skipped (already exist): ${stats.skipped.length}`));
     console.log(chalk.gray('   Use --force to overwrite existing files'));
+    console.log(chalk.gray('   Or use: npx jumpstart-mode upgrade (preserves user content)'));
+  }
+
+  // 8. Stamp framework manifest and config baseline for future upgrades
+  if (!config.dryRun) {
+    try {
+      const { generateManifest, writeFrameworkManifest, getPackageVersion } = await import('./lib/framework-manifest.js');
+      const version = getPackageVersion(PACKAGE_ROOT);
+      const manifest = generateManifest(targetPath, { version });
+      writeFrameworkManifest(targetPath, manifest);
+      console.log(chalk.dim(`\n📝 Framework manifest stamped (v${version}) for safe future upgrades`));
+
+      // Save config.yaml as baseline for three-way merge on future upgrades
+      const configSrc = path.join(PACKAGE_ROOT, JUMPSTART_DIR, 'config.yaml');
+      const configDefaultDest = path.join(targetPath, JUMPSTART_DIR, 'config.yaml.default');
+      if (fs.existsSync(configSrc)) {
+        fs.copyFileSync(configSrc, configDefaultDest);
+      }
+    } catch (err) {
+      // Non-fatal — upgrade will still work, just without a manifest
+      console.log(chalk.dim('   (manifest stamping skipped — upgrade will create one automatically)'));
+    }
   }
 
   // Next steps
@@ -1337,6 +1386,103 @@ async function main() {
         console.log(chalk.green(`\n✓ Updated ${results.length} item(s).`));
       } catch (err) {
         console.error(chalk.red(`Update failed: ${err.message}`));
+        process.exit(1);
+      }
+      return;
+    }
+
+    if (subcommand === 'upgrade') {
+      // ── Safe Framework Upgrade ───────────────────────────────────────────
+      const { upgrade, restore, listUpgradeBackups } = await import('./lib/upgrade.js');
+
+      const dryRun = process.argv.includes('--dry-run');
+      const yes = process.argv.includes('--yes') || process.argv.includes('-y');
+      const doRestore = process.argv.includes('--restore');
+
+      if (process.argv.includes('--help')) {
+        console.log(chalk.bold('Usage: jumpstart-mode upgrade [options]'));
+        console.log('');
+        console.log('  Safely upgrade framework files while preserving user content.');
+        console.log('  User customizations to config.yaml, state, specs, and custom');
+        console.log('  agents/skills are preserved. Modified framework files are backed');
+        console.log('  up to .jumpstart/archive/ before overwriting.');
+        console.log('');
+        console.log(chalk.bold('Options:'));
+        console.log('  --dry-run    Preview changes without writing files');
+        console.log('  --yes, -y    Skip confirmation prompt');
+        console.log('  --restore    Restore files from upgrade backups');
+        console.log('  --help       Show this help');
+        return;
+      }
+
+      if (doRestore) {
+        // Restore from backup
+        const backups = listUpgradeBackups(process.cwd());
+        if (backups.length === 0) {
+          console.log(chalk.yellow('No upgrade backups found.'));
+          return;
+        }
+
+        console.log(chalk.bold(`\nUpgrade backups (${backups.length} file(s)):\n`));
+        for (const b of backups) {
+          console.log(`  ${chalk.cyan(b.originalPath)}`);
+          console.log(`    Archived: ${chalk.dim(b.archivedAt)}`);
+          console.log(`    Upgrade: ${b.fromVersion} → ${b.toVersion}`);
+          console.log(`    File: ${chalk.dim(b.file)}`);
+          console.log('');
+        }
+
+        if (!dryRun) {
+          const prompts = require('prompts');
+          const { confirmed } = await prompts({
+            type: 'confirm',
+            name: 'confirmed',
+            message: `Restore all ${backups.length} backed-up file(s)?`,
+            initial: false,
+          });
+
+          if (!confirmed) {
+            console.log(chalk.yellow('\n❌ Restore cancelled.\n'));
+            return;
+          }
+        }
+
+        const result = restore(process.cwd(), { dryRun });
+        if (!result.success) {
+          console.error(chalk.red(`Restore failed: ${result.message || 'Unknown error'}`));
+          process.exit(1);
+        }
+        return;
+      }
+
+      // Normal upgrade
+      try {
+        const confirmFn = yes ? null : async (msg) => {
+          const prompts = require('prompts');
+          const { confirmed } = await prompts({
+            type: 'confirm',
+            name: 'confirmed',
+            message: msg,
+            initial: true,
+          });
+          return confirmed;
+        };
+
+        const result = await upgrade(process.cwd(), {
+          packageRoot: PACKAGE_ROOT,
+          dryRun,
+          yes,
+          confirm: confirmFn,
+        });
+
+        if (!result.success) {
+          if (result.message !== 'Cancelled by user.') {
+            console.error(chalk.red(result.message));
+            process.exit(1);
+          }
+        }
+      } catch (err) {
+        console.error(chalk.red(`Upgrade failed: ${err.message}`));
         process.exit(1);
       }
       return;

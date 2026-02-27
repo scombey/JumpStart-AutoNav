@@ -170,6 +170,57 @@ Then continue with `/jumpstart.analyze`, `/jumpstart.plan`, `/jumpstart.architec
 
 ---
 
+## Upgrading
+
+When a new version of `jumpstart-mode` is released, use the `upgrade` command to safely update framework files while **preserving** your specs, config, state, custom agents, and installed skills:
+
+```bash
+# Preview what will change (no files modified)
+npx jumpstart-mode upgrade --dry-run
+
+# Run the upgrade
+npx jumpstart-mode upgrade
+
+# Skip confirmation prompt
+npx jumpstart-mode upgrade --yes
+```
+
+**What gets upgraded (framework-owned files):**
+- `.jumpstart/agents/` — Agent persona definitions
+- `.jumpstart/templates/` — Artifact templates
+- `.jumpstart/schemas/` — JSON Schema definitions
+- `.jumpstart/guides/`, `.jumpstart/handoffs/`, `.jumpstart/compat/`
+- `.jumpstart/roadmap.md`, `.jumpstart/glossary.md`, `.jumpstart/invariants.md`
+- `AGENTS.md`, `CLAUDE.md`, `.cursorrules`
+- `.github/agents/`, `.github/prompts/`, `.github/copilot-instructions.md`
+
+**What is always preserved (user-owned):**
+- `.jumpstart/config.yaml` — Merged with three-way YAML merge (your values kept)
+- `.jumpstart/state/` — Workflow state and progress
+- `.jumpstart/skills/` — Installed marketplace skills
+- `.jumpstart/installed.json` — Marketplace install ledger
+- `specs/` — All your spec artifacts
+- `src/`, `tests/` — Your code
+
+**If you've customized a framework file** (e.g., edited an agent persona), the upgrade will:
+1. Back it up to `.jumpstart/archive/` with a timestamp
+2. Overwrite with the new version
+3. Print a message so you can re-apply your customizations
+
+**Restoring from backup:**
+
+```bash
+# List and restore all upgrade backups
+npx jumpstart-mode upgrade --restore
+
+# Preview what would be restored
+npx jumpstart-mode upgrade --restore --dry-run
+```
+
+> **Note:** Avoid using `npx jumpstart-mode --force` on existing projects — it overwrites everything including your config and state. Use `upgrade` instead.
+
+---
+
 ## Commands
 
 ### Core Phase Commands
@@ -304,6 +355,8 @@ npx jumpstart-mode <subcommand> [options]
 | `merge-templates` | Merge base and project-level templates |
 | `usage` | Token usage and cost summary |
 | `self-evolve` | Generate config improvement proposals |
+| `upgrade` | Safely upgrade framework files (preserves user content) |
+| `upgrade --restore` | Restore files from upgrade backups |
 
 ---
 
