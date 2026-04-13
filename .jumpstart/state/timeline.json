@@ -1,0 +1,659 @@
+{
+  "version": "1.0.0",
+  "session_id": "ses-framework-init-001",
+  "started_at": "2026-04-01T10:00:00.000Z",
+  "ended_at": "2026-04-01T13:25:02.000Z",
+  "events": [
+    {
+      "id": "evt-init-001",
+      "timestamp": "2026-04-01T10:00:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "init",
+      "agent": "System",
+      "parent_agent": null,
+      "event_type": "phase_start",
+      "action": "Jump Start framework initialized — workspace scaffolded",
+      "metadata": {
+        "project_type": "brownfield",
+        "config_path": ".jumpstart/config.yaml"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-init-002",
+      "timestamp": "2026-04-01T10:00:01.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "init",
+      "agent": "System",
+      "parent_agent": null,
+      "event_type": "template_read",
+      "action": "Read template: .jumpstart/templates/config.yaml",
+      "metadata": {
+        "template_path": ".jumpstart/templates/config.yaml"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-init-003",
+      "timestamp": "2026-04-01T10:00:02.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "init",
+      "agent": "System",
+      "parent_agent": null,
+      "event_type": "file_write",
+      "action": "Created framework config: .jumpstart/config.yaml",
+      "metadata": {
+        "file_path": ".jumpstart/config.yaml"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-init-004",
+      "timestamp": "2026-04-01T10:00:03.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "init",
+      "agent": "System",
+      "parent_agent": null,
+      "event_type": "file_write",
+      "action": "Created state store: .jumpstart/state/state.json",
+      "metadata": {
+        "file_path": ".jumpstart/state/state.json"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-init-005",
+      "timestamp": "2026-04-01T10:00:04.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "init",
+      "agent": "System",
+      "parent_agent": null,
+      "event_type": "file_write",
+      "action": "Created usage log: .jumpstart/usage-log.json",
+      "metadata": {
+        "file_path": ".jumpstart/usage-log.json"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-init-006",
+      "timestamp": "2026-04-01T10:00:05.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "init",
+      "agent": "System",
+      "parent_agent": null,
+      "event_type": "phase_end",
+      "action": "Framework initialization complete — ready for Phase 0",
+      "metadata": {
+        "status": "PASS",
+        "agents_available": 23,
+        "templates_loaded": 18
+      },
+      "duration_ms": 5000
+    },
+    {
+      "id": "evt-scout-001",
+      "timestamp": "2026-04-01T10:10:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "scout",
+      "agent": "Scout",
+      "parent_agent": null,
+      "event_type": "phase_start",
+      "action": "Phase started: Scout — brownfield codebase analysis",
+      "metadata": {
+        "model": "copilot",
+        "project_type": "brownfield"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-scout-002",
+      "timestamp": "2026-04-01T10:10:05.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "scout",
+      "agent": "Scout",
+      "parent_agent": null,
+      "event_type": "template_read",
+      "action": "Read template: .jumpstart/templates/codebase-context.md",
+      "metadata": {
+        "template_path": ".jumpstart/templates/codebase-context.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-scout-003",
+      "timestamp": "2026-04-01T10:12:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "scout",
+      "agent": "Scout",
+      "parent_agent": null,
+      "event_type": "artifact_write",
+      "action": "Created artifact: specs/codebase-context.md",
+      "metadata": {
+        "artifact_path": "specs/codebase-context.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-scout-004",
+      "timestamp": "2026-04-01T10:12:30.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "scout",
+      "agent": "Scout",
+      "parent_agent": null,
+      "event_type": "usage_logged",
+      "action": "Usage logged: 2450 tokens ($0.0049)",
+      "metadata": {
+        "estimated_tokens": 2450,
+        "estimated_cost_usd": 0.0049,
+        "model": "copilot"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-scout-005",
+      "timestamp": "2026-04-01T10:12:31.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": "scout",
+      "agent": "Scout",
+      "parent_agent": null,
+      "event_type": "phase_end",
+      "action": "Phase ended: Scout — PASS",
+      "metadata": {
+        "status": "PASS",
+        "turns": 8
+      },
+      "duration_ms": 151000
+    },
+    {
+      "id": "evt-challenger-001",
+      "timestamp": "2026-04-01T10:30:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 0,
+      "agent": "Challenger",
+      "parent_agent": null,
+      "event_type": "phase_start",
+      "action": "Phase started: Challenger — problem elicitation",
+      "metadata": {
+        "model": "copilot",
+        "elicitation_depth": "standard"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-challenger-002",
+      "timestamp": "2026-04-01T10:30:10.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 0,
+      "agent": "Challenger",
+      "parent_agent": null,
+      "event_type": "template_read",
+      "action": "Read template: .jumpstart/templates/challenger-brief.md",
+      "metadata": {
+        "template_path": ".jumpstart/templates/challenger-brief.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-challenger-003",
+      "timestamp": "2026-04-01T10:32:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 0,
+      "agent": "Challenger",
+      "parent_agent": null,
+      "event_type": "question_asked",
+      "action": "Asked 5 question(s) — assumption validation",
+      "metadata": {
+        "questions": [
+          {"id": "q1", "text": "What is the primary problem you are solving?"},
+          {"id": "q2", "text": "Who are the key stakeholders?"},
+          {"id": "q3", "text": "What constraints exist (timeline, budget, regulatory)?"},
+          {"id": "q4", "text": "Have similar solutions been attempted?"},
+          {"id": "q5", "text": "What does success look like?"}
+        ]
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-challenger-004",
+      "timestamp": "2026-04-01T10:35:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 0,
+      "agent": "Challenger",
+      "parent_agent": null,
+      "event_type": "question_answered",
+      "action": "Received answers for 5 question(s)",
+      "metadata": {
+        "answers": {
+          "q1": "AI-assisted KYC onboarding with regulatory compliance",
+          "q2": "Compliance team, engineering, end-users",
+          "q3": "Must meet AML/KYC regulations, 3-month timeline",
+          "q4": "Manual KYC process exists, no AI augmentation",
+          "q5": "90%+ automated ID verification, <5min onboarding"
+        }
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-challenger-005",
+      "timestamp": "2026-04-01T10:40:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 0,
+      "agent": "Challenger",
+      "parent_agent": null,
+      "event_type": "artifact_write",
+      "action": "Created artifact: specs/challenger-brief.md",
+      "metadata": {
+        "artifact_path": "specs/challenger-brief.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-challenger-006",
+      "timestamp": "2026-04-01T10:40:30.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 0,
+      "agent": "Challenger",
+      "parent_agent": null,
+      "event_type": "usage_logged",
+      "action": "Usage logged: 3200 tokens ($0.0064)",
+      "metadata": {
+        "estimated_tokens": 3200,
+        "estimated_cost_usd": 0.0064,
+        "model": "copilot"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-challenger-007",
+      "timestamp": "2026-04-01T10:40:31.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 0,
+      "agent": "Challenger",
+      "parent_agent": null,
+      "event_type": "phase_end",
+      "action": "Phase ended: Challenger — PASS",
+      "metadata": {
+        "status": "PASS",
+        "turns": 12
+      },
+      "duration_ms": 631000
+    },
+    {
+      "id": "evt-analyst-001",
+      "timestamp": "2026-04-01T11:00:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 1,
+      "agent": "Analyst",
+      "parent_agent": null,
+      "event_type": "phase_start",
+      "action": "Phase started: Analyst — persona and journey mapping",
+      "metadata": {
+        "model": "copilot"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-analyst-002",
+      "timestamp": "2026-04-01T11:00:05.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 1,
+      "agent": "Analyst",
+      "parent_agent": null,
+      "event_type": "artifact_read",
+      "action": "Read artifact: specs/challenger-brief.md",
+      "metadata": {
+        "artifact_path": "specs/challenger-brief.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-analyst-003",
+      "timestamp": "2026-04-01T11:05:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 1,
+      "agent": "Analyst",
+      "parent_agent": null,
+      "event_type": "artifact_write",
+      "action": "Created artifact: specs/product-brief.md",
+      "metadata": {
+        "artifact_path": "specs/product-brief.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-analyst-004",
+      "timestamp": "2026-04-01T11:05:30.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 1,
+      "agent": "Analyst",
+      "parent_agent": null,
+      "event_type": "usage_logged",
+      "action": "Usage logged: 2800 tokens ($0.0056)",
+      "metadata": {
+        "estimated_tokens": 2800,
+        "estimated_cost_usd": 0.0056,
+        "model": "copilot"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-analyst-005",
+      "timestamp": "2026-04-01T11:05:31.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 1,
+      "agent": "Analyst",
+      "parent_agent": null,
+      "event_type": "phase_end",
+      "action": "Phase ended: Analyst — PASS",
+      "metadata": {
+        "status": "PASS",
+        "turns": 10
+      },
+      "duration_ms": 331000
+    },
+    {
+      "id": "evt-pm-001",
+      "timestamp": "2026-04-01T11:30:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 2,
+      "agent": "PM",
+      "parent_agent": null,
+      "event_type": "phase_start",
+      "action": "Phase started: PM — PRD generation with user stories",
+      "metadata": {
+        "model": "copilot",
+        "story_format": "user_story",
+        "prioritization": "moscow"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-pm-002",
+      "timestamp": "2026-04-01T11:30:05.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 2,
+      "agent": "PM",
+      "parent_agent": null,
+      "event_type": "artifact_read",
+      "action": "Read artifact: specs/product-brief.md",
+      "metadata": {
+        "artifact_path": "specs/product-brief.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-pm-003",
+      "timestamp": "2026-04-01T11:35:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 2,
+      "agent": "PM",
+      "parent_agent": null,
+      "event_type": "artifact_write",
+      "action": "Created artifact: specs/prd.md",
+      "metadata": {
+        "artifact_path": "specs/prd.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-pm-004",
+      "timestamp": "2026-04-01T11:35:30.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 2,
+      "agent": "PM",
+      "parent_agent": null,
+      "event_type": "usage_logged",
+      "action": "Usage logged: 3500 tokens ($0.0070)",
+      "metadata": {
+        "estimated_tokens": 3500,
+        "estimated_cost_usd": 0.007,
+        "model": "copilot"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-pm-005",
+      "timestamp": "2026-04-01T11:35:31.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 2,
+      "agent": "PM",
+      "parent_agent": null,
+      "event_type": "phase_end",
+      "action": "Phase ended: PM — PASS",
+      "metadata": {
+        "status": "PASS",
+        "turns": 14
+      },
+      "duration_ms": 331000
+    },
+    {
+      "id": "evt-arch-001",
+      "timestamp": "2026-04-01T12:00:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 3,
+      "agent": "Architect",
+      "parent_agent": null,
+      "event_type": "phase_start",
+      "action": "Phase started: Architect — tech stack, data model, API design",
+      "metadata": {
+        "model": "copilot",
+        "adr_required": true
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-arch-002",
+      "timestamp": "2026-04-01T12:00:05.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 3,
+      "agent": "Architect",
+      "parent_agent": null,
+      "event_type": "artifact_read",
+      "action": "Read artifact: specs/prd.md",
+      "metadata": {
+        "artifact_path": "specs/prd.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-arch-003",
+      "timestamp": "2026-04-01T12:05:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 3,
+      "agent": "Architect",
+      "parent_agent": null,
+      "event_type": "subagent_invoked",
+      "action": "Invoked Security subagent for STRIDE threat model",
+      "metadata": {
+        "subagent_name": "Security",
+        "subagent_query": "Perform STRIDE threat analysis for KYC document processing pipeline"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-arch-004",
+      "timestamp": "2026-04-01T12:06:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 3,
+      "agent": "Architect",
+      "parent_agent": null,
+      "event_type": "subagent_completed",
+      "action": "Security subagent completed — STRIDE analysis incorporated",
+      "metadata": {
+        "subagent_name": "Security",
+        "subagent_result": "Identified 4 threat vectors, recommended encryption at rest and mTLS"
+      },
+      "duration_ms": 60000
+    },
+    {
+      "id": "evt-arch-005",
+      "timestamp": "2026-04-01T12:10:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 3,
+      "agent": "Architect",
+      "parent_agent": null,
+      "event_type": "artifact_write",
+      "action": "Created artifact: specs/architecture.md",
+      "metadata": {
+        "artifact_path": "specs/architecture.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-arch-006",
+      "timestamp": "2026-04-01T12:12:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 3,
+      "agent": "Architect",
+      "parent_agent": null,
+      "event_type": "artifact_write",
+      "action": "Created artifact: specs/implementation-plan.md",
+      "metadata": {
+        "artifact_path": "specs/implementation-plan.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-arch-007",
+      "timestamp": "2026-04-01T12:12:30.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 3,
+      "agent": "Architect",
+      "parent_agent": null,
+      "event_type": "usage_logged",
+      "action": "Usage logged: 5200 tokens ($0.0104)",
+      "metadata": {
+        "estimated_tokens": 5200,
+        "estimated_cost_usd": 0.0104,
+        "model": "copilot"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-arch-008",
+      "timestamp": "2026-04-01T12:12:31.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 3,
+      "agent": "Architect",
+      "parent_agent": null,
+      "event_type": "phase_end",
+      "action": "Phase ended: Architect — PASS",
+      "metadata": {
+        "status": "PASS",
+        "turns": 18
+      },
+      "duration_ms": 751000
+    },
+    {
+      "id": "evt-dev-001",
+      "timestamp": "2026-04-01T13:00:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 4,
+      "agent": "Developer",
+      "parent_agent": null,
+      "event_type": "phase_start",
+      "action": "Phase started: Developer — implementation from plan",
+      "metadata": {
+        "model": "copilot",
+        "test_framework": "vitest"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-dev-002",
+      "timestamp": "2026-04-01T13:00:05.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 4,
+      "agent": "Developer",
+      "parent_agent": null,
+      "event_type": "artifact_read",
+      "action": "Read artifact: specs/implementation-plan.md",
+      "metadata": {
+        "artifact_path": "specs/implementation-plan.md"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-dev-003",
+      "timestamp": "2026-04-01T13:15:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 4,
+      "agent": "Developer",
+      "parent_agent": null,
+      "event_type": "file_write",
+      "action": "Created file: src/App.tsx",
+      "metadata": {
+        "file_path": "src/App.tsx"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-dev-004",
+      "timestamp": "2026-04-01T13:20:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 4,
+      "agent": "Developer",
+      "parent_agent": null,
+      "event_type": "file_write",
+      "action": "Created test: tests/App.test.tsx",
+      "metadata": {
+        "file_path": "tests/App.test.tsx"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-dev-005",
+      "timestamp": "2026-04-01T13:25:00.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 4,
+      "agent": "Developer",
+      "parent_agent": null,
+      "event_type": "usage_logged",
+      "action": "Usage logged: 8500 tokens ($0.0170)",
+      "metadata": {
+        "estimated_tokens": 8500,
+        "estimated_cost_usd": 0.017,
+        "model": "copilot"
+      },
+      "duration_ms": null
+    },
+    {
+      "id": "evt-dev-006",
+      "timestamp": "2026-04-01T13:25:01.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 4,
+      "agent": "Developer",
+      "parent_agent": null,
+      "event_type": "phase_end",
+      "action": "Phase ended: Developer — PASS",
+      "metadata": {
+        "status": "PASS",
+        "turns": 25
+      },
+      "duration_ms": 1501000
+    },
+    {
+      "id": "evt-handoff-001",
+      "timestamp": "2026-04-01T13:25:02.000Z",
+      "session_id": "ses-framework-init-001",
+      "phase": 4,
+      "agent": "System",
+      "parent_agent": null,
+      "event_type": "handoff",
+      "action": "All phases complete — workflow finished",
+      "metadata": {
+        "source_phase": 4,
+        "target_phase": null,
+        "context_files": [
+          "specs/challenger-brief.md",
+          "specs/product-brief.md",
+          "specs/prd.md",
+          "specs/architecture.md",
+          "specs/implementation-plan.md"
+        ]
+      },
+      "duration_ms": null
+    }
+  ]
+}

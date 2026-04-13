@@ -1,7 +1,8 @@
 ---
 name: "Jump Start: Adversary"
 description: "Advisory -- Stress-test spec artifacts for violations, gaps, and ambiguities"
-tools: ['search', 'web', 'read', 'edit', 'vscode', 'todo', 'agent', 'context7/*']
+tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'context7/*', 'mcp_docker/search', 'filesystem/*', 'todo']
+user-invocable: false
 agents: ["*"]
 ---
 

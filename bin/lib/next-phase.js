@@ -31,6 +31,7 @@ const { join, resolve } = require('path');
 import { loadState } from './state-store.js';
 import { getHandoff, isArtifactApproved } from './handoff.js';
 import { parseSimpleYaml } from './config-loader.js';
+import { readFocusFromConfig, isPhaseInFocus } from './focus.js';
 
 /**
  * Phase-to-slash-command map.
@@ -121,6 +122,9 @@ export function determineNextAction(options = {}) {
   const projectType = config?.project?.type || 'greenfield';
   const requireApproval = config?.workflow?.require_gate_approval !== false;
 
+  // Load focus mode config (if active)
+  const focusConfig = readFocusFromConfig(configPath);
+
   // Load current state
   const state = loadState(statePath);
   const currentPhase = state.current_phase;
@@ -142,7 +146,8 @@ export function determineNextAction(options = {}) {
           next_agent: 'analyst',
           command: AGENT_COMMANDS.analyst,
           message: 'Phase 0 (Challenger) is already approved. Next: Phase 1 — ' + PHASE_DESCRIPTIONS['1'],
-          context_files: getHandoff(0).context_files || []
+          context_files: getHandoff(0).context_files || [],
+          focus: focusConfig && focusConfig.enabled ? { active: true, start_phase: focusConfig.start_phase, end_phase: focusConfig.end_phase } : undefined
         };
       }
       return {
@@ -153,7 +158,26 @@ export function determineNextAction(options = {}) {
         command: '/jumpstart.review',
         artifact: 'specs/challenger-brief.md',
         message: 'Phase 0 (Challenger) artifact exists but is not yet approved. Review and approve it to proceed.',
-        context_files: []
+        context_files: [],
+        focus: focusConfig && focusConfig.enabled ? { active: true, start_phase: focusConfig.start_phase, end_phase: focusConfig.end_phase } : undefined
+      };
+    }
+
+    // If focus mode is active, skip to the focus start phase
+    if (focusConfig && focusConfig.enabled) {
+      const focusStart = focusConfig.start_phase;
+      const agentNames = { '-1': 'scout', '0': 'challenger', '1': 'analyst', '2': 'pm', '3': 'architect', '4': 'developer' };
+      const agent = agentNames[String(focusStart)];
+      const command = AGENT_COMMANDS[agent];
+      return {
+        action: 'start',
+        current_phase: null,
+        next_phase: focusStart,
+        next_agent: agent,
+        command: command,
+        message: `Focus mode active (${focusConfig.preset || 'custom'}). Start with Phase ${focusStart} — ${PHASE_DESCRIPTIONS[String(focusStart)]}`,
+        context_files: [],
+        focus: { active: true, start_phase: focusConfig.start_phase, end_phase: focusConfig.end_phase }
       };
     }
 
@@ -206,17 +230,23 @@ export function determineNextAction(options = {}) {
     };
   }
 
-  // ─── Case 2: Final phase (4) — check completion ───────────────────────────
-  if (currentPhase === 4) {
+  // ─── Case 2: Final phase or focus end reached — check completion ─────────
+  if (currentPhase === 4 || (focusConfig && focusConfig.enabled && currentPhase > focusConfig.end_phase)) {
+    const focusNote = focusConfig && focusConfig.enabled
+      ? ` Focus mode (${focusConfig.preset || 'custom'}) workflow complete.`
+      : '';
     return {
       action: 'complete',
-      current_phase: 4,
+      current_phase: currentPhase,
       next_phase: null,
       next_agent: null,
       command: '/jumpstart.status',
-      message: 'Phase 4 (Developer) is the final phase. All specification phases are complete. Run `/jumpstart.status` for a full project overview, or `/jumpstart.deploy` for deployment planning.',
+      message: currentPhase === 4
+        ? 'Phase 4 (Developer) is the final phase. All specification phases are complete. Run `/jumpstart.status` for a full project overview, or `/jumpstart.deploy` for deployment planning.'
+        : `Phase ${currentPhase} (${PHASE_NAMES[String(currentPhase)]}) reached the end of focus range.${focusNote} Run \`/jumpstart.status\` for a project overview.`,
       suggestions: ['/jumpstart.status', '/jumpstart.deploy', '/jumpstart.resume'],
-      context_files: []
+      context_files: [],
+      focus: focusConfig && focusConfig.enabled ? { active: true, start_phase: focusConfig.start_phase, end_phase: focusConfig.end_phase } : undefined
     };
   }
 
@@ -278,6 +308,20 @@ export function determineNextAction(options = {}) {
     const nextPhase = handoff.next_phase;
     const command = AGENT_COMMANDS[nextAgent];
 
+    // Check if next phase is beyond focus range
+    if (focusConfig && focusConfig.enabled && !isPhaseInFocus(nextPhase, focusConfig)) {
+      return {
+        action: 'complete',
+        current_phase: currentPhase,
+        next_phase: null,
+        next_agent: null,
+        command: '/jumpstart.status',
+        message: `Phase ${currentPhase} (${PHASE_NAMES[String(currentPhase)]}) is approved! Focus mode (${focusConfig.preset || 'custom'}) workflow complete — Phase ${nextPhase} is outside the focus range. Run \`/jumpstart.status\` for a project overview.`,
+        context_files: [],
+        focus: { active: true, start_phase: focusConfig.start_phase, end_phase: focusConfig.end_phase }
+      };
+    }
+
     return {
       action: 'proceed',
       current_phase: currentPhase,
@@ -285,7 +329,8 @@ export function determineNextAction(options = {}) {
       next_agent: nextAgent,
       command: command,
       message: `Phase ${currentPhase} (${PHASE_NAMES[String(currentPhase)]}) is approved! Next: Phase ${nextPhase} — ${PHASE_DESCRIPTIONS[String(nextPhase)]}`,
-      context_files: handoff.context_files || []
+      context_files: handoff.context_files || [],
+      focus: focusConfig && focusConfig.enabled ? { active: true, start_phase: focusConfig.start_phase, end_phase: focusConfig.end_phase } : undefined
     };
   }
 

@@ -255,6 +255,29 @@ function createToolBridge(options = {}) {
       return { success: !!evt, event_id: evt ? evt.id : null };
     },
 
+    /**
+     * Log token usage and cost to .jumpstart/usage-log.json.
+     */
+    async log_usage(args) {
+      try {
+        const { logUsage } = await import('./usage.js');
+        const logPath = path.join(workspaceDir, '.jumpstart', 'usage-log.json');
+        const entry = {
+          phase: args.phase || 'unknown',
+          agent: args.agent || 'unknown',
+          action: args.action || 'unknown',
+          estimated_tokens: args.estimated_tokens || 0,
+          estimated_cost_usd: args.estimated_cost_usd || (args.estimated_tokens || 0) * 0.000002,
+          model: args.model || null,
+          metadata: args.metadata || null
+        };
+        const log = logUsage(logPath, entry);
+        return { success: true, total_tokens: log.total_tokens, total_entries: log.entries.length };
+      } catch (err) {
+        return { success: false, error: err.message };
+      }
+    },
+
     // ── Item-Tagged Feature Tool Handlers ──────────────────────────────────
 
     async run_revert(args) {

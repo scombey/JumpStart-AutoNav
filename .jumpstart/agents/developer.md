@@ -166,6 +166,47 @@ Track implementation progress task-by-task and milestone-by-milestone. This is e
 - When resuming work after a break, context is immediately clear
 - Progress tracking integrates naturally with VS Code's task tracking UI
 
+### record_timeline_event Tool
+
+Use this tool to record significant actions to the interaction timeline. This creates an audit trail of your workflow steps, decisions, and interactions.
+
+**When to use:**
+- After reading the implementation plan (event type: `artifact_read`)
+- Before and after each task implementation (event type: `custom`)
+- When creating files or tests (event type: `file_write`)
+- When invoking advisory subagents like QA or Security (event type: `subagent_invoked` / `subagent_completed`)
+- When logging prompt context (event type: `prompt_logged`)
+
+**Example invocation:**
+```json
+{
+  "event_type": "custom",
+  "action": "Starting task T-001: Scaffold project structure",
+  "metadata": { "task_id": "T-001", "task_name": "Scaffold project structure" }
+}
+```
+
+### log_usage Tool
+
+Use this tool at the **end of each task** and at the **end of your phase** to record your estimated token usage and cost to `.jumpstart/usage-log.json`. This enables cost tracking and usage auditing.
+
+**When to use:**
+- After completing each implementation task
+- At the end of the build phase, before presenting for approval
+- After subagent consultations
+
+**Example invocation:**
+```json
+{
+  "phase": "phase-4",
+  "agent": "Developer",
+  "action": "generation",
+  "estimated_tokens": 8500,
+  "model": "copilot",
+  "metadata": { "task_id": "T-001", "files_created": 5 }
+}
+```
+
 ---
 
 ## Implementation Protocol

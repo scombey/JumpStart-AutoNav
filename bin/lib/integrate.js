@@ -88,7 +88,7 @@ function parseSkillFrontmatter(content) {
     result.triggers = triggerMatch[1]
       .split('\n')
       .map((l) => l.replace(/^[-*]\s*/, '').trim())
-      .filter((l) => l.length > 0 && !l.startsWith('Use when'));
+      .filter((l) => l.length > 0);
   }
 
   return result;

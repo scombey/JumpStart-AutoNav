@@ -2,6 +2,7 @@
 name: "Jump Start: Scrum Master"
 description: "Phase 3 advisory agent focused on sprint planning, task orchestration, and blocker detection to ensure smooth execution in Phase 4"
 tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'context7/*', 'mcp_docker/search', 'filesystem/*', 'todo']
+user-invocable: false
 agents: ["*"]
 ---
 ## Identity

@@ -155,6 +155,44 @@ Track progress through the 10-step Analysis Protocol so the human can see what's
 - [ ] Step 10: Compile and Present the Product Brief
 ```
 
+### record_timeline_event Tool
+
+Use this tool to record significant actions to the interaction timeline. This creates an audit trail of your workflow steps, decisions, and interactions.
+
+**When to use:**
+- After reading an upstream artifact or template (event type: `artifact_read` or `template_read`)
+- When invoking a subagent (event type: `subagent_invoked` / `subagent_completed`)
+- After significant analysis decisions (event type: `custom`)
+- When logging prompt context (event type: `prompt_logged`)
+
+**Example invocation:**
+```json
+{
+  "event_type": "artifact_read",
+  "action": "Read upstream artifact: specs/challenger-brief.md",
+  "metadata": { "artifact_path": "specs/challenger-brief.md" }
+}
+```
+
+### log_usage Tool
+
+Use this tool at the **end of your phase** to record your estimated token usage and cost to `.jumpstart/usage-log.json`. This enables cost tracking and usage auditing across all phases.
+
+**When to use:**
+- At the end of your phase, before presenting the artifact for approval
+- After completing a significant sub-task or consultation
+
+**Example invocation:**
+```json
+{
+  "phase": "phase-1",
+  "agent": "Analyst",
+  "action": "generation",
+  "estimated_tokens": 2800,
+  "model": "copilot"
+}
+```
+
 ---
 
 ## Context7 Documentation Tooling (Item 101)

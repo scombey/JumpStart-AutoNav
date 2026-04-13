@@ -86,12 +86,13 @@ describe('EVENT_TYPES', () => {
     expect(EVENT_TYPES).toContain('custom');
   });
 
-  it('contains all 23 event types', () => {
-    expect(EVENT_TYPES.length).toBe(23);
+  it('contains all 24 event types', () => {
+    expect(EVENT_TYPES.length).toBe(24);
     expect(EVENT_TYPES).toContain('phase_start');
     expect(EVENT_TYPES).toContain('phase_end');
     expect(EVENT_TYPES).toContain('llm_turn_start');
     expect(EVENT_TYPES).toContain('llm_turn_end');
+    expect(EVENT_TYPES).toContain('prompt_logged');
     expect(EVENT_TYPES).toContain('handoff');
     expect(EVENT_TYPES).toContain('rewind');
     expect(EVENT_TYPES).toContain('usage_logged');

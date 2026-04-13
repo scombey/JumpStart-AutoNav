@@ -37,6 +37,10 @@ const { getToolsForPhase } = require('./lib/tool-schemas');
 const { createMockRegistry, createPersonaRegistry } = require('./lib/mock-responses');
 const { SimulationTracer } = require('./lib/simulation-tracer');
 
+// Usage & timeline logging (ESM — loaded dynamically)
+let _usageMod = null;
+const _usageReady = import('./lib/usage.js').then(mod => { _usageMod = mod; }).catch(() => {});
+
 // ─── Configuration ───────────────────────────────────────────────────────────
 
 const ROOT_DIR = path.join(__dirname, '..');
@@ -182,6 +186,9 @@ class HeadlessRunner {
     // Initialize tracer
     this.tracer = new SimulationTracer(this.workspaceDir, options.scenario || 'headless');
     
+    // Usage log path
+    this.usageLogPath = path.join(this.workspaceDir, '.jumpstart', 'usage-log.json');
+    
     // Initialize timeline for event recording
     this.timeline = null;
     try {
@@ -199,6 +206,10 @@ class HeadlessRunner {
           captureSubagents: true,
           captureResearch: true
         });
+        // Connect timeline to usage logger so usage events appear in timeline
+        if (_usageMod && typeof _usageMod.setUsageTimelineHook === 'function') {
+          _usageMod.setUsageTimelineHook(this.timeline);
+        }
       }).catch(() => { /* timeline module not available — ok */ });
     } catch {
       this._timelineReady = Promise.resolve();
@@ -234,8 +245,9 @@ class HeadlessRunner {
   }
   
   async setup() {
-    // Ensure timeline is ready
+    // Ensure timeline and usage modules are ready
     if (this._timelineReady) await this._timelineReady;
+    await _usageReady;
     
     // Create workspace directory structure
     const dirs = [
@@ -518,6 +530,20 @@ Be brief and supportive.`;
     const agentPrompt = this.loadAgentPrompt(agentName);
     const personaPrompt = this.loadPersonaPrompt();
     
+    // Log agent system prompt to timeline
+    if (this.timeline) {
+      this.timeline.recordEvent({
+        event_type: 'prompt_logged',
+        action: `System prompt loaded for ${agentName} (${agentPrompt.length} chars)`,
+        metadata: {
+          prompt_type: 'system',
+          agent: agentName,
+          prompt_length: agentPrompt.length,
+          prompt_preview: agentPrompt.substring(0, 200) + (agentPrompt.length > 200 ? '…' : '')
+        }
+      });
+    }
+    
     // Initialize conversation histories
     this.conversationHistory = [
       { role: 'system', content: agentPrompt }
@@ -533,6 +559,20 @@ Be brief and supportive.`;
     // Add initial user message to start the agent
     const startMessage = this.getAgentStartMessage(agentName);
     this.conversationHistory.push({ role: 'user', content: startMessage });
+    
+    // Log activation prompt to timeline
+    if (this.timeline) {
+      this.timeline.recordEvent({
+        event_type: 'prompt_logged',
+        action: `Activation prompt sent to ${agentName}`,
+        metadata: {
+          prompt_type: 'activation',
+          agent: agentName,
+          prompt_length: startMessage.length,
+          prompt_content: startMessage
+        }
+      });
+    }
     
     // Main conversation loop
     this.turnCount = 0;
@@ -620,9 +660,29 @@ Be brief and supportive.`;
       this.timeline.flush();
     }
     
-    // Log usage
+    // Log usage to usage-log.json and console
     const usage = this.agentProvider.getUsage();
     this.log(`Usage: ${usage.totalTokens} tokens, ${usage.calls} calls`, 'info');
+    
+    if (_usageMod && typeof _usageMod.logUsage === 'function') {
+      try {
+        _usageMod.logUsage(this.usageLogPath, {
+          phase: agentName,
+          agent: agentName.charAt(0).toUpperCase() + agentName.slice(1),
+          action: 'generation',
+          estimated_tokens: usage.totalTokens || 0,
+          estimated_cost_usd: (usage.totalTokens || 0) * 0.000002,
+          model: this.options.model || 'unknown',
+          metadata: {
+            turns: this.turnCount,
+            calls: usage.calls || 0,
+            status: finalStatus
+          }
+        });
+      } catch (err) {
+        this.log(`Warning: Failed to write usage log: ${err.message}`, 'warn');
+      }
+    }
     
     return finalStatus;
   }

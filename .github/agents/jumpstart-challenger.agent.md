@@ -2,9 +2,10 @@
 name: "Jump Start: Challenger"
 description: "Phase 0 -- Interrogate assumptions, find root causes, reframe the problem before any building begins"
 tools: ['search', 'web', 'read', 'edit', 'vscode', 'todo', 'agent','context7/*']
+agents: ["*"]
 handoffs:
   - label: "Proceed to Phase 1: Analysis"
-    agent: Jump Start: Analyst
+    agent: "Jump Start: Analyst"
     prompt: "The Challenger Brief at specs/challenger-brief.md has been approved. Begin Phase 1 analysis."
     send: true
 ---

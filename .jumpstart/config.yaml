@@ -111,6 +111,30 @@ spec_authoring:
   context_scoping: true                 # Agents should scope context to relevant sections per task
 
 # ---------------------------------------------------------------------------
+# Focus Mode — Restrict workflow to specific phases
+# ---------------------------------------------------------------------------
+# Allows role-based workflows by limiting which phases are active.
+# Use presets for common roles or set custom start/end phases.
+#
+# Presets:
+#   full:              All phases (default — Challenger through Developer)
+#   business-analyst:  Challenger → Analyst → PM (phases 0-2)
+#   prd-ready:         PM only (phase 2) — convert existing PRD to JumpStart format
+#   discovery:         Challenger → Analyst (phases 0-1)
+#   technical-lead:    Architect only (phase 3)
+#   developer-only:    Developer only (phase 4)
+#
+# Examples:
+#   npx jumpstart-mode focus set business-analyst
+#   npx jumpstart-mode focus set --start 1 --end 2
+#   npx jumpstart-mode focus clear
+focus:
+  enabled: false
+  preset: full
+  start_phase: 0
+  end_phase: 4
+
+# ---------------------------------------------------------------------------
 # Workflow Settings
 # ---------------------------------------------------------------------------
 workflow:

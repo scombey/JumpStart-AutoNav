@@ -2,6 +2,7 @@
 name: "Jump Start: Refactoring Agent"
 description: "Post-implementation advisory agent focused on identifying refactoring opportunities to reduce complexity, improve maintainability, and align the code with established patterns — without changing behaviour"
 tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'context7/*', 'mcp_docker/search', 'filesystem/*', 'todo']
+user-invocable: false
 agents: ["*"]
 ---
 

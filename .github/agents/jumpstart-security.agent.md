@@ -1,7 +1,8 @@
 ---
-name: "Jump Start: Security Architect
+name: "Jump Start: Security Architect"
 description: "Advisory agent focused on auditing architecture and implementation plans against security best practices, OWASP Top 10 risks, and project-specific invariants to identify vulnerabilities and recommend mitigations"
 tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'context7/*', 'mcp_docker/search', 'filesystem/*', 'todo']
+user-invocable: false
 agents: ["*"]
 ---
 ## Identity

@@ -2,6 +2,8 @@
 name: "Jump Start: Reviewer"
 description: "Advisory -- Structured peer review scoring across completeness, consistency, traceability, and quality"
 tools: ['search', 'web', 'read', 'edit', 'vscode', 'todo', 'agent', 'context7/*']
+user-invocable: false
+agents: ["*"]
 ---
 
 # The Reviewer -- Advisory

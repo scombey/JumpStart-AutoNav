@@ -125,6 +125,7 @@ function showHelp() {
   console.log('  timeline             View, query, export, or clear interaction timeline');
   console.log('  validate-all         Proactive validation & suggestion engine');
   console.log('  quickstart           5-minute quickstart wizard');
+  console.log('  focus <action>       Phase focus mode (set/list/clear/status)');
   console.log('  rewind <phase>       Rewind to target phase, archiving downstream artifacts');
   console.log('  approve [path]       Approve current or specified phase artifact');
   console.log('  reject [path]        Reject artifact with reason');
@@ -275,6 +276,11 @@ function showHelp() {
   console.log('  npx jumpstart-mode checkpoint restore cp-1234567890');
   console.log('  npx jumpstart-mode handoff');
   console.log('  npx jumpstart-mode handoff --output ./export/handoff.md --json');
+  console.log('  npx jumpstart-mode focus list');
+  console.log('  npx jumpstart-mode focus set business-analyst');
+  console.log('  npx jumpstart-mode focus set --start 1 --end 2');
+  console.log('  npx jumpstart-mode focus status');
+  console.log('  npx jumpstart-mode focus clear');
   console.log('  npx jumpstart-mode upgrade');
   console.log('  npx jumpstart-mode upgrade --dry-run');
   console.log('  npx jumpstart-mode upgrade --restore\n');
@@ -796,6 +802,42 @@ async function install(config) {
   const qaLogSrc = path.join(PACKAGE_ROOT, JUMPSTART_DIR, 'templates', 'qa-log.md');
   const qaLogDest = path.join(targetPath, 'specs', 'qa-log.md');
   copyFile(qaLogSrc, qaLogDest, copyOptions);
+
+  // 4c. Seed timeline and usage log if they don't already exist
+  if (!config.dryRun) {
+    const timelinePath = path.join(targetPath, JUMPSTART_DIR, 'state', 'timeline.json');
+    if (!fs.existsSync(timelinePath)) {
+      const stateDir = path.join(targetPath, JUMPSTART_DIR, 'state');
+      if (!fs.existsSync(stateDir)) fs.mkdirSync(stateDir, { recursive: true });
+      const sessionId = `ses-init-${Date.now().toString(36)}`;
+      const now = new Date().toISOString();
+      const seed = {
+        version: '1.0.0',
+        session_id: sessionId,
+        started_at: now,
+        ended_at: now,
+        events: [{
+          id: `evt-init-${Date.now().toString(36)}`,
+          timestamp: now,
+          session_id: sessionId,
+          phase: 'init',
+          agent: 'System',
+          parent_agent: null,
+          event_type: 'phase_start',
+          action: 'Jump Start framework initialized — workspace scaffolded',
+          metadata: { project_type: config.projectType || 'unknown', config_path: '.jumpstart/config.yaml' },
+          duration_ms: null
+        }]
+      };
+      fs.writeFileSync(timelinePath, JSON.stringify(seed, null, 2) + '\n', 'utf8');
+      stats.created.push(timelinePath);
+    }
+    const usageLogPath = path.join(targetPath, JUMPSTART_DIR, 'usage-log.json');
+    if (!fs.existsSync(usageLogPath)) {
+      fs.writeFileSync(usageLogPath, JSON.stringify({ entries: [], total_tokens: 0, total_cost_usd: 0 }, null, 2) + '\n', 'utf8');
+      stats.created.push(usageLogPath);
+    }
+  }
 
   // 5-6. Persist bootstrap answers in config.yaml
   const configPath = path.join(targetPath, JUMPSTART_DIR, 'config.yaml');
@@ -1767,6 +1809,92 @@ async function main() {
       // Default: show summary
       const summary = getProfileSummary();
       io.writeResult(summary);
+      return;
+    }
+
+    if (subcommand === 'focus') {
+      // Phase focus mode — restrict workflow to specific phases
+      const { listPresets, buildFocusConfig, writeFocusToConfig, clearFocusFromConfig, getFocusStatus, VALID_PRESETS } = await import('./lib/focus.js');
+      const action = process.argv[3];
+      const io = require('./lib/io');
+      const configPath = path.join(process.cwd(), '.jumpstart', 'config.yaml');
+
+      if (action === 'list') {
+        const presets = listPresets();
+        io.writeResult({ presets });
+        return;
+      }
+
+      if (action === 'set') {
+        const arg = process.argv[4];
+        const startIdx = process.argv.indexOf('--start');
+        const endIdx = process.argv.indexOf('--end');
+
+        let focusConfig;
+        if (startIdx !== -1 && endIdx !== -1) {
+          // Custom range: focus set --start 1 --end 2
+          const start = parseInt(process.argv[startIdx + 1], 10);
+          const end = parseInt(process.argv[endIdx + 1], 10);
+          if (isNaN(start) || isNaN(end)) {
+            console.error(chalk.red('Usage: jumpstart-mode focus set --start <phase> --end <phase>'));
+            process.exit(1);
+          }
+          try {
+            focusConfig = buildFocusConfig({ start_phase: start, end_phase: end });
+          } catch (err) {
+            console.error(chalk.red(err.message));
+            process.exit(1);
+          }
+        } else if (arg && !arg.startsWith('-')) {
+          // Preset: focus set business-analyst
+          if (!VALID_PRESETS.includes(arg)) {
+            console.error(chalk.red(`Unknown preset: "${arg}". Valid presets: ${VALID_PRESETS.join(', ')}`));
+            process.exit(1);
+          }
+          focusConfig = buildFocusConfig({ preset: arg });
+        } else {
+          console.error(chalk.red('Usage: jumpstart-mode focus set <preset> | focus set --start <phase> --end <phase>'));
+          console.error(chalk.gray(`  Presets: ${VALID_PRESETS.join(', ')}`));
+          process.exit(1);
+        }
+
+        if (!fs.existsSync(configPath)) {
+          console.error(chalk.red('Config file not found. Run jumpstart-mode init first.'));
+          process.exit(1);
+        }
+
+        const writeResult = writeFocusToConfig(configPath, focusConfig);
+        if (!writeResult.success) {
+          console.error(chalk.red(writeResult.error));
+          process.exit(1);
+        }
+
+        console.log(chalk.green(`Focus mode set: ${focusConfig.description}`));
+        if (focusConfig.phases) {
+          console.log(chalk.gray(`  Phases: ${focusConfig.phases.map(p => p.name || p).join(' → ')}`));
+        }
+        return;
+      }
+
+      if (action === 'clear') {
+        if (!fs.existsSync(configPath)) {
+          console.error(chalk.red('Config file not found. Run jumpstart-mode init first.'));
+          process.exit(1);
+        }
+        clearFocusFromConfig(configPath);
+        console.log(chalk.green('Focus mode cleared — full workflow restored.'));
+        return;
+      }
+
+      if (action === 'status') {
+        const status = getFocusStatus({ root: process.cwd() });
+        io.writeResult(status);
+        return;
+      }
+
+      // Default: show status
+      const status = getFocusStatus({ root: process.cwd() });
+      io.writeResult(status);
       return;
     }
 

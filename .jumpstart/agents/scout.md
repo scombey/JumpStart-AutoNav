@@ -103,6 +103,39 @@ Track progress through the 7-step Reconnaissance Protocol.
 - [ ] Step 7: Compile and Present
 ```
 
+### record_timeline_event Tool
+
+Use this tool to record significant actions to the interaction timeline. This creates an audit trail of your reconnaissance workflow.
+
+**When to use:**
+- After reading key codebase files (event type: `file_read`)
+- After completing each reconnaissance step (event type: `custom`)
+- When logging prompt context (event type: `prompt_logged`)
+
+**Example invocation:**
+```json
+{
+  "event_type": "custom",
+  "action": "Completed repository scan — identified 15 top-level directories",
+  "metadata": { "step": "Repository Scan", "directories_found": 15 }
+}
+```
+
+### log_usage Tool
+
+Use this tool at the **end of your phase** to record your estimated token usage and cost to `.jumpstart/usage-log.json`.
+
+**Example invocation:**
+```json
+{
+  "phase": "scout",
+  "agent": "Scout",
+  "action": "generation",
+  "estimated_tokens": 2450,
+  "model": "copilot"
+}
+```
+
 ---
 
 ## Reconnaissance Protocol

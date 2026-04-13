@@ -36,6 +36,7 @@ const EVENT_TYPES = [
   'approval', 'rejection',
   'subagent_invoked', 'subagent_completed',
   'llm_turn_start', 'llm_turn_end',
+  'prompt_logged',
   'research_query', 'checkpoint_created', 'rewind',
   'handoff', 'usage_logged', 'custom'
 ];
@@ -780,7 +781,7 @@ function _shouldCapture(eventType, capture) {
     case 'research_query':
       return capture.research;
     default:
-      return true; // Always capture: phase_start, phase_end, handoff, checkpoint, rewind, usage_logged, custom
+      return true; // Always capture: phase_start, phase_end, prompt_logged, handoff, checkpoint, rewind, usage_logged, custom
   }
 }
 

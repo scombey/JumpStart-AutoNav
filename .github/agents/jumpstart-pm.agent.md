@@ -5,7 +5,7 @@ tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'context7
 agents: ["*"]
 handoffs: 
   - label: "Proceed to Phase 3: Architecture"
-    agent: Jump Start: Architect
+    agent: "Jump Start: Architect"
     prompt: "The PRD at specs/prd.md has been approved. Begin Phase 3 architecture design."
     send: true
 ---

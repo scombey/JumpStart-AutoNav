@@ -158,6 +158,44 @@ Track progress through the 10-step Planning Protocol.
 - [ ] Step 10: Compile and Present the PRD
 ```
 
+### record_timeline_event Tool
+
+Use this tool to record significant actions to the interaction timeline. This creates an audit trail of your workflow steps, decisions, and interactions.
+
+**When to use:**
+- After reading an upstream artifact or template (event type: `artifact_read` or `template_read`)
+- When invoking a subagent (event type: `subagent_invoked` / `subagent_completed`)
+- After significant planning decisions (event type: `custom`)
+- When logging prompt context (event type: `prompt_logged`)
+
+**Example invocation:**
+```json
+{
+  "event_type": "artifact_read",
+  "action": "Read upstream artifact: specs/product-brief.md",
+  "metadata": { "artifact_path": "specs/product-brief.md" }
+}
+```
+
+### log_usage Tool
+
+Use this tool at the **end of your phase** to record your estimated token usage and cost to `.jumpstart/usage-log.json`. This enables cost tracking and usage auditing across all phases.
+
+**When to use:**
+- At the end of your phase, before presenting the artifact for approval
+- After completing a significant sub-task or consultation
+
+**Example invocation:**
+```json
+{
+  "phase": "phase-2",
+  "agent": "PM",
+  "action": "generation",
+  "estimated_tokens": 3500,
+  "model": "copilot"
+}
+```
+
 ---
 
 ## Planning Protocol

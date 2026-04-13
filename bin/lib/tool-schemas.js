@@ -247,6 +247,7 @@ const ALL_TOOLS = [
               'approval', 'rejection',
               'subagent_invoked', 'subagent_completed',
               'llm_turn_start', 'llm_turn_end',
+              'prompt_logged',
               'research_query', 'checkpoint_created', 'rewind',
               'handoff', 'usage_logged', 'custom'
             ],
@@ -278,6 +279,48 @@ const ALL_TOOLS = [
           }
         },
         required: ['event_type', 'action']
+      }
+    }
+  },
+  // ─── Usage Logging ──────────────────────────────────────────────────────────
+  {
+    type: 'function',
+    function: {
+      name: 'log_usage',
+      description: 'Log token usage and estimated cost for the current agent session to the usage log (.jumpstart/usage-log.json). Call this at the end of each phase or significant agent interaction to maintain an audit trail of LLM consumption.',
+      parameters: {
+        type: 'object',
+        properties: {
+          phase: {
+            type: 'string',
+            description: 'Phase identifier (e.g., "phase-0", "scout", "phase-3").'
+          },
+          agent: {
+            type: 'string',
+            description: 'Agent name (e.g., "Challenger", "Architect", "Developer").'
+          },
+          action: {
+            type: 'string',
+            description: 'Action description (e.g., "generation", "review", "consultation").'
+          },
+          estimated_tokens: {
+            type: 'number',
+            description: 'Estimated total token count for this interaction.'
+          },
+          estimated_cost_usd: {
+            type: 'number',
+            description: 'Estimated cost in USD (optional — computed from tokens if omitted).'
+          },
+          model: {
+            type: 'string',
+            description: 'Model name/ID used for this interaction.'
+          },
+          metadata: {
+            type: 'object',
+            description: 'Additional metadata (e.g., { "turns": 12, "artifact": "specs/prd.md" }).'
+          }
+        },
+        required: ['phase', 'agent', 'action', 'estimated_tokens']
       }
     }
   },
@@ -524,7 +567,7 @@ const ALL_TOOLS = [
 const BASE_TOOLS = [
   'read_file', 'create_file', 'replace_string_in_file', 'list_dir',
   'file_search', 'grep_search', 'semantic_search',
-  'ask_questions', 'manage_todo_list', 'record_timeline_event'
+  'ask_questions', 'manage_todo_list', 'record_timeline_event', 'log_usage'
 ];
 
 /** Additional tools unlocked per phase */

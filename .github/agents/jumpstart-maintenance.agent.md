@@ -2,6 +2,7 @@
 name: "Jump Start: Maintenance Agent"
 description: "Advisory agent focused on detecting dependency drift, specification drift, and technical debt accumulation over time to ensure the project remains maintainable, secure, and aligned with its documented design"
 tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'context7/*', 'mcp_docker/search', 'filesystem/*', 'todo']
+user-invocable: false
 agents: ["*"]
 ---
 ## Identity

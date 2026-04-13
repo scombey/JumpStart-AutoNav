@@ -43,6 +43,23 @@ jobs:
       - name: Layer 5 — Regression Golden Masters
         run: npx vitest run tests/test-regression.test.js --reporter=verbose
 
-      - name: All Tests Summary
+      - name: All Tests — Batched
         if: always()
-        run: npx vitest run --reporter=verbose
+        run: |
+          # Discover all test files, exclude the OOM-causing aggregate test,
+          # then run in batches of 15 to stay within Node.js heap limits.
+          files=$(find tests -maxdepth 1 -type f -name '*.test.js' \
+                    ! -name 'test-agent-intelligence.test.js' | sort)
+          batch=()
+          for f in $files; do
+            batch+=("$f")
+            if [ ${#batch[@]} -ge 15 ]; then
+              echo "--- Running batch: ${batch[*]} ---"
+              npx vitest run "${batch[@]}" --reporter=verbose
+              batch=()
+            fi
+          done
+          if [ ${#batch[@]} -gt 0 ]; then
+            echo "--- Running final batch: ${batch[*]} ---"
+            npx vitest run "${batch[@]}" --reporter=verbose
+          fi

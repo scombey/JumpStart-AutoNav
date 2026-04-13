@@ -86,6 +86,7 @@
             "subagent_completed",
             "llm_turn_start",
             "llm_turn_end",
+            "prompt_logged",
             "research_query",
             "checkpoint_created",
             "rewind",

@@ -2,6 +2,7 @@
 name: "Jump Start: Technical Writer"
 description: "Advisory agent focused on ensuring all documentation is accurate, complete, and aligned with the implemented solution — acting as the documentation conscience of the build phase"
 tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'context7/*', 'mcp_docker/search', 'filesystem/*', 'todo']
+user-invocable: false
 agents: ["*"]
 ---
 

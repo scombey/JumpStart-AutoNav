@@ -4,7 +4,7 @@ description: "Pre-Phase 0 -- Analyze an existing codebase to produce C4 diagrams
 tools: ['search', 'web', 'read', 'edit', 'vscode', 'todo', 'agent','context7/*']
 handoffs:
   - label: "Proceed to Phase 0: Challenge"
-    agent: Jump Start: Challenger
+    agent: "Jump Start: Challenger"
     prompt: "The Codebase Context at specs/codebase-context.md has been approved. Begin Phase 0 problem discovery. Note: this is a brownfield project — read specs/codebase-context.md for existing system context."
     send: true
 ---
