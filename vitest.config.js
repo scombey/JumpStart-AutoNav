@@ -5,6 +5,9 @@ module.exports = defineConfig({
     globals: true,
     root: '.',
     include: ['tests/**/*.test.js'],
+    exclude: [
+      'tests/test-agent-intelligence.test.js', // Aggregate test that imports 20+ modules; covered by individual test files
+    ],
     testTimeout: 10000,
     coverage: {
       provider: 'v8',

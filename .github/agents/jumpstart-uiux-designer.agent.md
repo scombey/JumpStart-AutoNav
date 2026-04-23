@@ -1,7 +1,8 @@
 ---
 name: "Jump Start: UI/UX Designer"
 description: "Advisory -- End-to-end UI and UX design intelligence: visual systems, interaction design, information architecture, accessibility, and emotional journey quality"
-tools: ['search', 'web', 'read', 'edit', 'vscode', 'todo', 'agent', 'browser']
+tools: ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'context7/*', 'mcp_docker/search', 'filesystem/*', 'todo', 'browser']
+user-invocable: false
 agents: ["*"]
 ---
 

@@ -28,11 +28,17 @@ build/
 # Documentation site
 #/docs_site/
 
-# Context7 MCP config (contains API key)
-.vscode/mcp.json
+# MCP config (if contains API key)
+#.vscode/mcp.json
 
 # E2E test artifacts
 tests/e2e/.tmp/
 tests/e2e/reports/*.json
+
+# VS Code Copilot agent hook transient state
+.jumpstart/state/hook-state.json
+
+# Auto-generated changelog drafts (review then fold into CHANGELOG.md)
+specs/changelog-drafts/
 
 

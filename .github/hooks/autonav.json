@@ -1,0 +1,110 @@
+{
+  "$schema": "https://code.visualstudio.com/schemas/copilot-hooks.json",
+  "description": "AutoNav (JumpStart) VS Code workspace hooks for lifecycle guardrails, traceability, schema validation, and session analytics.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/workspace-fingerprint.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/phase-gate-status.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/timeline-warmup.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/session-start.js"
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/prompt-classifier.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/ambiguity-detector.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/qa-log-capture.js"
+      }
+    ],
+    "PreCompact": [
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/pre-compact.js"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/block-agent-self-modification.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/secrets-path-blocker.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/dangerous-operation-escalator.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/dependency-risk-precheck.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/simplicity-gate-guard.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/phase-boundary-guard.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/spec-drift-guard.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/inject-adr-context.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/capture-plan.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/retry-escalation.js"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/schema-on-write-validator.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/spec-graph-updater.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/enforce-test-cochange.js"
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/session-analytics.js"
+      },
+      {
+        "type": "command",
+        "command": "node ${workspaceFolder}/.github/hooks/draft-changelog.js"
+      }
+    ]
+  }
+}
