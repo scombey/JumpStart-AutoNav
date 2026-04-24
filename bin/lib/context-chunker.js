@@ -68,8 +68,8 @@ function chunkContent(content, options = {}) {
       estimated_tokens: estimateTokens(content.substring(start, end))
     });
 
-    start = end - overlapChars;
-    if (start >= content.length) break;
+    if (end >= content.length) break;
+    start = Math.max(end - overlapChars, start + 1);
   }
 
   return {

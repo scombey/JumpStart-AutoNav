@@ -586,11 +586,183 @@ describe('Simulation Tracer', () => {
   it('generateReport is alias for getReport', () => {
     tracer.startPhase('test');
     tracer.endPhase('test', 'PASS');
-    
+
     const report1 = tracer.getReport();
     const report2 = tracer.generateReport();
-    
+
     expect(report1.scenario).toBe(report2.scenario);
     expect(report1.phases.length).toBe(report2.phases.length);
+  });
+});
+
+// ─── Holodeck Tracer API (pin the contract so API drift surfaces in CI) ──────
+
+describe('Simulation Tracer — Holodeck API', () => {
+  let tracer;
+
+  beforeEach(() => {
+    tracer = new SimulationTracer(tempDir, 'test-scenario');
+  });
+
+  it('exposes every method holodeck.js calls', () => {
+    const required = [
+      'startPhase', 'endPhase', 'logArtifact',
+      'logError', 'logWarning', 'logSubagentVerified',
+      'logDocumentCreation', 'logCostTracking', 'logHandoffValidation',
+      'getReport', 'printSummary', 'saveReport'
+    ];
+    for (const m of required) {
+      expect(typeof tracer[m]).toBe('function');
+    }
+  });
+
+  it('logError collects error + attaches to current phase', () => {
+    tracer.startPhase('validator');
+    tracer.logError('missing section X');
+    tracer.endPhase('validator', 'FAIL');
+
+    const r = tracer.getReport();
+    expect(r.errors).toHaveLength(1);
+    expect(r.errors[0].message).toBe('missing section X');
+    expect(r.errors[0].phase).toBe('validator');
+    expect(r.phases[0].errors).toContain('missing section X');
+  });
+
+  it('logError accepts explicit phase override', () => {
+    tracer.logError('boom', 'developer');
+    expect(tracer.getReport().errors[0].phase).toBe('developer');
+  });
+
+  it('logWarning collects without affecting phase status', () => {
+    tracer.startPhase('scout');
+    tracer.logWarning('no fixtures found');
+    tracer.endPhase('scout', 'PASS');
+
+    const r = tracer.getReport();
+    expect(r.warnings).toHaveLength(1);
+    expect(r.warnings[0].message).toBe('no fixtures found');
+    expect(r.phases[0].status).toBe('PASS');
+  });
+
+  it('logSubagentVerified records the agent name and phase', () => {
+    tracer.startPhase('architect');
+    tracer.logSubagentVerified('Jump Start: Security');
+    tracer.endPhase('architect', 'PASS');
+
+    const r = tracer.getReport();
+    expect(r.verifiedSubagents).toHaveLength(1);
+    expect(r.verifiedSubagents[0].agent).toBe('Jump Start: Security');
+    expect(r.verifiedSubagents[0].phase).toBe('architect');
+  });
+
+  it('logDocumentCreation records status', () => {
+    tracer.logDocumentCreation('TODO.md', 'CREATED');
+    tracer.logDocumentCreation('implementation-plan.md', 'MISSING');
+    const r = tracer.getReport();
+    expect(r.documentCreations).toHaveLength(2);
+    expect(r.documentCreations[0]).toMatchObject({ document: 'TODO.md', status: 'CREATED' });
+    expect(r.documentCreations[1]).toMatchObject({ document: 'implementation-plan.md', status: 'MISSING' });
+  });
+
+  it('logCostTracking aggregates prompt + completion tokens', () => {
+    tracer.startPhase('pm');
+    tracer.logCostTracking(1200, 500);
+    tracer.logCostTracking(800, 200);
+    tracer.endPhase('pm', 'PASS');
+
+    const r = tracer.getReport();
+    expect(r.costTracking.totalPromptTokens).toBe(2000);
+    expect(r.costTracking.totalCompletionTokens).toBe(700);
+    expect(r.phases[0].promptTokens).toBe(2000);
+    expect(r.phases[0].completionTokens).toBe(700);
+  });
+
+  it('logHandoffValidation records status and any errors', () => {
+    tracer.startPhase('developer');
+    tracer.logHandoffValidation('PASS', {});
+    tracer.logHandoffValidation('FAIL', { errors: ['Missing required field: project_type'] });
+    tracer.logHandoffValidation('SKIP');
+    tracer.endPhase('developer', 'PASS');
+
+    const r = tracer.getReport();
+    expect(r.handoffValidations).toHaveLength(3);
+    expect(r.handoffValidations.map(h => h.status)).toEqual(['PASS', 'FAIL', 'SKIP']);
+    expect(r.handoffValidations[1].errors).toContain('Missing required field: project_type');
+  });
+
+  it('report.success is true when every phase passes and nothing fails', () => {
+    tracer.startPhase('scout');
+    tracer.logHandoffValidation('SKIP');
+    tracer.endPhase('scout', 'PASS');
+
+    expect(tracer.getReport().success).toBe(true);
+  });
+
+  it('report.success is false when any phase FAILs', () => {
+    tracer.startPhase('validator');
+    tracer.endPhase('validator', 'FAIL');
+
+    expect(tracer.getReport().success).toBe(false);
+  });
+
+  it('report.success is false when errors were recorded', () => {
+    tracer.startPhase('scout');
+    tracer.logError('something blew up');
+    tracer.endPhase('scout', 'PASS'); // phase-status alone is PASS...
+
+    expect(tracer.getReport().success).toBe(false); // ...but an error sinks success
+  });
+
+  it('report.success is false when a handoff validation FAILs', () => {
+    tracer.startPhase('developer');
+    tracer.logHandoffValidation('FAIL', { errors: ['schema mismatch'] });
+    tracer.endPhase('developer', 'PASS');
+
+    expect(tracer.getReport().success).toBe(false);
+  });
+
+  it('report.success is false when no phases ran', () => {
+    // Guards against trivially-empty reports being marked "success"
+    expect(tracer.getReport().success).toBe(false);
+  });
+
+  it('printSummary produces output without throwing', () => {
+    tracer.startPhase('scout');
+    tracer.logArtifact('codebase-context.md');
+    tracer.logCostTracking(1000, 200);
+    tracer.logHandoffValidation('SKIP');
+    tracer.endPhase('scout', 'PASS');
+
+    const logs = [];
+    const orig = console.log;
+    console.log = (...args) => logs.push(args.join(' '));
+    try {
+      tracer.printSummary();
+    } finally {
+      console.log = orig;
+    }
+    expect(logs.some(l => l.includes('Scenario'))).toBe(true);
+    expect(logs.some(l => l.includes('PASS'))).toBe(true);
+  });
+
+  it('saveReport writes a JSON file with the expected top-level fields', () => {
+    tracer.startPhase('pm');
+    tracer.logArtifact('prd.md');
+    tracer.endPhase('pm', 'PASS');
+
+    const out = path.join(tempDir, 'nested', 'subdir', 'report.json');
+    tracer.saveReport(out);
+
+    expect(fs.existsSync(out)).toBe(true);
+    const parsed = JSON.parse(fs.readFileSync(out, 'utf8'));
+    for (const key of [
+      'scenario', 'timestamp', 'success', 'phases', 'errors', 'warnings',
+      'verifiedSubagents', 'documentCreations', 'handoffValidations',
+      'costTracking', 'headless'
+    ]) {
+      expect(parsed).toHaveProperty(key);
+    }
+    expect(parsed.success).toBe(true);
+    expect(parsed.phases).toHaveLength(1);
   });
 });
