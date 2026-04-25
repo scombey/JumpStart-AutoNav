@@ -128,6 +128,8 @@ describe('path-safety primitives — negative-space (paths that must be ALLOWED)
     'src/lib/io.ts',
     './src/lib/io.ts',
     'src/lib/../lib/io.ts', // resolves back inside
+    'a/b/../../c', // multi-level round-trip — Pit Crew QA 12
+    'a/./b', // single-dot mid-segment
     '/projects/myproject/src/lib/io.ts', // absolute, but inside
     '/projects/myproject', // the root itself
   ];
@@ -139,6 +141,87 @@ describe('path-safety primitives — negative-space (paths that must be ALLOWED)
   it.each(acceptable)('%s passes safePathSchema', (input) => {
     const schema = safePathSchema(root);
     expect(schema.safeParse(input).success).toBe(true);
+  });
+});
+
+describe('path-safety primitives — non-string inputs throw ValidationError, not TypeError (QA 1)', () => {
+  const root = '/projects/myproject';
+  // Per ADR-006 every rejection path produces ValidationError + exitCode 2.
+  // Without an explicit type guard, `input.includes(NULL_BYTE)` crashes
+  // with a bare TypeError that the IPC envelope renders as exit 99.
+  const nonStrings: Array<[string, unknown]> = [
+    ['undefined', undefined],
+    ['null', null],
+    ['number', 123],
+    ['boolean', true],
+    ['object', {}],
+    ['array', []],
+  ];
+
+  it.each(nonStrings)('%s input throws ValidationError', (_label, input) => {
+    let caught: unknown;
+    try {
+      assertInsideRoot(input as string, root);
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(ValidationError);
+    expect((caught as ValidationError).exitCode).toBe(2);
+  });
+});
+
+describe('path-safety primitives — empty + degenerate inputs (QA 2 documented behavior)', () => {
+  const root = '/projects/myproject';
+  // The documented policy: empty string and `.` are ALLOWED — both
+  // resolve to the boundary root itself, which is technically in-bounds.
+  // Callers that want them rejected should chain `.min(1)` or a custom
+  // refinement on top of `safePathSchema`.
+  //
+  // `~` is also allowed: the helper deliberately does NOT do shell-style
+  // home-expansion (it's a path-arithmetic primitive, not an ambient
+  // shell). `~` becomes a literal filename inside the boundary. Callers
+  // that want home-expansion should pre-process via `os.homedir()`
+  // before passing to safePathSchema.
+  const allowedDegenerate = ['', '.', './', '~/etc/passwd'];
+  const rejectedDegenerate = ['..', '/'];
+
+  it.each(allowedDegenerate)('%j is allowed (resolves inside boundary lexically)', (input) => {
+    expect(() => assertInsideRoot(input, root)).not.toThrow();
+    expect(safePathSchema(root).safeParse(input).success).toBe(true);
+  });
+
+  it.each(rejectedDegenerate)('%j is rejected', (input) => {
+    expect(() => assertInsideRoot(input, root)).toThrow(ValidationError);
+    expect(safePathSchema(root).safeParse(input).success).toBe(false);
+  });
+});
+
+describe('path-safety primitives — Layer 1 ↔ Layer 2 parity (QA 5)', () => {
+  // The whole point of the two-layer design (per ADR-009) is that both
+  // layers enforce the SAME policy. Without a parity test, a future
+  // change to one layer in isolation can produce silent divergence.
+  const root = '/projects/myproject';
+  const cases = [
+    '',
+    '.',
+    'README.md',
+    '../etc/passwd',
+    '/etc/passwd',
+    './legitimate/../../etc/passwd',
+    '/projects/myproject',
+    'C:\\Windows\\system32',
+    '..\\..\\etc\\passwd',
+  ];
+
+  it.each(cases)('%j: assertInsideRoot and safePathSchema agree', (input) => {
+    const layer1Pass = safePathSchema(root).safeParse(input).success;
+    let layer2Pass = true;
+    try {
+      assertInsideRoot(input, root);
+    } catch {
+      layer2Pass = false;
+    }
+    expect(layer1Pass).toBe(layer2Pass);
   });
 });
 

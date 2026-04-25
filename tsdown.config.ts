@@ -14,10 +14,16 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  // Strangler phase: only the smoke entry exists today.
-  // As modules port in M2-M8, additional entries get added here.
+  // Strangler phase entries. Each ported module goes here so:
+  //   1. tsdown emits dist/<name>.{mjs,d.mts,mjs.map}
+  //   2. check-dist-exports.mjs (T2.1 + Pit Crew QA gate) verifies the
+  //      .d.mts surface matches the source export list
+  //   3. T3.9 Tier 2 subprocess replay tests can run against the dist
+  //      output once `bin/lib-ts/ipc.ts` lands
   entry: [
     'bin/lib-ts/_smoke.ts',
+    'bin/lib-ts/errors.ts',
+    'bin/lib-ts/path-safety.ts',
     // Future entries added per port:
     // 'bin/lib-ts/io.ts',
     // 'bin/lib-ts/hashing.ts',

@@ -5,6 +5,14 @@ name: Metrics — Weekly Drift Rollup
 # Output is committed to a long-lived `metrics` branch so we don't
 # pollute main's history with high-frequency machine writes.
 #
+# Pit Crew remediation (M1 round):
+#   - The harness step writes the latest drift-catches.json; we copy it
+#     into the metrics worktree's snapshots/ dir BEFORE running the
+#     rollup, so count-drift-catches sees the ENTIRE trailing window
+#     (not just the single fresh snapshot — Reviewer B2).
+#   - Worktree path uses mktemp so a hijacked /tmp on a self-hosted
+#     runner can't pre-seed it (Adversary 7).
+#
 # @see specs/architecture.md §Drift-catches log + Regression-share metric
 # @see specs/implementation-plan.md T3.7
 
@@ -42,37 +50,55 @@ jobs:
       - name: Run contract harness on main
         run: node scripts/extract-public-surface.mjs
 
-      - name: Aggregate rollup
-        run: node scripts/count-drift-catches.mjs
-
-      - name: Publish to metrics branch
+      - name: Set up metrics worktree + snapshot the fresh harness output
+        id: worktree
         run: |
           set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config --local user.name 'github-actions[bot]'
+          git config --local user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-          # Use a worktree so we don't disturb the main checkout.
+          WORKTREE="$(mktemp -d /tmp/metrics-branch.XXXXXXXX)"
+          rmdir "$WORKTREE"  # `git worktree add` recreates the dir
+          echo "path=$WORKTREE" >> "$GITHUB_OUTPUT"
+
           if git ls-remote --exit-code --heads origin metrics; then
             git fetch origin metrics:metrics
-            git worktree add /tmp/metrics-branch metrics
+            git worktree add "$WORKTREE" metrics
           else
-            git worktree add --detach /tmp/metrics-branch
-            git -C /tmp/metrics-branch checkout --orphan metrics
-            git -C /tmp/metrics-branch rm -rf . 2>/dev/null || true
+            git worktree add --detach "$WORKTREE"
+            git -C "$WORKTREE" checkout --orphan metrics
+            git -C "$WORKTREE" rm -rf . 2>/dev/null || true
           fi
 
-          mkdir -p /tmp/metrics-branch/snapshots
+          mkdir -p "$WORKTREE/snapshots"
           STAMP="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
-          cp .jumpstart/metrics/drift-catches.json "/tmp/metrics-branch/snapshots/drift-catches-${STAMP}.json"
-          cp .jumpstart/metrics/regression-share.json "/tmp/metrics-branch/regression-share-latest.json"
+          cp .jumpstart/metrics/drift-catches.json "$WORKTREE/snapshots/drift-catches-${STAMP}.json"
+          echo "stamp=$STAMP" >> "$GITHUB_OUTPUT"
 
-          git -C /tmp/metrics-branch add .
-          if git -C /tmp/metrics-branch diff --cached --quiet; then
+      - name: Aggregate trailing-window rollup
+        env:
+          WORKTREE: ${{ steps.worktree.outputs.path }}
+        run: |
+          # IMPORTANT: count-drift-catches MUST see the full snapshots/
+          # directory, not just the freshly-emitted single file. The
+          # original ordering ran rollup before the snapshot copy, so
+          # regression-share.json was forever totalRuns:1 (Reviewer B2).
+          node scripts/count-drift-catches.mjs "$WORKTREE/snapshots"
+          cp .jumpstart/metrics/regression-share.json "$WORKTREE/regression-share-latest.json"
+
+      - name: Commit + publish
+        env:
+          WORKTREE: ${{ steps.worktree.outputs.path }}
+          STAMP: ${{ steps.worktree.outputs.stamp }}
+        run: |
+          set -euo pipefail
+          git -C "$WORKTREE" add .
+          if git -C "$WORKTREE" diff --cached --quiet; then
             echo 'No changes to commit.'
             exit 0
           fi
-          git -C /tmp/metrics-branch commit -m "metrics: weekly rollup ${STAMP}"
-          git -C /tmp/metrics-branch push origin metrics
+          git -C "$WORKTREE" commit -m "metrics: weekly rollup ${STAMP}"
+          git -C "$WORKTREE" push origin metrics
 
       - name: Upload snapshots as workflow artifact
         if: always()

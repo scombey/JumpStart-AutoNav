@@ -41,7 +41,38 @@ const ALLOWLIST = new Set(
   )
 );
 
-const PATTERN = /process\.exit\s*\(/g;
+// Multiple patterns layered so the gate isn't trivially bypassed by
+// indirection (Pit Crew Adversary 1). Each pattern catches a distinct
+// shape that ends up calling process.exit in practice. The "right" fix
+// is AST-based — see Deviation Log; this layered regex closes ~95% of
+// the hole until the AST-based gate ships in M2 alongside the first
+// real port.
+const PATTERNS = [
+  // Direct: process.exit(...)
+  { name: 'direct', re: /process\s*\.\s*exit\s*\(/g },
+  // Computed property: process['exit'](...) or process["exit"](...)
+  { name: 'computed', re: /process\s*\[\s*['"]exit['"]\s*\]\s*\(/g },
+  // Alias assignment: const x = process.exit; (call site can hide anywhere)
+  { name: 'alias', re: /=\s*process\s*\.\s*exit\b(?!\s*\()/g },
+  // Destructured access: const { exit } = process | const { exit } = require('node:process')
+  {
+    name: 'destructure',
+    re: /\{[^}]*\bexit\b[^}]*\}\s*=\s*(?:process\b|require\(\s*['"](?:node:)?process['"]\s*\))/g,
+  },
+  // Named imports: import { exit } from 'node:process' | import { exit } from 'process'
+  {
+    name: 'named-import',
+    re: /import\s*\{[^}]*\bexit\b[^}]*\}\s*from\s*['"](?:node:)?process['"]/g,
+  },
+  // Namespace import: import * as p from 'node:process'  (we conservatively
+  // flag any module-level alias for the process module — the only legitimate
+  // reason to rebind it is to call exit, since direct access is the
+  // documented pattern)
+  {
+    name: 'namespace-import',
+    re: /import\s*\*\s*as\s+\w+\s*from\s*['"](?:node:)?process['"]/g,
+  },
+];
 
 function* walk(dir) {
   if (!existsSync(dir)) return;
@@ -76,19 +107,27 @@ for (const root of ROOTS) {
     // process.exit() — see ADR-006") don't false-positive. Replace
     // comment bodies with whitespace of equal length so line numbers
     // and column offsets in violation reports stay accurate.
+    //
+    // Limitation (documented): string literals containing the rule's
+    // patterns will false-positive, and regex literals containing `//`
+    // can confuse the line-comment stripper. The AST-based replacement
+    // (Deviation Log entry) closes both.
     const stripped = rawContents
       .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
       .replace(/(^|[^:])\/\/[^\n]*/g, (_m, p1) => p1 + ' '.repeat(_m.length - p1.length));
 
-    PATTERN.lastIndex = 0;
-    for (const match of stripped.matchAll(PATTERN)) {
-      const before = rawContents.slice(0, match.index);
-      const line = before.split('\n').length;
-      violations.push({
-        file: relPath,
-        line,
-        snippet: rawContents.split('\n')[line - 1].trim(),
-      });
+    for (const { name, re } of PATTERNS) {
+      re.lastIndex = 0;
+      for (const match of stripped.matchAll(re)) {
+        const before = rawContents.slice(0, match.index);
+        const line = before.split('\n').length;
+        violations.push({
+          file: relPath,
+          line,
+          pattern: name,
+          snippet: rawContents.split('\n')[line - 1].trim(),
+        });
+      }
     }
   }
 }
@@ -102,7 +141,7 @@ if (scanned === 0) {
 
 if (violations.length === 0) {
   console.log(
-    `[check-process-exit] OK: ${scanned} files scanned; only allowlisted exit sites found.`
+    `[check-process-exit] OK: ${scanned} files scanned; only allowlisted exit sites found (6 patterns checked).`
   );
   process.exit(0);
 }
@@ -113,6 +152,6 @@ for (const a of ALLOWLIST) console.error(`  - ${a}`);
 console.error('');
 console.error('Violations:');
 for (const v of violations) {
-  console.error(`  ${v.file}:${v.line}  ${v.snippet}`);
+  console.error(`  ${v.file}:${v.line}  [${v.pattern}]  ${v.snippet}`);
 }
 process.exit(1);

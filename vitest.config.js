@@ -9,11 +9,16 @@ module.exports = defineConfig({
   // legacy `bin/lib` as a fallback resolved via Node's normal resolution
   // (Vite's alias array tries each replacement until one resolves).
   resolve: {
+    // Mirror the tsconfig `paths` order: bin/lib-ts first (ported), then
+    // bin/lib (legacy). Vite tries each alias entry until one resolves,
+    // so this is functionally equivalent to tsc's path-mapping behavior.
+    // Without the second entry, vitest fails to resolve `@lib/<name>`
+    // for any name that hasn't been ported yet — which would silently
+    // cripple test files that touch the strangler boundary
+    // (Pit Crew Reviewer M2).
     alias: [
-      {
-        find: /^@lib\/(.+)$/,
-        replacement: path.resolve(__dirname, 'bin/lib-ts/$1'),
-      },
+      { find: /^@lib\/(.+)$/, replacement: path.resolve(__dirname, 'bin/lib-ts/$1') },
+      { find: /^@lib\/(.+)$/, replacement: path.resolve(__dirname, 'bin/lib/$1') },
     ],
   },
   test: {

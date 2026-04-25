@@ -3,36 +3,39 @@
  * extract-public-surface.mjs — T3.1 cross-module contract harness.
  *
  * AST-based public-surface extractor for the strangler-phase codebase.
- * Walks `bin/lib/**\/*.js` (legacy) and `bin/lib-ts/**\/*.ts` (ported) and
- * cross-references method calls against class declarations to detect
- * drift of the form that bit us in v1.1.13: a class declared 4 methods,
- * the caller invoked 12, and CI never noticed because the missing methods
- * only threw on the first phase-validation error.
+ * Walks `bin/lib-ts/**\/*.ts` (ported, preferred) and `bin/lib/**\/*.js`
+ * (legacy) and cross-references method calls against class declarations
+ * to detect drift of the form that bit us in v1.1.13: a class declared
+ * 4 methods, the caller invoked 12, and CI never noticed because the
+ * missing methods only threw on the first phase-validation error.
  *
  * Detection scope (conservative — false-positive-averse):
  *   1. Class instantiation: `const x = new ClassName(...)` recorded in a
- *      variable→class map.
- *   2. Method calls on tracked instances: `x.method(...)` where `x` is in
- *      the map. If `ClassName` doesn't declare `method`, that's drift.
+ *      per-file instantiation log keyed by (varName, sourcePosition).
+ *   2. Method calls on tracked instances: `x.method(...)` is checked
+ *      against the most recent `new ClassName()` assignment to `x`
+ *      whose source position is BEFORE the call site. This handles
+ *      reassignments correctly:
+ *        let x = new A(); x.aMethod();   // checked against A
+ *        x = new B();     x.bMethod();   // checked against B
+ *      A flat last-write-wins map (which the original implementation
+ *      used) would false-positive `x.aMethod()` against `B`.
  *
- * Out of scope for now (would generate noise on legacy code):
+ * Out of scope (intentional, would generate noise on legacy code):
  *   - Arity-mismatch checks (default params, rest, options-bag pattern)
- *   - Cross-module function-import drift (T3.6 will partially cover via
- *     `check-return-shapes.mjs`)
- *   - Dynamic dispatch (`obj[methodName]()`) — purely runtime, can't detect
- *     statically without overcounting false positives
+ *   - Cross-module function-import drift (T3.6 partially covers this)
+ *   - Dynamic dispatch (`obj[methodName]()`) — purely runtime
+ *   - Type-flow inference across function boundaries
  *
  * Output: `.jumpstart/metrics/drift-catches.json` (gitignored). Schema:
  *   {
  *     "timestamp": ISO8601,
- *     "scanned": { "tsFiles": N, "jsFiles": N, "callSites": N },
+ *     "scanned": { "tsFiles": N, "jsFiles": N, "callSites": N,
+ *                  "parseErrors": N, "truncatedFiles": N },
  *     "incidents": [
- *       {
- *         "type": "missing_method",
- *         "callSite": { "file": rel-path, "line": N, "snippet": "..." },
- *         "expected": { "class": "ClassName", "declaredIn": rel-path },
- *         "actual": { "calledMethod": "method", "varName": "x" }
- *       }
+ *       { "type": "missing_method", "callSite": {...}, "expected": {...}, "actual": {...} },
+ *       { "type": "parse_error", "callSite": {...}, "actual": { "error": "..." } },
+ *       { "type": "file_truncated", "callSite": {...}, "actual": { "callSites": N, "cap": N } }
  *     ]
  *   }
  *
@@ -41,7 +44,7 @@
  *   - `@babel/parser` for `.js` files (lenient + CommonJS-friendly)
  *
  * Acceptance per T3.3:
- *   - Run against v1.1.14 main → 0 incidents
+ *   - Run against v1.1.14 main → 0 missing-method incidents
  *   - Run against tests/fixtures/contract-drift/simulation-tracer-vs-holodeck/
  *     → exactly 8 incidents with file:line refs
  *
@@ -61,9 +64,20 @@ import * as ts from 'typescript';
 const babelTraverse = babelTraverseModule.default ?? babelTraverseModule;
 
 const REPO_ROOT = process.cwd();
-const SCAN_ROOTS = ['bin/lib', 'bin/lib-ts'];
+
+// Strangler-phase order: TS port (bin/lib-ts) wins over legacy JS
+// (bin/lib) when both declare the same class name. This matches
+// `tsconfig.json` paths and `vitest.config.js` resolve.alias, and means
+// the harness reflects what the runtime resolves during the M2-M8
+// dual-existence window.
+const SCAN_ROOTS = ['bin/lib-ts', 'bin/lib'];
+
 const OUTPUT_DIR = '.jumpstart/metrics';
 const OUTPUT_PATH = path.join(OUTPUT_DIR, 'drift-catches.json');
+
+// DoS guard: cap per-file call sites to keep a single pathological file
+// from producing a hundred-megabyte report (Pit Crew Adversary 5).
+const PER_FILE_CALL_SITE_CAP = 5_000;
 
 // Allow the harness to be pointed at a synthetic fixture (T3.2/T3.3).
 // Usage: node scripts/extract-public-surface.mjs --root=tests/fixtures/contract-drift/foo
@@ -102,9 +116,12 @@ function* walkSourceFiles(dir) {
 // ─────────────────────────────────────────────────────────────────────────
 //
 // Walks a JS file's AST and produces:
-//   - declaredClasses: { name -> Set<methodName> }
-//   - instantiations:  { varName -> className }
-//   - methodCalls:     [{ varName, methodName, line, snippet }]
+//   - declaredClasses: Map<className, Set<methodName>>
+//   - instantiations:  Array<{ varName, className, pos }>  // per-call-site lookup
+//   - methodCalls:     Array<{ varName, methodName, line, pos, snippet }>
+//
+// `pos` is the source-text byte offset; we use it to resolve which
+// instantiation a call site refers to (most recent BEFORE the call).
 
 function extractJs(_file, source) {
   const ast = babelParse(source, {
@@ -114,7 +131,7 @@ function extractJs(_file, source) {
   });
 
   const declaredClasses = new Map();
-  const instantiations = new Map();
+  const instantiations = [];
   const methodCalls = [];
   const lines = source.split('\n');
 
@@ -128,7 +145,8 @@ function extractJs(_file, source) {
           if (member.key.type === 'Identifier') methods.add(member.key.name);
         } else if (
           member.type === 'ClassProperty' &&
-          member.value?.type === 'ArrowFunctionExpression'
+          (member.value?.type === 'ArrowFunctionExpression' ||
+            member.value?.type === 'FunctionExpression')
         ) {
           if (member.key.type === 'Identifier') methods.add(member.key.name);
         }
@@ -141,7 +159,11 @@ function extractJs(_file, source) {
       if (init?.type === 'NewExpression' && init.callee.type === 'Identifier') {
         const varNode = astPath.node.id;
         if (varNode.type === 'Identifier') {
-          instantiations.set(varNode.name, init.callee.name);
+          instantiations.push({
+            varName: varNode.name,
+            className: init.callee.name,
+            pos: astPath.node.start ?? 0,
+          });
         }
       }
     },
@@ -153,11 +175,16 @@ function extractJs(_file, source) {
         node.right.callee.type === 'Identifier' &&
         node.left.type === 'Identifier'
       ) {
-        instantiations.set(node.left.name, node.right.callee.name);
+        instantiations.push({
+          varName: node.left.name,
+          className: node.right.callee.name,
+          pos: node.start ?? 0,
+        });
       }
     },
 
     CallExpression(astPath) {
+      if (methodCalls.length >= PER_FILE_CALL_SITE_CAP) return;
       const callee = astPath.node.callee;
       if (
         callee.type === 'MemberExpression' &&
@@ -170,6 +197,7 @@ function extractJs(_file, source) {
           varName: callee.object.name,
           methodName: callee.property.name,
           line,
+          pos: astPath.node.start ?? 0,
           snippet: lines[line - 1]?.trim() ?? '',
         });
       }
@@ -187,7 +215,7 @@ function extractTs(file, source) {
   const sf = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
 
   const declaredClasses = new Map();
-  const instantiations = new Map();
+  const instantiations = [];
   const methodCalls = [];
   const lines = source.split('\n');
 
@@ -199,13 +227,25 @@ function extractTs(file, source) {
     if (ts.isClassDeclaration(node) && node.name) {
       const methods = new Set();
       for (const member of node.members) {
-        if ((ts.isMethodDeclaration(member) || ts.isPropertyDeclaration(member)) && member.name) {
-          if (ts.isIdentifier(member.name)) methods.add(member.name.text);
+        if (ts.isMethodDeclaration(member) && member.name && ts.isIdentifier(member.name)) {
+          methods.add(member.name.text);
+        } else if (
+          ts.isPropertyDeclaration(member) &&
+          member.name &&
+          ts.isIdentifier(member.name) &&
+          member.initializer &&
+          (ts.isArrowFunction(member.initializer) || ts.isFunctionExpression(member.initializer))
+        ) {
+          // Property-initialized callable, e.g. `name = (): T => {}`.
+          // Non-callable typed fields like `name: string = ''` are NOT
+          // treated as methods (Pit Crew Reviewer H2).
+          methods.add(member.name.text);
         }
       }
       declaredClasses.set(node.name.text, methods);
     }
 
+    // const x = new Foo()  (declaration form)
     if (
       ts.isVariableDeclaration(node) &&
       node.initializer &&
@@ -213,11 +253,32 @@ function extractTs(file, source) {
     ) {
       const expr = node.initializer.expression;
       if (ts.isIdentifier(expr) && ts.isIdentifier(node.name)) {
-        instantiations.set(node.name.text, expr.text);
+        instantiations.push({
+          varName: node.name.text,
+          className: expr.text,
+          pos: node.getStart(sf),
+        });
       }
     }
 
+    // x = new Foo()  (assignment form — covers late-init pattern; Pit
+    // Crew Reviewer H3)
     if (
+      ts.isBinaryExpression(node) &&
+      node.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+      ts.isIdentifier(node.left) &&
+      ts.isNewExpression(node.right) &&
+      ts.isIdentifier(node.right.expression)
+    ) {
+      instantiations.push({
+        varName: node.left.text,
+        className: node.right.expression.text,
+        pos: node.getStart(sf),
+      });
+    }
+
+    if (
+      methodCalls.length < PER_FILE_CALL_SITE_CAP &&
       ts.isCallExpression(node) &&
       ts.isPropertyAccessExpression(node.expression) &&
       ts.isIdentifier(node.expression.expression) &&
@@ -228,6 +289,7 @@ function extractTs(file, source) {
         varName: node.expression.expression.text,
         methodName: node.expression.name.text,
         line,
+        pos: node.getStart(sf),
         snippet: lines[line - 1]?.trim() ?? '',
       });
     }
@@ -244,55 +306,85 @@ function extractTs(file, source) {
 // ─────────────────────────────────────────────────────────────────────────
 
 const allClasses = new Map(); // className -> { file, methods: Set<string> }
-const fileResults = []; // [{ file, instantiations, methodCalls }]
+const fileResults = []; // [{ file, instantiations, methodCalls, source }]
+const incidents = [];
 let tsCount = 0;
 let jsCount = 0;
+let parseErrors = 0;
+let truncatedFiles = 0;
 
 for (const root of roots) {
   for (const file of walkSourceFiles(root)) {
     const source = readFileSync(file, 'utf8');
     const isTs = /\.tsx?$/.test(file);
+    const relPath = path.relative(REPO_ROOT, file);
     let result;
     try {
       result = isTs ? extractTs(file, source) : extractJs(file, source);
     } catch (err) {
-      // Per ADR-006, we surface parse errors as a special drift-class
-      // rather than crashing the harness — a single broken file shouldn't
-      // mask drift in 158 healthy files.
-      console.warn(`[extract-public-surface] parse error in ${file}: ${err.message}`);
+      // Per ADR-006, surface parse errors as a typed drift-class so the
+      // drift counter doesn't silently skip files. Without this a file
+      // that crashes Babel (e.g. deeply-nested arrow chain) would mask
+      // real drift inside it (Pit Crew Adversary 5).
+      console.warn(`[extract-public-surface] parse error in ${relPath}: ${err.message}`);
+      parseErrors++;
+      incidents.push({
+        type: 'parse_error',
+        callSite: { file: relPath, line: 0, snippet: '' },
+        actual: { error: String(err.message).slice(0, 500) },
+      });
       continue;
     }
 
     if (isTs) tsCount++;
     else jsCount++;
 
+    if (result.methodCalls.length >= PER_FILE_CALL_SITE_CAP) {
+      truncatedFiles++;
+      incidents.push({
+        type: 'file_truncated',
+        callSite: { file: relPath, line: 0, snippet: '' },
+        actual: { callSites: result.methodCalls.length, cap: PER_FILE_CALL_SITE_CAP },
+      });
+    }
+
     for (const [name, methods] of result.declaredClasses) {
-      // First-declaration wins for cross-file class names. Real-world
-      // collisions don't exist in this codebase (verified via ADR-005's
-      // strangler-fig: ported classes replace, never duplicate).
+      // First-declaration wins. Order is bin/lib-ts → bin/lib so the TS
+      // port replaces the legacy JS during the dual-existence window
+      // (Pit Crew Reviewer B1).
       if (!allClasses.has(name)) {
-        allClasses.set(name, { file: path.relative(REPO_ROOT, file), methods });
+        allClasses.set(name, { file: relPath, methods });
       }
     }
 
     fileResults.push({
-      file: path.relative(REPO_ROOT, file),
+      file: relPath,
       instantiations: result.instantiations,
       methodCalls: result.methodCalls,
     });
   }
 }
 
-const incidents = [];
 let totalCallSites = 0;
 
 for (const { file, instantiations, methodCalls } of fileResults) {
   totalCallSites += methodCalls.length;
-  for (const { varName, methodName, line, snippet } of methodCalls) {
-    const className = instantiations.get(varName);
+  // Sort instantiations by source position once per file for log(n) lookup.
+  const sortedInsts = instantiations.slice().sort((a, b) => a.pos - b.pos);
+
+  for (const { varName, methodName, line, pos, snippet } of methodCalls) {
+    // Per-call-site instantiation resolution: find the most recent
+    // (varName, className) assignment whose pos < this call's pos.
+    // Naive O(n*m) scan is fine — files have at most a few dozen
+    // instantiations; the inner loop is tiny (Pit Crew QA 4 / Rev M1).
+    let className;
+    for (const inst of sortedInsts) {
+      if (inst.pos >= pos) break;
+      if (inst.varName === varName) className = inst.className;
+    }
     if (!className) continue; // can't trace var → class statically; skip
     const cls = allClasses.get(className);
-    if (!cls) continue; // class is from outside our scan scope (e.g. a node builtin or third-party)
+    if (!cls) continue; // class is from outside our scan scope (e.g. node builtin)
     if (cls.methods.has(methodName)) continue; // declared — fine
     incidents.push({
       type: 'missing_method',
@@ -303,12 +395,30 @@ for (const { file, instantiations, methodCalls } of fileResults) {
   }
 }
 
+// False-green guard: the default-roots scan must find at least one file.
+// If `bin/lib-ts/` and `bin/lib/` are both empty (deleted, mis-checked-out,
+// CI working dir wrong), the harness would otherwise report "0 drift" and
+// publish a forever-clean trend. (Pit Crew QA 3.)
+const usingDefaultRoots = explicitRoots === null;
+const totalFiles = tsCount + jsCount;
+if (usingDefaultRoots && totalFiles === 0) {
+  console.error(
+    `[extract-public-surface] FAIL: default scan roots [${SCAN_ROOTS.join(', ')}] contain zero source files.`
+  );
+  console.error(
+    'This is almost certainly a CI / working-directory misconfiguration, NOT clean-as-a-whistle code.'
+  );
+  process.exit(2);
+}
+
 const report = {
   timestamp: new Date().toISOString(),
   scanned: {
     tsFiles: tsCount,
     jsFiles: jsCount,
     callSites: totalCallSites,
+    parseErrors,
+    truncatedFiles,
   },
   incidents,
 };
@@ -317,7 +427,7 @@ mkdirSync(path.dirname(reportPath), { recursive: true });
 writeFileSync(reportPath, JSON.stringify(report, null, 2));
 
 console.log(
-  `[extract-public-surface] ${report.scanned.tsFiles + report.scanned.jsFiles} files, ${report.scanned.callSites} call sites, ${report.incidents.length} drift incidents.`
+  `[extract-public-surface] ${report.scanned.tsFiles + report.scanned.jsFiles} files, ${report.scanned.callSites} call sites, ${report.incidents.length} incidents (parse_errors=${parseErrors}, truncated=${truncatedFiles}).`
 );
 console.log(`[extract-public-surface] Report: ${reportPath}`);
 
