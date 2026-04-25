@@ -1,0 +1,15 @@
+{
+  "name": "symlink-outside-boundary",
+  "description": "A symlink that lexically lives inside the boundary but whose target resolves outside. Catchable only when assertInsideRoot is invoked with `followSymlinks: true`. The test creates the symlink at runtime in a tmp boundary, then verifies the helper throws.",
+  "boundaryRoot": "<runtime-tmp>",
+  "input": "outside-link",
+  "options": {
+    "followSymlinks": true
+  },
+  "expected": {
+    "outcome": "reject",
+    "errorClass": "ValidationError",
+    "exitCode": 2,
+    "messageContains": "Symlink traversal rejected"
+  }
+}

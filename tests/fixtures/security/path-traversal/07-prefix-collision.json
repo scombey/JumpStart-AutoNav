@@ -1,0 +1,12 @@
+{
+  "name": "prefix-collision",
+  "description": "Path that lexically *prefixes* the boundary root but is not inside it. Without the trailing path.sep guard, '/projects/myproject-attacker' would falsely appear inside '/projects/myproject' because the latter is a string-prefix of the former. This fixture proves the guard works.",
+  "boundaryRoot": "/projects/myproject",
+  "input": "../myproject-attacker/secrets.txt",
+  "expected": {
+    "outcome": "reject",
+    "errorClass": "ValidationError",
+    "exitCode": 2,
+    "messageContains": "outside the project boundary root"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "relative-traversal",
+  "description": "Classic .. segment escape from the boundary root.",
+  "boundaryRoot": "/projects/myproject",
+  "input": "../etc/passwd",
+  "expected": {
+    "outcome": "reject",
+    "errorClass": "ValidationError",
+    "exitCode": 2,
+    "messageContains": "outside the project boundary root"
+  }
+}

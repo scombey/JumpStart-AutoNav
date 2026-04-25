@@ -1,0 +1,12 @@
+{
+  "name": "windows-traversal",
+  "description": "Windows-style absolute path with drive letter + traversal segments. POSIX hosts treat this as a single relative path component (since `\\` is not a separator), but the test ensures the helper rejects it on either host.",
+  "boundaryRoot": "/projects/myproject",
+  "input": "C:\\Windows\\..\\..\\..\\boot.ini",
+  "expected": {
+    "outcome": "reject",
+    "errorClass": "ValidationError",
+    "exitCode": 2,
+    "messageContains": "outside the project boundary root"
+  }
+}

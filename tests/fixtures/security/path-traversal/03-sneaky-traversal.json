@@ -1,0 +1,12 @@
+{
+  "name": "sneaky-traversal",
+  "description": "Path that begins with a legitimate-looking prefix but uses repeated `..` to escape past the boundary.",
+  "boundaryRoot": "/projects/myproject",
+  "input": "./legitimate/../../etc/passwd",
+  "expected": {
+    "outcome": "reject",
+    "errorClass": "ValidationError",
+    "exitCode": 2,
+    "messageContains": "outside the project boundary root"
+  }
+}

@@ -70,15 +70,24 @@ for (const root of ROOTS) {
     const relPath = path.normalize(path.relative('.', file));
     if (ALLOWLIST.has(relPath)) continue;
 
-    const contents = readFileSync(file, 'utf8');
+    const rawContents = readFileSync(file, 'utf8');
+    // Strip block + line comments before regex-matching so docstrings
+    // that legitimately discuss the rule (e.g. "must not call
+    // process.exit() — see ADR-006") don't false-positive. Replace
+    // comment bodies with whitespace of equal length so line numbers
+    // and column offsets in violation reports stay accurate.
+    const stripped = rawContents
+      .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+      .replace(/(^|[^:])\/\/[^\n]*/g, (_m, p1) => p1 + ' '.repeat(_m.length - p1.length));
+
     PATTERN.lastIndex = 0;
-    for (const match of contents.matchAll(PATTERN)) {
-      const before = contents.slice(0, match.index);
+    for (const match of stripped.matchAll(PATTERN)) {
+      const before = rawContents.slice(0, match.index);
       const line = before.split('\n').length;
       violations.push({
         file: relPath,
         line,
-        snippet: contents.split('\n')[line - 1].trim(),
+        snippet: rawContents.split('\n')[line - 1].trim(),
       });
     }
   }

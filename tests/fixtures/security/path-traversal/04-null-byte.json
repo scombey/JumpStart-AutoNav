@@ -1,0 +1,12 @@
+{
+  "name": "null-byte-injection",
+  "description": "Null-byte injection: fs at the C-API level may truncate at U+0000, turning a path like safe.txt followed by null byte ../etc/passwd into a read of /etc/passwd.",
+  "boundaryRoot": "/projects/myproject",
+  "input": "safe.txt\u0000../etc/passwd",
+  "expected": {
+    "outcome": "reject",
+    "errorClass": "ValidationError",
+    "exitCode": 2,
+    "messageContains": "null byte"
+  }
+}
