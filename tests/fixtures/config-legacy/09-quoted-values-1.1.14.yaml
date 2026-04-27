@@ -1,0 +1,9 @@
+project:
+  name: "Quoted Values: An Edge Case"
+  type: 'brownfield'
+  approver: Samuel Combey  # inline comment after value
+  description: "Multi-word string with: a colon"
+
+workflow:
+  current_phase: 'pm'
+  auto_handoff: true

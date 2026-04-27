@@ -1,0 +1,17 @@
+# JumpStart project configuration — generated 1.1.13
+
+# Project metadata
+project:
+  name: comments-and-blanks
+  type: brownfield
+  # The approver field gates Phase 0/1/2/3 close-out
+  approver: Samuel Combey
+
+# Workflow state — the source of truth for the current phase
+workflow:
+  current_phase: architect  # active phase
+  auto_handoff: true
+
+# Optional: ceremony profile selects elicitation depth
+ceremony:
+  profile: quick

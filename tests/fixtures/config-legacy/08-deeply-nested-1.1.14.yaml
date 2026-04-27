@@ -1,0 +1,15 @@
+project:
+  name: deeply-nested
+  type: brownfield
+
+hooks:
+  pre:
+    upgrade:
+      command: ./scripts/pre-upgrade.sh
+      env:
+        debug: true
+        log_level: info
+
+workflow:
+  current_phase: pm
+  auto_handoff: true

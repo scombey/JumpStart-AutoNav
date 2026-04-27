@@ -1,0 +1,8 @@
+project:
+  name: workflow-example
+  type: brownfield
+  approver: Samuel Combey
+
+workflow:
+  current_phase: pm
+  auto_handoff: true

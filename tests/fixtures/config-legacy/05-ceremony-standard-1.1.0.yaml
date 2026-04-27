@@ -1,0 +1,6 @@
+project:
+  name: standard-ceremony
+  type: brownfield
+
+ceremony:
+  profile: standard

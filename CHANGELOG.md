@@ -8,6 +8,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 In progress. M0 establishes the TypeScript toolchain. M1 adds the cross-module contract harness and other detection-infrastructure gates. M2 begins porting leaf utilities into TypeScript using the full 11-step per-module recipe — first port: `bin/lib-ts/io.ts`.
 
+### M2 — T4.1.12 legacy fixtures regression test + Stage 4.1 closeout (sub-commit 19)
+
+**Stage 4.1 (E3-S1 leaf utilities + E3-S2 config cluster) is COMPLETE.** Twelve port tasks shipped in twelve sub-commits across this stage; 65 new tests in this final commit alone seal the cross-port parity contract.
+
+- `tests/fixtures/config-legacy/` — 10 historical `.jumpstart/config.yaml` fixtures spanning framework versions 1.0 through 1.1.14: minimal, bootstrap, workflow-active, ceremony-quick, ceremony-standard, with-hooks, comments-and-blanks, deeply-nested, quoted-values, full-shape. Plus a README documenting which shapes each fixture exercises.
+- `tests/test-config-legacy-fixtures.test.ts` — 65 tests across 5 describe blocks. For every fixture:
+  - **`flattenYaml` parity**: TS port output byte-identical to legacy JS.
+  - **`loadConfig` parity**: full merge result identical (config + sources + override metrics) for 8 of 10 fixtures; 2 fixtures (07, 09) carry a documented divergence where the TS port FIXES a legacy `parseSimpleYaml` bug (inline-comment text was bled into parsed values) — Deviation Log T4.1.9/T4.1.12 entry covers it.
+  - **`parseConfigDocument` round-trip**: parse → toString → parse equivalence (semantic, not byte-exact, since the yaml package collapses some redundant whitespace per ADR-003 — the load-bearing requirement is comments + key order + values preserved, which the test enforces).
+  - **`mergeConfigs` idempotency**: feeding the fixture as `userCurrent` with itself as `oldDefault` and `newDefault` is a no-op merge.
+  - **Cross-port upgrade scenarios**: hooks-section preservation pinned end-to-end against representative real shapes.
+- New Deviation Log entry: T4.1.9/T4.1.12 documents the inline-comment bug fix as an intentional behavior improvement, not a regression. Two flow paths in legacy were inconsistent — `flattenYaml` stripped comments correctly while `parseSimpleYaml` (the loadConfig path) did not. The TS port unifies on the correct behavior.
+- All 11 verify-baseline gates **PASS**. Test count: **106 / 2346** (+1 file / +65 tests).
+
+#### Stage 4.1 cumulative state
+
+13 new TS modules in `bin/lib-ts/`:
+- Leaf utilities (T4.1.1—T4.1.7): `io`, `hashing`, `timestamps`, `locks`, `diff`, `versioning`, `ambiguity-heatmap`, `complexity`, `context-chunker`, `artifact-comparison`
+- Config cluster (T4.1.8—T4.1.11): `ipc`, `config-yaml`, `config-loader`, `config-merge`, `framework-manifest`
+- Plus M1 carryover: `errors`, `path-safety`, `_smoke`
+
+Test trajectory: **84/1933 (baseline) → 106/2346** (+22 files / +413 tests). Every commit was 11/11 verify-baseline green. Two documented behavior changes (io.ts throw-based contract, versioning.ts shell-args). One documented behavior FIX (config-loader inline-comment stripping). Otherwise byte-identical successful-path output across the entire cluster.
+
 ### M2 — T4.1.11 framework-manifest.ts (sub-commit 18)
 - `bin/lib-ts/framework-manifest.ts` — pure-library port of `bin/lib/framework-manifest.js`. **11 exports preserved verbatim**: `FRAMEWORK_OWNED_PATTERNS`, `USER_OWNED_PATHS`, `isUserOwned`, `isFrameworkOwned`, `hashFile`, `generateManifest`, `diffManifest`, `detectUserModifications`, `readFrameworkManifest`, `writeFrameworkManifest`, `getPackageVersion`. The classification rules drive `bin/upgrade.js`'s "what's safe to overwrite vs what's the user's customization?" decision; the manifest functions hash every framework-owned file at install time so subsequent upgrades can do a three-way diff.
 - **Note**: this module computes SHA-256 directly via `node:crypto` rather than reusing `hashing.ts`'s `hashFile` because the legacy reads as binary Buffer (no encoding) while `hashing.ts` reads as utf8. Binary read is correct for `.jumpstart/templates/` arbitrary content. Preserved verbatim.

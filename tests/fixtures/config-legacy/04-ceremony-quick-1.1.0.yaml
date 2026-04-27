@@ -1,0 +1,10 @@
+project:
+  name: quick-ceremony
+  type: greenfield
+
+ceremony:
+  profile: quick
+
+workflow:
+  current_phase: scout
+  auto_handoff: false

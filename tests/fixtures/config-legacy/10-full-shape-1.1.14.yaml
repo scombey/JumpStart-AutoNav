@@ -1,0 +1,28 @@
+# Full production config — every section the framework ships with defaults for
+
+project:
+  name: full-production-shape
+  type: brownfield
+  approver: Samuel Combey
+  description: A complete configuration matching every section.
+
+workflow:
+  current_phase: developer
+  auto_handoff: true
+
+ceremony:
+  profile: standard
+
+hooks:
+  pre_phase: ./scripts/pre-phase.sh
+  post_phase: ./scripts/post-phase.sh
+  upgrade: ./scripts/upgrade.sh
+
+editor:
+  tab_width: 2
+  trim_trailing_whitespace: true
+
+theme: dark
+
+modules:
+  enabled: true

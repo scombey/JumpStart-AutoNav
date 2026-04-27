@@ -1,0 +1,13 @@
+project:
+  name: hooked-project
+  type: brownfield
+  approver: Samuel Combey
+
+workflow:
+  current_phase: developer
+  auto_handoff: true
+
+hooks:
+  pre_phase: ./scripts/pre-phase.sh
+  post_phase: ./scripts/post-phase.sh
+  upgrade: ./scripts/upgrade.sh
