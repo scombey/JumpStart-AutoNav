@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 In progress. M0 establishes the TypeScript toolchain. M1 adds the cross-module contract harness and other detection-infrastructure gates. M2 begins porting leaf utilities into TypeScript using the full 11-step per-module recipe — first port: `bin/lib-ts/io.ts`.
 
+### M2 — T4.1.4 locks.ts (fourth leaf port, sub-commit 10)
+- `bin/lib-ts/locks.ts` — pure-library port of `bin/lib/locks.js` (4 functions: `acquireLock`, `releaseLock`, `lockStatus`, `listLocks`). Behavior parity verified by 15 unit tests covering: lock-file shape on disk (`{ file, agent, acquired_at, pid }` with trailing newline), conflict refusal, corrupt-lock fix-by-clobber on acquire, corrupt-lock-removed on release, agent-mismatch refusal, missing-dir auto-create, list with mixed valid + corrupt entries, status round-trip.
+- New named types: `Lock`, `LockResult`, `LockStatusResult`, `ListLocksResult`.
+- Legacy CLI driver kept in JS until M5 `runIpc`. Default locks dir preserved (`.jumpstart/state/locks`); legacy lock-path sanitization rules preserved verbatim (`/` and `\` → `__`, `..` → `_`).
+- All 11 verify-baseline gates **PASS**. Test count: **92 / 2066** (+1 file / +15 tests).
+
 ### M2 — T4.1.3 timestamps.ts (third leaf port, sub-commit 9)
 - `bin/lib-ts/timestamps.ts` — pure-library port of `bin/lib/timestamps.js` (3 functions + 1 regex constant: `now`, `validate`, `audit`, `ISO_UTC_REGEX`). Behavior parity verified by 23 unit tests covering every documented branch in `validate()` (empty, non-string, offset notation, garbage, future, past, ms-precision) plus `audit()` body-line + frontmatter scanning with all the legacy skip rules (`{{template}}`, bracketed placeholders, `Pending`, `N/A`, empty).
 - New named types: `ValidateResult`, `AuditResult`, `AuditInvalidEntry` replace the legacy module's untyped objects.
