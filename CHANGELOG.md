@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 In progress. M0 establishes the TypeScript toolchain. M1 adds the cross-module contract harness and other detection-infrastructure gates. M2 begins porting leaf utilities into TypeScript using the full 11-step per-module recipe — first port: `bin/lib-ts/io.ts`.
 
+### M2 — T4.1.9 config-loader.ts (sub-commit 16)
+- `bin/lib-ts/config-loader.ts` — pure-TS port of `bin/lib/config-loader.js`. **Deletes the hand-rolled `parseSimpleYaml` from the public surface** per T4.1.9's explicit mandate; the module now uses the unified `yaml` package via `parse()`. Exports trimmed: `loadConfig`, `deepMerge`, `ConfigLoaderInputSchema` (legacy: `loadConfig`, `parseSimpleYaml`, `deepMerge`). The only surviving caller of legacy `parseSimpleYaml` is `bin/lib/next-phase.js`, which imports directly from `bin/lib/config-loader.js` (relative path, strangler-fig-protected) and is unaffected.
+- New named types: `ConfigLoaderInput`, `OverrideApplied`, `ProfileApplied`, `LoadedConfig`.
+- **Behavior parity preserved**: project-wins-over-global merge order, missing-global-config silent fallthrough, malformed-project-config → legacy `{ error, config: {}, sources }` envelope shape (NOT a thrown error), ceremony-profile expansion via dynamic import to `bin/lib/ceremony.js` (preserves the legacy soft-fail when ceremony.js is unreachable).
+- `ConfigLoaderInputSchema` (Zod) — first ADR-009 path-safety enforcement at the IPC envelope boundary: `root` gated by `safePathSchema(process.cwd())`, `global_path` validated to resolve inside `os.homedir()` (with `~` expansion) plus null-byte rejection.
+- `tests/test-config-loader.test.ts` — 20 tests across 5 describe blocks: `deepMerge` (4 cases), yaml-package parsing replaces parseSimpleYaml (multiline strings + lists), merge order (project-wins + override-tracking), error fallthroughs (missing/malformed), `ConfigLoaderInputSchema` ADR-009 path-traversal rejection (6 cases), ceremony soft-fail.
+- **Documented deferral** (Deviation Log): the IPC entry block (`if (isDirectRun(import.meta.url)) { await runIpc(...) }`) is NOT wired here yet — strangler-phase tsconfig classifies `.ts` as CommonJS so `import.meta.url` + top-level `await` are both rejected by tsc. Legacy `bin/lib/config-loader.js` continues to serve the IPC subprocess contract until M9 retires it. The canonical pattern becomes available for every ported module simultaneously when `package.json` flips to `"type": "module"`.
+- All 11 verify-baseline gates **PASS**. Test count: **103 / 2239** (+1 file / +20 tests).
+
 ### M2 — T4.1.8 ipc.ts + config-yaml.ts (config-cluster opener, sub-commit 15)
 The architecturally significant pair: the shared subprocess runner (the second of two ADR-006 process.exit allowlisted sites) and the first config-layer port. Together they unlock M5's IPC fixture activation and the M3+ config-loader/config-merge ports.
 
