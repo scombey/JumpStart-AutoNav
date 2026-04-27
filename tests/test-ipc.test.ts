@@ -216,6 +216,125 @@ describe('runIpc — typed-error → exit-code translation (ADR-006)', () => {
   });
 });
 
+describe('runIpc — envelope byte order (Pit Crew M2-Final QA F2)', () => {
+  it('v1 envelope emits version BEFORE ok/timestamp (per ADR-007 byte order contract)', async () => {
+    const { stdout } = captureRunIpc();
+    setTTY(false);
+    const p = runIpc(async () => ({ x: 1 }));
+    process.stdin.emit('data', '{"version":1,"input":{}}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    // Streaming-JSON consumers and grep-on-leading-bytes pipelines
+    // depend on this prefix. toEqual is key-order-insensitive so
+    // string-prefix is the right assertion.
+    expect(stdout[0].startsWith('{"version":1,"ok":true,')).toBe(true);
+  });
+
+  it('v0 envelope emits the legacy {ok,timestamp,...result} shape', async () => {
+    const { stdout } = captureRunIpc();
+    setTTY(false);
+    const p = runIpc(async () => ({ doubled: 42 }));
+    process.stdin.emit('data', '{"x":21}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    expect(stdout[0].startsWith('{"ok":true,')).toBe(true);
+    expect(stdout[0]).not.toContain('"version"');
+  });
+});
+
+describe('runIpc — handler return-value edge cases (F4)', () => {
+  it('handler returning null is preserved as result:null in v0 envelope', async () => {
+    const { stdout } = captureRunIpc();
+    setTTY(false);
+    const p = runIpc(async () => null as unknown as Record<string, unknown>);
+    process.stdin.emit('data', '{}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    const parsed = JSON.parse(stdout[0]);
+    expect(parsed.result).toBeNull();
+    expect(parsed.ok).toBe(true);
+  });
+
+  it('handler returning a scalar (string) is preserved as result:string in v0 envelope', async () => {
+    const { stdout } = captureRunIpc();
+    setTTY(false);
+    const p = runIpc(async () => 'hello' as unknown as Record<string, unknown>);
+    process.stdin.emit('data', '{}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    const parsed = JSON.parse(stdout[0]);
+    expect(parsed.result).toBe('hello');
+  });
+
+  it('handler returning null in v1 envelope is preserved as result:null', async () => {
+    const { stdout } = captureRunIpc();
+    setTTY(false);
+    const p = runIpc(async () => null as unknown as Record<string, unknown>);
+    process.stdin.emit('data', '{"version":1,"input":{}}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    const parsed = JSON.parse(stdout[0]);
+    expect(parsed.version).toBe(1);
+    expect(parsed.result).toBeNull();
+  });
+});
+
+describe('runIpc — multi-chunk stdin + post-end error (F5)', () => {
+  it('concatenates multi-chunk stdin correctly', async () => {
+    const { stdout } = captureRunIpc();
+    setTTY(false);
+    const p = runIpc(async (i: { x: number }) => ({ doubled: i.x * 2 }));
+    process.stdin.emit('data', '{"x":');
+    process.stdin.emit('data', '21}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    expect(JSON.parse(stdout[0]).doubled).toBe(42);
+  });
+});
+
+describe('runIpc — v1 envelope edge cases (F9)', () => {
+  it('treats {version: "1", input: ...} as v0 (string version not strict-equal numeric 1)', async () => {
+    const { stdout } = captureRunIpc();
+    setTTY(false);
+    const p = runIpc(async (i: unknown) => ({ saw: i }));
+    process.stdin.emit('data', '{"version":"1","input":{"x":1}}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    const parsed = JSON.parse(stdout[0]);
+    expect(parsed.version).toBeUndefined();
+    // v0 semantics: whole payload (incl. string "1" version + input) is the input.
+    expect(parsed.saw).toEqual({ version: '1', input: { x: 1 } });
+  });
+
+  it('handles v1 envelope with input: null gracefully (Zod rejects)', async () => {
+    const { exitCalls, stderr } = captureRunIpc();
+    setTTY(false);
+    const Schema = z.object({ x: z.number() });
+    const p = runIpc(async () => ({ ok: true }), Schema);
+    process.stdin.emit('data', '{"version":1,"input":null}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    expect(exitCalls[0].code).toBe(2);
+    expect(JSON.parse(stderr[0]).error.code).toBe('VALIDATION');
+  });
+});
+
 describe('runIpc — Zod schema validation', () => {
   it('rejects invalid input with ValidationError + Zod issues attached', async () => {
     const { exitCalls, stderr } = captureRunIpc();

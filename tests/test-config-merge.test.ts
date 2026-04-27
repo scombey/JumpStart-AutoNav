@@ -155,6 +155,67 @@ describe('readConfig + writeConfig', () => {
   });
 });
 
+describe('mergeConfigs — replaceYamlValue path-safety (Pit Crew M2-Final Adv-1+2)', () => {
+  it('Adv-1: nested key with same leaf does NOT clobber the top-level key', () => {
+    // Setup: top-level `version: 1.0` AND nested `framework.version: 1.0`.
+    // Framework default upgrades `framework.version` from 1.0 → 2.0.
+    // Pre-fix: regex `^version\\s*:\\s*1\\.0` matched BOTH lines, so the
+    // top-level `version` got rewritten to `2.0` along with the nested
+    // one. Post-fix: indent-anchored regex matches only the indented
+    // (column-2) `version:` line under `framework:`.
+    const oldDefault = ['version: 1.0', 'framework:', '  version: 1.0', ''].join('\n');
+    const newDefault = ['version: 1.0', 'framework:', '  version: 2.0', ''].join('\n');
+    const userCurrent = ['version: 1.0', 'framework:', '  version: 1.0', ''].join('\n');
+
+    const result = mergeConfigs(oldDefault, newDefault, userCurrent);
+
+    // Top-level `version: 1.0` MUST survive intact. (The legacy bug
+    // would emit `version: 2.0` here.)
+    expect(result.mergedYaml).toMatch(/^version: 1\.0\b/m);
+    // Nested `framework.version` is upgraded.
+    expect(result.mergedYaml).toMatch(/^ {2}version: 2\.0/m);
+  });
+
+  it('Adv-2: newValue containing regex backref tokens ($&, $1) is taken literally', () => {
+    // Setup: framework default upgrades `theme: light` → `theme: $&-bug`.
+    // Pre-fix: replacement was passed as a string containing `$&`,
+    // which `String.replace` re-interpolates with the matched
+    // substring (literally producing `theme: light-bug`). Post-fix:
+    // function-form replace takes the literal string.
+    const oldDefault = 'theme: light\n';
+    const newDefault = 'theme: $&-bug\n'; // pathological default value
+    const userCurrent = 'theme: light\n';
+
+    const result = mergeConfigs(oldDefault, newDefault, userCurrent);
+
+    expect(result.mergedYaml).toContain('theme: $&-bug');
+    expect(result.mergedYaml).not.toContain('theme: light-bug');
+  });
+
+  it('Adv-2 variant: newValue with $1 backref is also literal', () => {
+    const oldDefault = 'name: foo\n';
+    const newDefault = 'name: $1-suffix\n';
+    const userCurrent = 'name: foo\n';
+
+    const result = mergeConfigs(oldDefault, newDefault, userCurrent);
+
+    expect(result.mergedYaml).toContain('name: $1-suffix');
+  });
+
+  it('Adv-1 deeper: 3-level same-leaf does not collide with 2-level', () => {
+    const oldDefault = ['a:', '  k: 1', '  b:', '    k: 1', ''].join('\n');
+    const newDefault = ['a:', '  k: 1', '  b:', '    k: 9', ''].join('\n');
+    const userCurrent = ['a:', '  k: 1', '  b:', '    k: 1', ''].join('\n');
+
+    const result = mergeConfigs(oldDefault, newDefault, userCurrent);
+
+    // 2-level `a.k` (indent 2) stays at 1.
+    expect(result.mergedYaml).toMatch(/^ {2}k: 1$/m);
+    // 3-level `a.b.k` (indent 4) bumps to 9.
+    expect(result.mergedYaml).toMatch(/^ {4}k: 9$/m);
+  });
+});
+
 describe('writeConflictsFile', () => {
   it('writes a structured per-conflict file', () => {
     mkdirSync(path.join(tmpDir, '.jumpstart'), { recursive: true });

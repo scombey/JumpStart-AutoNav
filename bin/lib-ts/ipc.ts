@@ -109,15 +109,20 @@ export async function runIpc<TIn, TOut>(
   schema?: ZodType<TIn>
 ): Promise<void> {
   let exitCode = 0;
+  // Hoist isV1 out of the try block so the catch path can render
+  // v1-shaped error envelopes per ADR-007. Pit Crew M2-Final
+  // Reviewer #3 caught the v1-error-shape regression.
+  let isV1 = false;
   try {
     const raw = await readStdin();
 
-    // Distinguish v0 (raw input) from v1 (wrapped input). The `as`
-    // cast is necessary because TS can't narrow `Record<string,
-    // unknown>` (readStdin's return) to V1Input through isV1Envelope
-    // alone — but the runtime guard does the actual narrowing.
-    const isV1 = isV1Envelope(raw);
-    const rawInput = isV1 ? raw.input : raw;
+    // Distinguish v0 (raw input) from v1 (wrapped input). The two-step
+    // `unknown` cast is necessary because `readStdin`'s return type
+    // (`Record<string, unknown>`) doesn't structurally overlap with
+    // `V1Input` enough for TS's `as` to allow a direct cast — but
+    // `isV1Envelope` does the actual runtime narrowing.
+    isV1 = isV1Envelope(raw);
+    const rawInput = isV1 ? (raw as unknown as V1Input).input : raw;
 
     // Validate via Zod if a schema is supplied. Failure → ValidationError
     // with structured Zod issues for the IPC envelope renderer.
@@ -138,16 +143,42 @@ export async function runIpc<TIn, TOut>(
 
     const result = await handler(typedInput);
 
-    // Envelope-version-aware emit. v0 callers get the raw result wrapped
-    // in legacy {ok, timestamp, ...result}; v1 callers get the explicit
-    // version-tagged wrapper.
+    // Envelope-version-aware emit per ADR-007. Field order matters —
+    // some downstream consumers parse via streaming JSON or grep
+    // leading bytes (Pit Crew M2-Final QA F2 caught this).
+    //
+    //   v0: { ok: true, timestamp: <ISO>, ...result }
+    //   v1: { version: 1, ok: true, timestamp: <ISO>, result: {...} }
+    //
+    // v0 routes through writeResult (legacy emit shape preserved).
+    // v1 bypasses writeResult and writes the envelope directly so
+    // `version` comes BEFORE `ok` per the ADR-007 fixture contract.
+    //
+    // Result shape sanity: handlers may legitimately return `null`,
+    // a scalar, or undefined (e.g. readFrameworkManifest returns
+    // `Manifest | null`). For v0 we wrap with `{ ok, timestamp,
+    // result }` if the value is non-object; for v1 we always have a
+    // dedicated `result` key so any value type round-trips faithfully
+    // (Pit Crew F4).
     if (isV1) {
-      writeResult({
+      const envelope = {
         version: 1,
-        result: result as Record<string, unknown>,
-      });
-    } else {
+        ok: true,
+        timestamp: new Date().toISOString(),
+        result,
+      };
+      process.stdout.write(`${JSON.stringify(envelope)}\n`);
+    } else if (result !== null && typeof result === 'object' && !Array.isArray(result)) {
       writeResult(result as Record<string, unknown>);
+    } else {
+      // Non-object/null/array result — wrap explicitly so it survives
+      // the v0 envelope without silent loss to spread.
+      const envelope = {
+        ok: true,
+        timestamp: new Date().toISOString(),
+        result,
+      };
+      process.stdout.write(`${JSON.stringify(envelope)}\n`);
     }
   } catch (err) {
     // Typed-error → exit-code translation per ADR-006.
@@ -155,17 +186,41 @@ export async function runIpc<TIn, TOut>(
     const message = err instanceof Error ? err.message : String(err);
     const code = err instanceof ValidationError ? 'VALIDATION' : errorCode(err);
     const details: Record<string, unknown> = {};
-    if (err instanceof ValidationError && err.issues.length > 0) {
+    // Always emit schemaId for ValidationError, regardless of issues
+    // count. Pit Crew M2-Final Reviewer #3: assertInsideRoot and many
+    // hand-thrown ValidationErrors ship with empty issues but DO have
+    // a schemaId — the IPC envelope renderer needs it to identify the
+    // schema that rejected the input.
+    if (err instanceof ValidationError) {
       details.schemaId = err.schemaId;
-      details.issues = err.issues;
+      if (err.issues.length > 0) {
+        details.issues = err.issues;
+      }
     }
     if (err instanceof Error && err.stack) {
       details.stack = err.stack;
     }
-    try {
-      writeError(code, message, details);
-    } catch {
-      // stderr unavailable; nothing to do but exit.
+    // v1 envelope error shape per ADR-007 — wrap in version + ok=false
+    // so v1 callers parse the same shape they expect on success.
+    if (isV1) {
+      const errorEnvelope = {
+        version: 1,
+        ok: false,
+        timestamp: new Date().toISOString(),
+        error: { code, message, ...details },
+        exitCode,
+      };
+      try {
+        process.stderr.write(`${JSON.stringify(errorEnvelope)}\n`);
+      } catch {
+        // stderr unavailable; nothing to do but exit.
+      }
+    } else {
+      try {
+        writeError(code, message, details);
+      } catch {
+        // stderr unavailable; nothing to do but exit.
+      }
     }
   }
   // Single allowlisted process.exit per ADR-006. The check-process-exit

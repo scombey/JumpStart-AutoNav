@@ -31,7 +31,7 @@
  * @see bin/lib/io.js (legacy — kept unchanged during strangler)
  */
 
-import { JumpstartError } from './errors.js';
+import { JumpstartError, ValidationError } from './errors.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Public types — match the legacy module shape with sharper TS types
@@ -84,7 +84,17 @@ export function readStdin(): Promise<ToolInput> {
       try {
         resolve(JSON.parse(data) as ToolInput);
       } catch (err) {
-        reject(new JumpstartError(`Invalid JSON on stdin: ${(err as Error).message}`));
+        // Pit Crew M2-Final Reviewer #3: bad JSON is INPUT validation
+        // failure, not an internal error. Throw ValidationError so
+        // runIpc maps to exit code 2 (matches legacy bin/lib/config-
+        // loader.js:233-236 behavior — exit 2 on bad stdin).
+        reject(
+          new ValidationError(
+            `Invalid JSON on stdin: ${(err as Error).message}`,
+            'runIpc.stdin',
+            []
+          )
+        );
       }
     });
     process.stdin.on('error', reject);

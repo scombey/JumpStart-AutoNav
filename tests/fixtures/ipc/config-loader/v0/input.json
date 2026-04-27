@@ -1,0 +1,4 @@
+{
+  "root": "/tmp/config-loader-fixture-nonexistent",
+  "global_path": "/tmp/config-loader-fixture-nonexistent.yaml"
+}

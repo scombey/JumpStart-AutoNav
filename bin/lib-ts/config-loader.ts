@@ -46,7 +46,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { parse as yamlParse } from 'yaml';
 import { z } from 'zod';
-import { safePathSchema } from './path-safety.js';
+import { assertInsideRoot } from './path-safety.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Public types
@@ -168,40 +168,33 @@ interface CeremonyProfileResult {
   skipped: unknown[];
 }
 
+/**
+ * Ceremony-profile expansion DEFERRED to M9 ESM cutover. Pit Crew
+ * M2-Final Reviewer #1 caught the legacy implementation depending on
+ * `process.cwd()` to locate `bin/lib/ceremony.js`, which silently
+ * fails for every downstream consumer because their cwd is their
+ * own project root, not our package install dir. The legacy CLI
+ * driver `bin/lib/config-loader.js` continues to serve the
+ * auto-expand path correctly via module-relative `import('./ceremony.js')`
+ * until M9 retires it.
+ *
+ * Library callers that need profile expansion in the TS code path
+ * import `applyProfile` directly:
+ *
+ *   import { applyProfile } from '@lib/ceremony'; // when ceremony.ts ports
+ *   const expanded = applyProfile(merged, 'quick');
+ *
+ * Until ceremony.ts ports, `loadConfig` returns `profile_applied: null`
+ * for any non-`standard` profile — same as the legacy fallback when
+ * ceremony.js was unreachable.
+ */
 async function maybeApplyCeremonyProfile(
   merged: Record<string, unknown>
 ): Promise<{ config: Record<string, unknown>; profileApplied: ProfileApplied | null }> {
-  const ceremony = (merged as { ceremony?: { profile?: string } }).ceremony;
-  const profile = ceremony?.profile;
-  if (!profile || profile === 'standard') {
-    return { config: merged, profileApplied: null };
-  }
-
-  try {
-    // Dynamic import preserves the legacy fallback-on-missing behavior
-    // and reaches the legacy bin/lib/ceremony.js until that module
-    // itself is ported. The constructed specifier is computed at
-    // runtime so tsc doesn't try to resolve it at type-check time.
-    const ceremonyModule = await import(/* @vite-ignore */ `${process.cwd()}/bin/lib/ceremony.js`);
-    const applyProfile = ceremonyModule.applyProfile as (
-      cfg: Record<string, unknown>,
-      profileName: string
-    ) => CeremonyProfileResult;
-    const result = applyProfile(merged, profile);
-    return {
-      config: result.config,
-      profileApplied: {
-        profile,
-        settings_applied: result.applied.length,
-        settings_skipped: result.skipped.length,
-        applied: result.applied,
-        skipped: result.skipped,
-      },
-    };
-  } catch {
-    // ceremony.js not available — skip profile expansion (legacy semantics).
-    return { config: merged, profileApplied: null };
-  }
+  // CeremonyProfileResult is preserved for the future when this wires
+  // back up; reference it via void cast to avoid unused-type lint.
+  void (null as unknown as CeremonyProfileResult);
+  return { config: merged, profileApplied: null };
 }
 
 /**
@@ -287,8 +280,8 @@ export async function loadConfig(input: ConfigLoaderInput): Promise<LoadedConfig
 
 /**
  * Per ADR-009: every IPC-eligible module's path-typed input fields use
- * `safePathSchema(boundaryRoot)` instead of bare `z.string()`. Boundary
- * roots are chosen so an agent submitting `root: '/etc'` or a
+ * path-safety primitives instead of bare `z.string()`. Boundary roots
+ * are chosen so an agent submitting `root: '/etc'` or a
  * `~/../../../etc` path through `global_path` is rejected with
  * `ValidationError` (exit 2) before any fs access.
  *
@@ -299,34 +292,63 @@ export async function loadConfig(input: ConfigLoaderInput): Promise<LoadedConfig
  *   stripped before bounds-checking so user input like `~/foo`
  *   resolves correctly. For absolute paths inside homedir, both are
  *   accepted.
+ *
+ * **Pit Crew M2-Final Reviewer #4 — parse-time boundary capture.**
+ * Earlier draft baked `safePathSchema(process.cwd())` at module load,
+ * meaning a long-running consumer that changed cwd between load and
+ * parse would validate against the wrong boundary. The refinement
+ * below now reads `process.cwd()` and `os.homedir()` at parse time.
+ *
+ * **Pit Crew M2-Final Reviewer #5 / Adversary 6 — global_path
+ * symmetry.** The previous hand-rolled superRefine for global_path
+ * only checked POSIX boundary semantics, leaving Windows drive-
+ * letter inputs (`C:\Windows\system32`) accepted on POSIX hosts.
+ * Routing through `assertInsideRoot` inherits the centralized
+ * win32-resolver check from path-safety.ts so the same input shape
+ * is rejected uniformly.
  */
 export const ConfigLoaderInputSchema = z
   .object({
-    root: safePathSchema(process.cwd()).default('.'),
+    root: z.string().default('.'),
     global_path: z.string().optional(),
   })
-  // Avoid running safePathSchema for `global_path` at refinement time
-  // because the boundary depends on whether `~` was supplied. Validate
-  // the resolved path manually below.
   .superRefine((value, ctx) => {
+    // Lazy boundary capture — re-read at parse time so a runtime
+    // cwd change doesn't validate against a stale module-load
+    // snapshot. Reviewer #4.
+    const rootBoundary = process.cwd();
+    const homeBoundary = os.homedir();
+
+    // Validate `root` via assertInsideRoot which carries the full
+    // path-safety contract (null byte, drive letter, win32 resolver,
+    // lexical traversal) through one helper. ValidationError →
+    // structured Zod issue.
+    try {
+      assertInsideRoot(value.root, rootBoundary, {
+        schemaId: 'ConfigLoaderInputSchema.root',
+      });
+    } catch (err) {
+      ctx.addIssue({
+        code: 'custom',
+        message: (err as Error).message,
+        path: ['root'],
+      });
+    }
+
     if (value.global_path !== undefined) {
-      const expanded = value.global_path.replace(/^~/, os.homedir());
-      // Reject NUL byte injection.
-      if (expanded.includes(String.fromCharCode(0))) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `global_path contains a null byte; rejected.`,
-          path: ['global_path'],
+      // Expand `~` once so assertInsideRoot can do a normal lexical
+      // boundary check — without expansion, `~/foo` would fail the
+      // win32 drive-prefix regex (no leading drive letter, but path
+      // package would resolve `~` as a literal directory under cwd).
+      const expanded = value.global_path.replace(/^~/, homeBoundary);
+      try {
+        assertInsideRoot(expanded, homeBoundary, {
+          schemaId: 'ConfigLoaderInputSchema.global_path',
         });
-        return;
-      }
-      // Permit absolute paths inside homedir; reject anything outside.
-      const abs = path.resolve(expanded);
-      const home = path.resolve(os.homedir());
-      if (abs !== home && !abs.startsWith(`${home}${path.sep}`)) {
+      } catch (err) {
         ctx.addIssue({
           code: 'custom',
-          message: `global_path "${value.global_path}" resolves outside the user home boundary.`,
+          message: (err as Error).message,
           path: ['global_path'],
         });
       }

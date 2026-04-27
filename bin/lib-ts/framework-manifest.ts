@@ -44,6 +44,8 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
+import { ValidationError } from './errors.js';
+import { assertInsideRoot } from './path-safety.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Classification rules
@@ -80,12 +82,21 @@ export const FRAMEWORK_OWNED_PATTERNS: readonly string[] = [
 /**
  * Paths that are always user-owned and must NEVER be overwritten.
  * These take precedence over framework patterns where they overlap.
+ *
+ * Pit Crew M2-Final Adversary 7: `.jumpstart/framework-manifest.json`
+ * is generated AT INSTALL TIME from the user's site (writeFramework-
+ * Manifest writes hashes of the actually-installed files). Treating
+ * it as framework-owned would cause `bin/upgrade.js`'s safe-overwrite
+ * pass to clobber the legitimate per-install record with a stale
+ * package-shipped placeholder. Classify as user-owned so upgrade
+ * leaves it alone (and the regenerate path is the only mutator).
  */
 export const USER_OWNED_PATHS: readonly string[] = [
   '.jumpstart/config.yaml',
   '.jumpstart/state/',
   '.jumpstart/installed.json',
   '.jumpstart/manifest.json',
+  '.jumpstart/framework-manifest.json',
   '.jumpstart/spec-graph.json',
   '.jumpstart/usage-log.json',
   '.jumpstart/correction-log.md',
@@ -155,13 +166,24 @@ export function isUserOwned(relPath: string): boolean {
 /** True if `relPath` is framework-owned and safe to upgrade. User-owned
  *  takes precedence — `isFrameworkOwned` returns false even for an
  *  exact match in `FRAMEWORK_OWNED_PATTERNS` if `isUserOwned` says
- *  user-owned. */
+ *  user-owned.
+ *
+ *  Trailing-slash handling matches `isUserOwned`: a directory pattern
+ *  `'.jumpstart/agents/'` matches both prefix paths
+ *  (`'.jumpstart/agents/scout.md'`) AND the directory itself with no
+ *  trailing slash (`'.jumpstart/agents'`). Pit Crew M2-Final QA F7 —
+ *  prior to this fix `isUserOwned` had the equality branch but
+ *  `isFrameworkOwned` did not, leaving empty framework-owned
+ *  directories invisible to `generateManifest`/`detectUserModifications`.
+ */
 export function isFrameworkOwned(relPath: string): boolean {
   const normalized = relPath.replace(/\\/g, '/');
   if (isUserOwned(normalized)) return false;
   for (const pattern of FRAMEWORK_OWNED_PATTERNS) {
     if (pattern.endsWith('/')) {
-      if (normalized.startsWith(pattern)) return true;
+      if (normalized.startsWith(pattern) || normalized === pattern.slice(0, -1)) {
+        return true;
+      }
     } else if (normalized === pattern) {
       return true;
     }
@@ -251,10 +273,37 @@ export function generateManifest(rootDir: string, options: GenerateManifestOptio
   return manifest;
 }
 
-/** Three-bucket diff between two manifests. */
+/**
+ * Three-bucket diff between two manifests.
+ *
+ * Pit Crew M2-Final Adversary 3 (path-traversal disclosure): a
+ * malicious manifest can contain crafted relPaths like `../../etc/passwd`.
+ * `diffManifest` itself is purely lexical (no fs access), so the
+ * traversal can't read anything HERE — but the buckets feed downstream
+ * fs-touching consumers (e.g. `bin/upgrade.js` walks the `changed`
+ * list and reads each file). We therefore reject traversal-shaped
+ * relPaths at this boundary so the disclosure can't propagate.
+ *
+ * Both manifests' file maps must contain only relPaths that lexically
+ * resolve under the current working directory (the most permissive
+ * boundary that still blocks `..` escape). Per ADR-009 we throw
+ * ValidationError on the first traversal-shaped key.
+ */
 export function diffManifest(oldManifest: Manifest, newManifest: Manifest): ManifestDiff {
   const oldFiles = oldManifest.files || {};
   const newFiles = newManifest.files || {};
+
+  // Layer 1 boundary check — every relPath must lexically resolve under
+  // the cwd. Adversary 3 confirmed exploit: a crafted manifest with
+  // `../../etc/passwd` would feed the path into upgrade.js which then
+  // reads + reports its hash. Reject at the boundary before any
+  // downstream fs access.
+  for (const filePath of Object.keys(oldFiles)) {
+    assertInsideRoot(filePath, process.cwd(), { schemaId: 'diffManifest.oldFiles' });
+  }
+  for (const filePath of Object.keys(newFiles)) {
+    assertInsideRoot(filePath, process.cwd(), { schemaId: 'diffManifest.newFiles' });
+  }
 
   const added: string[] = [];
   const removed: string[] = [];
@@ -282,7 +331,16 @@ export function diffManifest(oldManifest: Manifest, newManifest: Manifest): Mani
 
 /** Compare every file recorded in the installed manifest against its
  *  current on-disk hash. Reports modified / unmodified / missing
- *  buckets. */
+ *  buckets.
+ *
+ *  Pit Crew M2-Final Adversary 3 (path-traversal disclosure): a
+ *  malicious manifest could carry a relPath like `../../etc/passwd`,
+ *  causing `hashFile(join(projectRoot, relPath))` to read outside the
+ *  project root and emit the hash to the user — a confidentiality
+ *  leak. We gate every relPath through `assertInsideRoot(relPath,
+ *  projectRoot)` BEFORE any fs access. Throws ValidationError (exit 2)
+ *  on the first traversal-shaped key per ADR-009.
+ */
 export function detectUserModifications(
   projectRoot: string,
   installedManifest: Manifest
@@ -293,6 +351,13 @@ export function detectUserModifications(
   const missing: string[] = [];
 
   for (const [relPath, originalHash] of Object.entries(files)) {
+    // Adversary 3 fix: defense-in-depth path check. `relPath` originates
+    // from disk (`.jumpstart/framework-manifest.json`) which is user-
+    // owned — an attacker who controls the manifest controls the keys.
+    // assertInsideRoot rejects `..` traversal AND null-byte injection
+    // before `hashFile` ever sees the path.
+    assertInsideRoot(relPath, projectRoot, { schemaId: 'detectUserModifications.relPath' });
+
     const fullPath = join(projectRoot, relPath);
     if (!existsSync(fullPath)) {
       missing.push(relPath);
@@ -313,15 +378,46 @@ export function detectUserModifications(
 // Manifest persistence + version helpers
 // ─────────────────────────────────────────────────────────────────────────
 
-/** Read `<projectRoot>/.jumpstart/framework-manifest.json` or null. */
+/** Read `<projectRoot>/.jumpstart/framework-manifest.json` or null.
+ *
+ *  Pit Crew M2-Final Adversary 3: every relPath in the loaded manifest
+ *  is pre-validated against `projectRoot`. A manifest containing
+ *  `'../../etc/passwd': '<hash>'` (e.g. corruption or attacker
+ *  influence) would otherwise propagate to `detectUserModifications`
+ *  / `diffManifest` consumers. We surface validation errors as `null`
+ *  here (matching the existing legacy soft-fail pattern for malformed
+ *  JSON) so callers can treat "missing-or-corrupt" uniformly without
+ *  changing their try/catch shape. The structured ValidationError is
+ *  preserved at lower fs-touching layers (`detectUserModifications`)
+ *  for callers that opt into strict mode by passing an externally-
+ *  acquired manifest.
+ */
 export function readFrameworkManifest(projectRoot: string): Manifest | null {
   const manifestPath = join(projectRoot, '.jumpstart', 'framework-manifest.json');
   if (!existsSync(manifestPath)) return null;
+  let parsed: unknown;
   try {
-    return JSON.parse(readFileSync(manifestPath, 'utf8')) as Manifest;
+    parsed = JSON.parse(readFileSync(manifestPath, 'utf8'));
   } catch {
     return null;
   }
+  // Shape check — must be a plain object with a `files` mapping.
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return null;
+  const m = parsed as Manifest;
+  const files = m.files || {};
+  // Adversary 3 fix: validate every relPath against the project root
+  // boundary at load time. If any key is traversal-shaped, soft-fail
+  // to null (legacy malformed-manifest semantics) rather than throwing.
+  // Strict callers go through `detectUserModifications` which throws.
+  for (const relPath of Object.keys(files)) {
+    try {
+      assertInsideRoot(relPath, projectRoot, { schemaId: 'readFrameworkManifest.relPath' });
+    } catch (err) {
+      if (err instanceof ValidationError) return null;
+      throw err;
+    }
+  }
+  return m;
 }
 
 /** Write `<projectRoot>/.jumpstart/framework-manifest.json`, creating

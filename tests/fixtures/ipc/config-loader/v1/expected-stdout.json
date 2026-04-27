@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "ok": true,
+  "timestamp": "<<RUNTIME_ISO>>",
+  "result": {
+    "config": {},
+    "sources": {
+      "global": null,
+      "project": null
+    },
+    "overrides_applied": [],
+    "profile_applied": null,
+    "global_keys": 0,
+    "project_keys": 0
+  }
+}

@@ -153,10 +153,22 @@ export function mergeConfigs(
 }
 
 /**
- * Replace a YAML value in the raw string. Anchored regex on the leaf
- * key + escaped old value; preserves indentation and inline comments.
+ * Replace a YAML value in the raw string.
+ *
+ * Pit Crew M2-Final Adversary 1 + 2 (HIGH, confirmed exploits) closed:
+ *   - Adv-1: prior version split off the LEAF key and matched any
+ *     line ending with that name, regardless of indentation. A user
+ *     with `version: 1.0` at the top AND `framework.version: 1.0`
+ *     nested would have the TOP key clobbered when the framework
+ *     upgrade targeted `framework.version`. Fix: anchor the regex to
+ *     the expected indent (2-space-per-level by convention).
+ *   - Adv-2: prior version interpolated `newValue` into the regex
+ *     replacement template, so values containing `$&` / `$1` / `` $` ``
+ *     were re-interpreted by `String.replace`. Fix: use the function
+ *     form of `replace` which does NOT interpret `$N` patterns.
+ *
  * Returns the input unchanged if the regex doesn't match (defensive
- * pass-through for complex multi-line values).
+ * pass-through for complex multi-line values; legacy behavior).
  */
 function replaceYamlValue(
   yamlStr: string,
@@ -168,9 +180,22 @@ function replaceYamlValue(
   const leafKey = keyParts[keyParts.length - 1];
 
   const escapedOld = oldValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const pattern = new RegExp(`^(\\s*${leafKey}\\s*:\\s*)${escapedOld}(\\s*(?:#.*)?)$`, 'm');
+  const escapedLeaf = leafKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Indent anchoring: top-level keys (depth 1) match at column 0;
+  // each nesting level adds two spaces (the convention every
+  // jumpstart-mode config and the legacy flattenYaml produce).
+  const expectedIndent = '\\s'.repeat(Math.max(0, (keyParts.length - 1) * 2));
+  const pattern = new RegExp(
+    `^(${expectedIndent}${escapedLeaf}\\s*:\\s*)${escapedOld}(\\s*(?:#.*)?)$`,
+    'm'
+  );
 
-  return yamlStr.replace(pattern, `$1${newValue}$2`);
+  // Function-form replace: `$N` / `$&` in the returned string are
+  // taken literally, never re-interpreted as backreferences.
+  return yamlStr.replace(
+    pattern,
+    (_match, prefix: string, suffix: string) => `${prefix}${newValue}${suffix}`
+  );
 }
 
 /**

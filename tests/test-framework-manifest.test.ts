@@ -90,6 +90,23 @@ describe('isFrameworkOwned (user-owned takes precedence)', () => {
     expect(isFrameworkOwned('random/file.md')).toBe(false);
     expect(isFrameworkOwned('node_modules/foo')).toBe(false);
   });
+
+  it('returns true for the directory itself (no trailing slash) — Pit Crew M2-Final QA F7', () => {
+    // Asymmetry vs isUserOwned was fixed: an empty framework-owned
+    // directory is now classified as framework-owned, so the upgrade
+    // flow's generateManifest can detect missing dirs.
+    expect(isFrameworkOwned('.jumpstart/templates')).toBe(true);
+    expect(isFrameworkOwned('.jumpstart/agents')).toBe(true);
+    expect(isFrameworkOwned('.github/agents')).toBe(true);
+  });
+
+  it('user-owned wins over framework-owned for paths nested under user-owned prefix', () => {
+    // Hypothetical user-created file at a name that COULD collide
+    // with a framework path — user-owned prefix `.jumpstart/state/`
+    // wins over the absence of any framework match.
+    expect(isUserOwned('.jumpstart/state/agents/scout.md')).toBe(true);
+    expect(isFrameworkOwned('.jumpstart/state/agents/scout.md')).toBe(false);
+  });
 });
 
 describe('hashFile', () => {
@@ -215,6 +232,92 @@ describe('readFrameworkManifest + writeFrameworkManifest', () => {
     mkdirSync(path.join(tmpDir, '.jumpstart'), { recursive: true });
     writeFileSync(path.join(tmpDir, '.jumpstart', 'framework-manifest.json'), 'not-json{', 'utf8');
     expect(readFrameworkManifest(tmpDir)).toBeNull();
+  });
+});
+
+describe('Adv-3: path-traversal defense (Pit Crew M2-Final)', () => {
+  // Confirmed exploit pre-fix: a manifest containing a relPath like
+  // '../../etc/passwd' would feed `hashFile(join(projectRoot,
+  // relPath))` outside the boundary, leaking file hashes. Post-fix:
+  // assertInsideRoot rejects with ValidationError BEFORE any fs read.
+
+  it('detectUserModifications throws ValidationError on traversal-shaped relPath', () => {
+    const malicious: Manifest = {
+      frameworkVersion: '1.0.0',
+      generatedAt: 't',
+      files: { '../../etc/passwd': 'attacker-supplied-hash' },
+    };
+    expect(() => detectUserModifications(tmpDir, malicious)).toThrow(/Path traversal rejected/);
+  });
+
+  it('detectUserModifications throws ValidationError on null-byte injection', () => {
+    const malicious: Manifest = {
+      frameworkVersion: '1.0.0',
+      generatedAt: 't',
+      files: { [`safe.txt${String.fromCharCode(0)}../etc/passwd`]: 'h' },
+    };
+    expect(() => detectUserModifications(tmpDir, malicious)).toThrow(/null byte/);
+  });
+
+  it('diffManifest throws ValidationError if either manifest carries traversal-shaped relPath', () => {
+    const safe: Manifest = {
+      frameworkVersion: '1.0.0',
+      generatedAt: 't',
+      files: { 'CLAUDE.md': 'h1' },
+    };
+    const evilOld: Manifest = {
+      frameworkVersion: '0.9.0',
+      generatedAt: 't0',
+      files: { '../../escape.md': 'h0' },
+    };
+    expect(() => diffManifest(evilOld, safe)).toThrow(/Path traversal rejected/);
+    expect(() => diffManifest(safe, evilOld)).toThrow(/Path traversal rejected/);
+  });
+
+  it('readFrameworkManifest soft-fails (returns null) when on-disk manifest carries traversal-shaped relPath', () => {
+    // Write a malicious manifest directly (simulating corrupt or
+    // attacker-influenced file). readFrameworkManifest must surface
+    // null so callers can treat "missing-or-corrupt" uniformly.
+    mkdirSync(path.join(tmpDir, '.jumpstart'), { recursive: true });
+    writeFileSync(
+      path.join(tmpDir, '.jumpstart', 'framework-manifest.json'),
+      JSON.stringify({
+        frameworkVersion: '1.0.0',
+        generatedAt: 't',
+        files: { '../../etc/passwd': 'leaked-hash' },
+      }),
+      'utf8'
+    );
+    expect(readFrameworkManifest(tmpDir)).toBeNull();
+  });
+
+  it('readFrameworkManifest soft-fails on top-level non-object', () => {
+    mkdirSync(path.join(tmpDir, '.jumpstart'), { recursive: true });
+    writeFileSync(
+      path.join(tmpDir, '.jumpstart', 'framework-manifest.json'),
+      JSON.stringify(['not', 'an', 'object']),
+      'utf8'
+    );
+    expect(readFrameworkManifest(tmpDir)).toBeNull();
+  });
+});
+
+describe('Adv-7: framework-manifest.json classification (Pit Crew M2-Final)', () => {
+  it('classifies .jumpstart/framework-manifest.json as USER-owned', () => {
+    expect(isUserOwned('.jumpstart/framework-manifest.json')).toBe(true);
+    expect(isFrameworkOwned('.jumpstart/framework-manifest.json')).toBe(false);
+  });
+
+  it('USER_OWNED_PATHS includes .jumpstart/framework-manifest.json', () => {
+    expect(USER_OWNED_PATHS).toContain('.jumpstart/framework-manifest.json');
+  });
+
+  it('generateManifest does NOT include .jumpstart/framework-manifest.json (user-owned wins)', () => {
+    writeAt('.jumpstart/framework-manifest.json', '{}');
+    writeAt('.jumpstart/agents/scout.md', 'agent');
+    const m = generateManifest(tmpDir);
+    expect(Object.keys(m.files)).not.toContain('.jumpstart/framework-manifest.json');
+    expect(Object.keys(m.files)).toContain('.jumpstart/agents/scout.md');
   });
 });
 

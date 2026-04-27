@@ -26,7 +26,7 @@ import { describe, expect, it } from 'vitest';
 const repoRoot = process.cwd();
 const fxRoot = path.join(repoRoot, 'tests/fixtures/ipc');
 
-const IPC_MODULES = ['timestamps', 'locks', 'diff', 'complexity'] as const;
+const IPC_MODULES = ['timestamps', 'locks', 'diff', 'complexity', 'config-loader'] as const;
 
 interface IpcInputV0 {
   [k: string]: unknown;

@@ -192,6 +192,121 @@ describe('ConfigLoaderInputSchema — ADR-009 path-traversal rejection', () => {
   });
 });
 
+describe('loadConfig — yaml-package strict-parse edge cases (Pit Crew M2-Final QA F8)', () => {
+  it('treats empty file as empty config (yaml-package returns null)', async () => {
+    writeProjectConfig('');
+    const r = await loadConfig({ root: tmpRoot });
+    expect(r.config).toEqual({});
+    expect(r.error).toBeUndefined();
+    expect(r.sources.project).toContain('config.yaml');
+  });
+
+  it('treats comments-only file as empty config', async () => {
+    writeProjectConfig('# only comments\n# no values\n');
+    const r = await loadConfig({ root: tmpRoot });
+    expect(r.config).toEqual({});
+    expect(r.error).toBeUndefined();
+  });
+
+  it('returns error envelope when root is a scalar (not mapping)', async () => {
+    writeProjectConfig('42\n');
+    const r = await loadConfig({ root: tmpRoot });
+    expect(r.error).toMatch(/Failed to parse project config/);
+    expect(r.config).toEqual({});
+  });
+
+  it('returns error envelope when root is a list (not mapping)', async () => {
+    writeProjectConfig('- a\n- b\n');
+    const r = await loadConfig({ root: tmpRoot });
+    expect(r.error).toMatch(/Failed to parse project config/);
+  });
+});
+
+describe('runIpc(loadConfig, ConfigLoaderInputSchema) — e2e wiring (Pit Crew M2-Final QA F3)', () => {
+  // Captures the full pipe: stdin → runIpc → safePathSchema → loadConfig
+  // → envelope emit → process.exit. Without this, the runIpc + Zod +
+  // loadConfig composition is unverified end-to-end.
+
+  function captureE2E() {
+    const stdout: string[] = [];
+    const stderr: string[] = [];
+    const exitCalls: number[] = [];
+    vi.spyOn(process.stdout, 'write').mockImplementation((chunk: unknown) => {
+      stdout.push(typeof chunk === 'string' ? chunk : Buffer.from(chunk as Uint8Array).toString());
+      return true;
+    });
+    vi.spyOn(process.stderr, 'write').mockImplementation((chunk: unknown) => {
+      stderr.push(typeof chunk === 'string' ? chunk : Buffer.from(chunk as Uint8Array).toString());
+      return true;
+    });
+    vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+      exitCalls.push(code ?? 0);
+      throw new Error('exit intercepted');
+    }) as never);
+    return { stdout, stderr, exitCalls };
+  }
+
+  function setTTY(value: boolean) {
+    Object.defineProperty(process.stdin, 'isTTY', { value, configurable: true });
+  }
+
+  it('rejects /etc/passwd as root with VALIDATION error + exit 2', async () => {
+    const { runIpc } = await import('../bin/lib-ts/ipc.js');
+    const { stderr, exitCalls } = captureE2E();
+    setTTY(false);
+    const p = runIpc(loadConfig, ConfigLoaderInputSchema);
+    process.stdin.emit('data', '{"root":"/etc/passwd"}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    expect(exitCalls[0]).toBe(2);
+    const env = JSON.parse(stderr[0]);
+    expect(env.error.code).toBe('VALIDATION');
+    expect(env.error.schemaId).toBe('runIpc.input');
+  });
+
+  it('rejects ../etc/passwd as root with VALIDATION error', async () => {
+    const { runIpc } = await import('../bin/lib-ts/ipc.js');
+    const { exitCalls } = captureE2E();
+    setTTY(false);
+    const p = runIpc(loadConfig, ConfigLoaderInputSchema);
+    process.stdin.emit('data', '{"root":"../etc/passwd"}');
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    expect(exitCalls[0]).toBe(2);
+  });
+
+  it('happy path: valid input produces v0 envelope + exit 0', async () => {
+    const { runIpc } = await import('../bin/lib-ts/ipc.js');
+    const os = await import('node:os');
+    const { stdout, exitCalls } = captureE2E();
+    setTTY(false);
+    // Use homedir-prefixed global_path so safePathSchema(os.homedir())
+    // accepts it. The file doesn't have to exist — loadConfig silently
+    // falls through on a missing global config.
+    const safeGlobal = path.join(os.homedir(), '.jumpstart-test-fixture-nonexistent.yaml');
+    const p = runIpc(loadConfig, ConfigLoaderInputSchema);
+    process.stdin.emit(
+      'data',
+      JSON.stringify({
+        root: '.',
+        global_path: safeGlobal,
+      })
+    );
+    process.stdin.emit('end');
+    await p.catch(() => {
+      /* exit spy throws — expected */
+    });
+    expect(exitCalls[0]).toBe(0);
+    const parsed = JSON.parse(stdout[0]);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.config).toBeDefined();
+  });
+});
+
 describe('loadConfig — ceremony profile expansion (legacy soft-fail behavior)', () => {
   it('skips profile expansion when ceremony.profile === "standard"', async () => {
     writeProjectConfig(['ceremony:', '  profile: standard', ''].join('\n'));
