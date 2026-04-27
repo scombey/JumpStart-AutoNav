@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-04-27T09:03:48.976Z",
+  "scanned": {
+    "tsFiles": 4,
+    "jsFiles": 158,
+    "callSites": 4765,
+    "parseErrors": 0,
+    "truncatedFiles": 0
+  },
+  "incidents": []
+}

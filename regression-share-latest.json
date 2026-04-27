@@ -1,0 +1,17 @@
+{
+  "generatedAt": "2026-04-27T09:03:49.486Z",
+  "status": "ok",
+  "windowStart": "2026-04-27T09:03:48.976Z",
+  "windowEnd": "2026-04-27T09:03:48.976Z",
+  "totalRuns": 1,
+  "totalIncidents": 0,
+  "runsWithIncidents": 0,
+  "regressionShare": 0,
+  "incidentsByType": {},
+  "topClasses": [],
+  "diagnostics": {
+    "sourcesGiven": 1,
+    "sourcesSkipped": 0,
+    "sourcesMalformed": 0
+  }
+}
