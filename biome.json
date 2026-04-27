@@ -21,6 +21,7 @@
       "!tests/e2e/.tmp",
       "!tests/e2e/reports",
       "!tests/golden-masters",
+      "!src/schemas/generated",
       "!*.tgz"
     ]
   },

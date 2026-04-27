@@ -55,6 +55,12 @@ console.log('[verify-baseline] running M0 acceptance gates...');
 run('vitest-full-suite', 'npx', ['vitest', 'run']);
 run('tsc-noemit', 'npx', ['tsc', '--noEmit']);
 run('biome-check', 'npx', ['biome', 'check', '--error-on-warnings', '.']);
+// Zod codegen freshness gate (T4.2.1) — `--check` mode regenerates in
+// memory and exits non-zero if any committed `src/schemas/generated/*.ts`
+// drifts from what the canonical `.jumpstart/schemas/*.json` would
+// produce. Per ADR-004 the JSON-Schema is source of truth; the
+// committed Zod files are an audit trail that CI keeps fresh.
+run('zod-codegen-fresh', 'node', ['scripts/generate-zod-schemas.mjs', '--check']);
 run('tsdown-build', 'npx', ['tsdown']);
 // dist-exports must run AFTER tsdown so dist/ is fresh.
 run('dist-exports', 'node', ['scripts/check-dist-exports.mjs']);
