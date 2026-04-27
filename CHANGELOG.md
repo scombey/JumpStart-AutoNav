@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 In progress. M0 establishes the TypeScript toolchain. M1 adds the cross-module contract harness and other detection-infrastructure gates. M2 begins porting leaf utilities into TypeScript using the full 11-step per-module recipe — first port: `bin/lib-ts/io.ts`.
 
+### M2 — T4.1.5 diff.ts (fifth leaf port, sub-commit 11)
+- `bin/lib-ts/diff.ts` — pure-library port of `bin/lib/diff.js` (2 exports: `unifiedDiff`, `generateDiff`). Behavior parity verified by 15 unit tests covering: `unifiedDiff` header + hunk shape, `generateDiff` create / modify / delete / aggregate branches including the modify-falls-back-to-disk path, `change.new ?? change.content` precedence, `Math.max(0, …)` net counting, and the empty-input zero-summary case.
+- New named types: `Change` discriminated union, `DiffEntry`, `DiffSummary`, `GenerateDiffResult`, `GenerateDiffInput`. The previously-untyped object returns now have full TS shapes.
+- Limitation preserved verbatim: this is NOT an LCS-optimal diff. Lines are compared positionally; sufficient for "preview before commit" use cases (matches what existing consumers have always seen).
+- All 11 verify-baseline gates **PASS**. Test count: **93 / 2081** (+1 file / +15 tests).
+
 ### M2 — T4.1.4 locks.ts (fourth leaf port, sub-commit 10)
 - `bin/lib-ts/locks.ts` — pure-library port of `bin/lib/locks.js` (4 functions: `acquireLock`, `releaseLock`, `lockStatus`, `listLocks`). Behavior parity verified by 15 unit tests covering: lock-file shape on disk (`{ file, agent, acquired_at, pid }` with trailing newline), conflict refusal, corrupt-lock fix-by-clobber on acquire, corrupt-lock-removed on release, agent-mismatch refusal, missing-dir auto-create, list with mixed valid + corrupt entries, status round-trip.
 - New named types: `Lock`, `LockResult`, `LockStatusResult`, `ListLocksResult`.
