@@ -1,0 +1,35 @@
+{
+  "recommended_depth": "standard",
+  "score": 45,
+  "breakdown": {
+    "risk_keywords": {
+      "score": 15,
+      "matched": [
+        "security",
+        "compliance",
+        "gdpr"
+      ]
+    },
+    "codebase_size": {
+      "score": 10,
+      "file_count": 100
+    },
+    "dependencies": {
+      "score": 0,
+      "count": 0
+    },
+    "domain": {
+      "score": 20,
+      "domain": "healthcare"
+    },
+    "integrations": {
+      "score": 0,
+      "count": 0
+    },
+    "stakeholders": {
+      "score": 0,
+      "count": 0
+    }
+  },
+  "reasoning": "Moderate complexity score (45/100). Standard elicitation depth should provide adequate problem discovery while maintaining reasonable time investment."
+}

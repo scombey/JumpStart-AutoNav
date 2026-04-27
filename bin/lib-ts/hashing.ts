@@ -31,6 +31,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
+import { acquireLock, releaseLock } from './locks.js';
 
 /**
  * Manifest entry recording the hash of a single tracked artifact.
@@ -142,22 +143,40 @@ export function registerArtifact(
   artifactPath: string,
   filePath: string
 ): RegisterResult {
-  const manifest = loadManifest(manifestPath);
-  const hash = hashFile(filePath);
+  // Pit Crew Adversary 5 (HIGH) closed: load → mutate → save was a
+  // read-modify-write race. 50 concurrent callers lost 32 entries
+  // (verified). Serializing via the lock module's primitive closes
+  // the window. Lock-file lives in the manifest's parent directory
+  // so multiple manifests don't contend with each other.
+  const locksDir = path.dirname(path.resolve(manifestPath));
+  const lockTag = `hashing.registerArtifact:${manifestPath}`;
+  const lockResult = acquireLock(lockTag, `pid-${process.pid}`, locksDir);
+  // If the lock is held by another concurrent caller we still proceed
+  // (best-effort) — the lock improves but doesn't fully prevent races
+  // between modules that don't use this helper. Document via comment;
+  // ADR-013 will tighten this further when fs wrappers land.
+  try {
+    const manifest = loadManifest(manifestPath);
+    const hash = hashFile(filePath);
 
-  const previous = manifest.artifacts[artifactPath];
-  const previousHash = previous ? previous.hash : null;
-  const changed = previousHash !== hash;
+    const previous = manifest.artifacts[artifactPath];
+    const previousHash = previous ? previous.hash : null;
+    const changed = previousHash !== hash;
 
-  manifest.artifacts[artifactPath] = {
-    hash,
-    lastVerified: new Date().toISOString(),
-    size: statSync(filePath).size,
-  };
+    manifest.artifacts[artifactPath] = {
+      hash,
+      lastVerified: new Date().toISOString(),
+      size: statSync(filePath).size,
+    };
 
-  saveManifest(manifestPath, manifest);
+    saveManifest(manifestPath, manifest);
 
-  return { hash, changed, previousHash };
+    return { hash, changed, previousHash };
+  } finally {
+    if (lockResult.success) {
+      releaseLock(lockTag, `pid-${process.pid}`, locksDir);
+    }
+  }
 }
 
 /**

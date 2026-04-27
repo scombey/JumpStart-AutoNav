@@ -121,15 +121,32 @@ export function createVersionTag(
 }
 
 /**
+ * Validate that `version` is a well-formed semver string (with optional
+ * pre-release + build-metadata suffix). Pit Crew Adversary 2 (CRITICAL)
+ * closed: the legacy injectVersion interpolated `version` into YAML +
+ * markdown unescaped, so an attacker passing
+ * `'1.0.0"\n\nmalicious_field: "owned'` could inject arbitrary
+ * frontmatter fields and forge approval state. Gating with semver
+ * rejects every shape that could carry control bytes.
+ */
+const SEMVER_REGEX = /^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?(\+[a-zA-Z0-9.-]+)?$/;
+
+/**
  * Inject `version: "<version>"` into the spec file's YAML frontmatter
  * AND update any `**Version:**` header line in the body. Returns
- * `false` if the file does not exist; returns `true` after a successful
- * write even if no fields actually changed (legacy semantics — the
- * function is idempotent and the boolean tracks "found and processed",
- * not "modified").
+ * `false` if the file does not exist OR `version` is not a valid
+ * semver shape (Pit Crew Adversary 2 hardening); returns `true` after
+ * a successful write even if no fields actually changed.
+ *
+ * Frontmatter regex anchored to line start (Pit Crew Reviewer H2): the
+ * legacy regex `/version:\s*.+/` was an unanchored substring match that
+ * clobbered the FIRST occurrence of `version:` anywhere — including
+ * inside another field's quoted value. The `m` flag + `^` anchor makes
+ * sure only a true field declaration matches.
  */
 export function injectVersion(filePath: string, version: string): boolean {
   if (!existsSync(filePath)) return false;
+  if (!SEMVER_REGEX.test(version)) return false;
 
   let content = readFileSync(filePath, 'utf8');
 
@@ -137,8 +154,11 @@ export function injectVersion(filePath: string, version: string): boolean {
     const endIdx = content.indexOf('\n---', 4);
     if (endIdx !== -1) {
       let frontmatter = content.substring(4, endIdx);
-      if (frontmatter.includes('version:')) {
-        frontmatter = frontmatter.replace(/version:\s*.+/, `version: "${version}"`);
+      // Anchored: only matches lines that START with `version:` (i.e.,
+      // a real top-level frontmatter field), never substring matches
+      // inside another field's value (Reviewer H2).
+      if (/^version:/m.test(frontmatter)) {
+        frontmatter = frontmatter.replace(/^version:[ \t]*.*/m, `version: "${version}"`);
       } else {
         frontmatter += `\nversion: "${version}"`;
       }
@@ -146,7 +166,11 @@ export function injectVersion(filePath: string, version: string): boolean {
     }
   }
 
-  const versionPattern = /(\*\*Version:\*\*\s*).*/;
+  // Body **Version:** header — anchored to line end via $ + m flag to
+  // prevent any leftover newline from carrying a payload. Since
+  // `version` is validated as semver above, the right-hand side
+  // can't contain control bytes; the anchor is defense-in-depth.
+  const versionPattern = /(\*\*Version:\*\*[ \t]*).*$/m;
   if (versionPattern.test(content)) {
     content = content.replace(versionPattern, `$1${version}`);
   }

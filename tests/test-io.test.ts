@@ -41,12 +41,25 @@ function captureIO(): CapturedIO {
   return { stdout, stderr };
 }
 
+// Capture the original isTTY so afterEach can restore it — without this
+// the wrapTool/readStdin tests below mutated it permanently and leaked
+// across vitest worker reuse (Pit Crew QA F5).
+const ORIGINAL_IS_TTY = process.stdin.isTTY;
+
+function setTTY(value: boolean): void {
+  Object.defineProperty(process.stdin, 'isTTY', { value, configurable: true });
+}
+
 beforeEach(() => {
   vi.restoreAllMocks();
 });
 
 afterEach(() => {
   vi.restoreAllMocks();
+  Object.defineProperty(process.stdin, 'isTTY', {
+    value: ORIGINAL_IS_TTY,
+    configurable: true,
+  });
 });
 
 describe('writeResult — byte-identical envelope vs legacy bin/lib/io.js', () => {
@@ -112,16 +125,44 @@ describe('writeError — byte-identical envelope vs legacy bin/lib/io.js', () =>
   });
 });
 
-describe('readStdin — TTY short-circuit and JSON parse', () => {
+describe('readStdin — TTY short-circuit + JSON parse + reject paths (QA-F3)', () => {
   it('returns {} when stdin is a TTY (no read attempted)', async () => {
-    const original = process.stdin.isTTY;
-    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
-    try {
-      const result = await readStdin();
-      expect(result).toEqual({});
-    } finally {
-      Object.defineProperty(process.stdin, 'isTTY', { value: original, configurable: true });
-    }
+    setTTY(true);
+    const result = await readStdin();
+    expect(result).toEqual({});
+  });
+
+  it('rejects with JumpstartError on malformed JSON via stdin', async () => {
+    setTTY(false);
+    const promise = readStdin();
+    process.stdin.emit('data', '{not-json');
+    process.stdin.emit('end');
+    await expect(promise).rejects.toBeInstanceOf(JumpstartError);
+    await expect(promise).rejects.toThrow(/Invalid JSON on stdin/);
+  });
+
+  it('rejects when stdin emits error event', async () => {
+    setTTY(false);
+    const promise = readStdin();
+    const err = new Error('EPIPE');
+    process.stdin.emit('error', err);
+    await expect(promise).rejects.toBe(err);
+  });
+
+  it('resolves {} on whitespace-only stdin', async () => {
+    setTTY(false);
+    const promise = readStdin();
+    process.stdin.emit('data', '   \n\t  ');
+    process.stdin.emit('end');
+    await expect(promise).resolves.toEqual({});
+  });
+
+  it('resolves with the parsed object on well-formed JSON', async () => {
+    setTTY(false);
+    const promise = readStdin();
+    process.stdin.emit('data', '{"hello":"world","n":42}');
+    process.stdin.emit('end');
+    await expect(promise).resolves.toEqual({ hello: 'world', n: 42 });
   });
 });
 
@@ -160,7 +201,7 @@ describe('wrapTool — error contract divergence vs legacy', () => {
     const tool = wrapTool(async (input: { name?: string }) => ({
       greeting: `hi ${input.name ?? 'world'}`,
     }));
-    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    setTTY(true);
     await tool({ name: 'Samuel' });
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.ok).toBe(true);
@@ -172,7 +213,7 @@ describe('wrapTool — error contract divergence vs legacy', () => {
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
       throw new Error(`process.exit(${code}) was called — should not happen`);
     }) as never);
-    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    setTTY(true);
 
     const tool = wrapTool(async () => {
       throw new Error('handler boom');
@@ -191,7 +232,7 @@ describe('wrapTool — error contract divergence vs legacy', () => {
 
   it('preserves the JumpstartError subclass when handler throws a typed error', async () => {
     captureIO();
-    Object.defineProperty(process.stdin, 'isTTY', { value: true, configurable: true });
+    setTTY(true);
     class MyError extends JumpstartError {
       override exitCode = 7;
     }
@@ -208,5 +249,57 @@ describe('wrapTool — error contract divergence vs legacy', () => {
     }
     expect(caught).toBeInstanceOf(MyError);
     expect((caught as MyError).exitCode).toBe(7);
+  });
+
+  it('coerces non-Error throws into a string message (Rev-H4 — documented divergence vs legacy)', async () => {
+    const { stderr } = captureIO();
+    setTTY(true);
+    const tool = wrapTool(async () => {
+      // Legacy bin/lib/io.js's `err.message` would be undefined here
+      // and writeError would emit no `message` field. The TS port
+      // coerces to String(err) so the envelope always has a message.
+      throw 'string-boom';
+    });
+    await expect(tool({})).rejects.toBeInstanceOf(JumpstartError);
+    const parsed = JSON.parse(stderr[0]);
+    expect(parsed.error.message).toBe('string-boom');
+  });
+
+  it('still throws JumpstartError when writeError itself fails (Adv-4 EPIPE preservation)', async () => {
+    setTTY(true);
+    const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+      throw new Error(`process.exit(${code}) was called`);
+    }) as never);
+    // Make stderr.write throw — simulating a broken pipe.
+    vi.spyOn(process.stderr, 'write').mockImplementation(() => {
+      throw new Error('EPIPE: broken pipe');
+    });
+    const tool = wrapTool(async () => {
+      throw new Error('handler boom');
+    });
+    let caught: unknown;
+    try {
+      await tool({});
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(JumpstartError);
+    expect(exitSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('writeError — Adv-9 envelope shadow guard', () => {
+  it('canonical code/message win over caller-supplied details fields', () => {
+    const stderr: string[] = [];
+    vi.spyOn(process.stderr, 'write').mockImplementation((chunk: unknown) => {
+      stderr.push(typeof chunk === 'string' ? chunk : Buffer.from(chunk as Uint8Array).toString());
+      return true;
+    });
+    // Pre-fix: details.code='OK' shadowed code='REAL_FAILURE'.
+    writeError('REAL_FAILURE', 'real msg', { code: 'OK', message: 'wrong', extra: 'kept' });
+    const parsed = JSON.parse(stderr[0]);
+    expect(parsed.error.code).toBe('REAL_FAILURE');
+    expect(parsed.error.message).toBe('real msg');
+    expect(parsed.error.extra).toBe('kept');
   });
 });

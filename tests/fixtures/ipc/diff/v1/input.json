@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "input": {
+    "changes": [
+      {
+        "type": "create",
+        "path": "a.txt",
+        "content": "hello"
+      }
+    ]
+  }
+}

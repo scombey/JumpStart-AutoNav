@@ -69,6 +69,23 @@ describe('hashContent — known vectors', () => {
   it('produces a 64-character hex string', () => {
     expect(hashContent('any input')).toMatch(/^[0-9a-f]{64}$/);
   });
+
+  it('returns the canonical SHA-256 digest for a 1MB known vector (QA-F6 buffer-boundary guard)', () => {
+    // Known vector: hashContent('a'.repeat(1_000_000)) === well-known digest.
+    // Verifies createHash().update() handles >64KB string-mode inputs without
+    // a buffer-boundary regression a future "stream-read in chunks"
+    // optimization could introduce.
+    const out = hashContent('a'.repeat(1_000_000));
+    expect(out).toBe('cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0');
+  });
+
+  it('handles non-ASCII multi-byte content', () => {
+    // 500 copies of '日本語' (3 chars × 500 = 1500 chars, 9 UTF-8 bytes each).
+    const out = hashContent('日本語'.repeat(500));
+    expect(out).toMatch(/^[0-9a-f]{64}$/);
+    // Determinism check.
+    expect(out).toBe(hashContent('日本語'.repeat(500)));
+  });
 });
 
 describe('hashFile ↔ hashContent parity', () => {

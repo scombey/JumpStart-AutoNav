@@ -127,10 +127,14 @@ export function writeError(
   message: string,
   details: Record<string, unknown> = {}
 ): void {
+  // Pit Crew Adversary 9: details fields spread AFTER would shadow
+  // `code` and `message` if the caller passed `{ code: 'OK' }` (e.g. a
+  // raw Zod issue containing its own `code` enum). Spread first; let
+  // the canonical args win.
   const output = {
     ok: false,
     timestamp: new Date().toISOString(),
-    error: { code, message, ...details },
+    error: { ...details, code, message },
   };
   process.stderr.write(`${JSON.stringify(output)}\n`);
 }
@@ -166,9 +170,23 @@ export function wrapTool<
       const result = await handler(input);
       writeResult(result);
     } catch (err) {
+      // Non-Error throws (e.g. `throw "boom"` or `throw 42`) — coerce
+      // to a string for the error envelope. Pit Crew Reviewer H4 noted
+      // this is a tightening vs legacy (legacy emitted no message at
+      // all in that case). Documented here so future readers see the
+      // deliberate choice.
       const message = err instanceof Error ? err.message : String(err);
       const stack = err instanceof Error ? err.stack : undefined;
-      writeError('TOOL_ERROR', message, stack ? { stack } : {});
+      // Pit Crew Adversary 4: if writeError itself throws (broken pipe
+      // — common when subprocess parent exits before child finishes
+      // writing), the JumpstartError contract is dropped and the EPIPE
+      // bubbles out as a plain Error. Wrap in inner try/catch so the
+      // typed throw below ALWAYS reaches the runIpc boundary.
+      try {
+        writeError('TOOL_ERROR', message, stack ? { stack } : {});
+      } catch {
+        // stderr is unavailable; nothing to do but proceed to throw.
+      }
       // Per ADR-006: rethrow as typed error so runIpc can route exit
       // codes. If the caught value is already a JumpstartError, preserve
       // its subclass + exitCode.

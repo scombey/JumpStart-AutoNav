@@ -43,6 +43,16 @@ describe('unifiedDiff', () => {
     const out = unifiedDiff('a\nb\nc', 'a\nB\nc', 'a.txt');
     expect(out).toMatch(/@@ -\d+,\d+ \+\d+,\d+ @@/);
   });
+
+  it('flushes a hunk after 3 unchanged context lines and starts a new one for a distant edit (QA-F8)', () => {
+    // Edit at line 1, 6 unchanged lines, edit at line 8. The 3-trailing-
+    // unchanged heuristic should split into two hunks.
+    const oldStr = 'A\nC\nD\nE\nF\nG\nH\nI';
+    const newStr = 'a\nC\nD\nE\nF\nG\nH\ni';
+    const out = unifiedDiff(oldStr, newStr, 'f.txt');
+    const hunkHeaders = out.match(/^@@ /gm) ?? [];
+    expect(hunkHeaders).toHaveLength(2);
+  });
 });
 
 describe('generateDiff — create', () => {
@@ -148,6 +158,41 @@ describe('generateDiff — delete', () => {
     if (result.diffs[0].type === 'delete') {
       expect(result.diffs[0].lines).toBe(1); // empty string splits to one empty line
     }
+  });
+});
+
+describe('generateDiff — Adv-3 path-traversal guard', () => {
+  it('rejects `..` traversal that would disclose files outside root', () => {
+    expect(() =>
+      generateDiff({
+        changes: [{ type: 'modify', path: '../../etc/passwd', new: '' }],
+        root: tmpDir,
+      })
+    ).toThrow(/outside the project boundary root/);
+  });
+
+  it('rejects absolute paths outside root', () => {
+    expect(() =>
+      generateDiff({
+        changes: [{ type: 'delete', path: '/etc/passwd' }],
+        root: tmpDir,
+      })
+    ).toThrow(/outside the project boundary root/);
+  });
+
+  it('thrown error is a ValidationError with exit code 2 (ADR-006)', async () => {
+    const { ValidationError } = await import('../bin/lib-ts/errors.js');
+    let caught: unknown;
+    try {
+      generateDiff({
+        changes: [{ type: 'delete', path: '../../etc/passwd' }],
+        root: tmpDir,
+      });
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(ValidationError);
+    expect((caught as InstanceType<typeof ValidationError>).exitCode).toBe(2);
   });
 });
 

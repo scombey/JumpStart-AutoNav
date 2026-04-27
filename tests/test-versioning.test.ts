@@ -86,6 +86,46 @@ describe('injectVersion', () => {
     // File untouched in content terms — write was a no-op rewrite.
     expect(readFileSync(file, 'utf8')).toBe('# Just a heading\n');
   });
+
+  it('rejects malformed semver inputs (Adv-2 YAML-injection guard)', () => {
+    const file = path.join(tmpDir, 'spec.md');
+    writeFileSync(file, '---\ntitle: thing\nversion: "0.0.1"\n---\nbody', 'utf8');
+    // The classic injection payload from Pit Crew Adversary 2.
+    expect(injectVersion(file, '1.0.0"\n\nmalicious_field: "owned')).toBe(false);
+    // File untouched.
+    expect(readFileSync(file, 'utf8')).toContain('"0.0.1"');
+    expect(readFileSync(file, 'utf8')).not.toContain('malicious_field');
+  });
+
+  it('rejects shell metacharacters in version (defense-in-depth)', () => {
+    const file = path.join(tmpDir, 'spec.md');
+    writeFileSync(file, '---\nversion: "0.0.1"\n---\n', 'utf8');
+    expect(injectVersion(file, '1.0.0; rm -rf /')).toBe(false);
+    expect(injectVersion(file, '1.0.0\nstatus: approved')).toBe(false);
+    expect(injectVersion(file, '$(echo pwned)')).toBe(false);
+  });
+
+  it('accepts well-formed semver including pre-release + build metadata', () => {
+    const file = path.join(tmpDir, 'spec.md');
+    writeFileSync(file, '---\nversion: "0.0.1"\n---\n', 'utf8');
+    expect(injectVersion(file, '1.0.0-rc.1')).toBe(true);
+    expect(injectVersion(file, '2.3.4-alpha.5+build.123')).toBe(true);
+  });
+
+  it('does NOT clobber unrelated fields whose value contains the substring `version:` (Rev-H2)', () => {
+    const file = path.join(tmpDir, 'spec.md');
+    writeFileSync(
+      file,
+      '---\nfoo: "see version: 2 in the linked doc"\nversion: "0.0.1"\n---\n# Body',
+      'utf8'
+    );
+    injectVersion(file, '1.2.3');
+    const out = readFileSync(file, 'utf8');
+    // The `foo` field's value is preserved verbatim — the legacy regex
+    // would have substring-matched and clobbered it.
+    expect(out).toContain('foo: "see version: 2 in the linked doc"');
+    expect(out).toContain('version: "1.2.3"');
+  });
 });
 
 describe('getNextVersion — git-aware', () => {
@@ -167,6 +207,26 @@ describe('createVersionTag — git-aware', () => {
       encoding: 'utf8',
     });
     expect(out).toContain('release');
+  });
+
+  it('actively proves the rm -rf clause did NOT execute (Pit Crew Rev-H3 sentinel-file test)', () => {
+    gitInit();
+    // Drop a sentinel file inside tmpDir then run the tag-creation with
+    // a payload that, under shell interpretation, would `rm -rf` it.
+    // The sentinel must survive the call. (Rev-H3: the prior test only
+    // asserted shape; under a hypothetical regression to legacy
+    // execSync the destructive clause might still fail benignly while
+    // the test passes. This test fails LOUDLY if the regression returns.)
+    const sentinel = path.join(tmpDir, 'CANARY');
+    writeFileSync(sentinel, 'survives', 'utf8');
+    // Use $HOME=tmpDir env override so the rm clause would target our
+    // sentinel directory, not the test runner's actual home.
+    const evilMessage = 'release"; rm -rf "$HOME"/CANARY #';
+    const result = createVersionTag('prd', '1.0.0', evilMessage, tmpDir);
+    expect(result.success).toBe(true);
+
+    // The sentinel still exists — the rm never ran.
+    expect(execFileSync('cat', [sentinel], { encoding: 'utf8' })).toBe('survives');
   });
 });
 

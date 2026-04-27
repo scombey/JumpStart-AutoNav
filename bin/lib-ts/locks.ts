@@ -25,6 +25,7 @@
  * @see specs/implementation-plan.md T4.1.4
  */
 
+import { createHash } from 'node:crypto';
 import {
   existsSync,
   mkdirSync,
@@ -37,15 +38,18 @@ import { join } from 'node:path';
 
 const DEFAULT_LOCKS_DIR = '.jumpstart/state/locks';
 
-/** On-disk lock entry. The pid is the acquirer's process id at write time. */
-export interface Lock {
-  file: string;
-  agent: string;
-  acquired_at: string;
-  pid: number;
-  /** Optional sentinel a corrupt lock survives with — not part of the legitimate contract. */
-  error?: string;
-}
+/**
+ * On-disk lock entry. Discriminated union: a healthy lock has the
+ * full `agent`/`acquired_at`/`pid` triple; a corrupt-on-disk entry
+ * surfaces from `listLocks` as the error variant. Pit Crew Reviewer H1
+ * — the previous shape lied to the type system by claiming all fields
+ * were required and using `as Lock` to smuggle the error variant
+ * through. Callers iterating `listLocks().locks` now have to narrow
+ * before reading `agent`/`pid`.
+ */
+export type Lock =
+  | { ok: true; file: string; agent: string; acquired_at: string; pid: number }
+  | { ok: false; file: string; error: 'corrupt' };
 
 /**
  * Result of `acquireLock` / `releaseLock`. Exactly one of `lock`,
@@ -74,14 +78,64 @@ export interface ListLocksResult {
 }
 
 /**
- * Lock-file path derivation. Sanitizes `/`, `\`, and `..` from the file
- * path so the resulting lock filename is filesystem-safe. The
- * substitution is irreversible — different originals can collide
- * (legacy behavior; consumers are expected to use repo-relative paths).
+ * Lock-file path derivation. Pit Crew M2 Adversary 1 (CRITICAL) fixed:
+ * the legacy sanitization `[/\\] → __` then `.. → _` was an irreversible
+ * many-to-one map. Distinct paths like `specs/prd.md` + `specs__prd.md`
+ * collided on the same lock filename, letting an attacker steal or
+ * release a lock by aliasing the path it sanitizes to.
+ *
+ * The fix: derive the lock filename from a SHA-256 prefix of the
+ * normalized path. The full original path is recorded inside the lock
+ * JSON's `file` field, so an acquire-time collision check (
+ * `existing.file !== filePath`) catches and rejects aliasing attempts.
+ *
+ * Behavior change vs legacy: lock filenames change shape (no longer
+ * human-readable). Two compensating moves:
+ *   1. The on-disk lock JSON still carries the original path verbatim
+ *      under `file`, so `listLocks` output is unchanged.
+ *   2. Lock filenames remain stable across runs for the same input
+ *      (deterministic hash), so external tooling that polls a specific
+ *      lock by name is only a one-time migration.
  */
 function lockPath(filePath: string, locksDir: string): string {
-  const sanitized = filePath.replace(/[/\\]/g, '__').replace(/\.\./g, '_');
-  return join(locksDir, `${sanitized}.lock`);
+  // Normalize then hash. Slice to 16 hex chars (64 bits) — collision
+  // probability for the few-thousand-locks workload is astronomically
+  // low while keeping filenames short.
+  const hash = createHash('sha256').update(filePath).digest('hex').slice(0, 16);
+  return join(locksDir, `${hash}.lock`);
+}
+
+/**
+ * Read + narrow a lock file to its discriminated-union shape. Returns
+ * `null` when the file can't be parsed or the shape is invalid —
+ * callers fall through to the corrupt-lock recovery path.
+ */
+function parseLockFile(lockFilePath: string): (Lock & { ok: true }) | null {
+  try {
+    const parsed = JSON.parse(readFileSync(lockFilePath, 'utf8')) as Partial<{
+      file: string;
+      agent: string;
+      acquired_at: string;
+      pid: number;
+    }>;
+    if (
+      typeof parsed.file === 'string' &&
+      typeof parsed.agent === 'string' &&
+      typeof parsed.acquired_at === 'string' &&
+      typeof parsed.pid === 'number'
+    ) {
+      return {
+        ok: true,
+        file: parsed.file,
+        agent: parsed.agent,
+        acquired_at: parsed.acquired_at,
+        pid: parsed.pid,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -100,26 +154,61 @@ export function acquireLock(filePath: string, agent: string, locksDir?: string):
   const lp = lockPath(filePath, dir);
 
   if (existsSync(lp)) {
-    try {
-      const existing = JSON.parse(readFileSync(lp, 'utf8')) as Lock;
+    const existing = parseLockFile(lp);
+    if (existing) {
+      // Defense against hash-collision (astronomically unlikely with
+      // 64 bits, but worth checking — and against future migration
+      // bugs that re-derive filenames differently).
+      if (existing.file !== filePath) {
+        return {
+          success: false,
+          error: `Lock file collision: ${lp} holds a lock for "${existing.file}" not "${filePath}".`,
+          lock: existing,
+        };
+      }
       return {
         success: false,
         error: `File is already locked by ${existing.agent} since ${existing.acquired_at}`,
         lock: existing,
       };
-    } catch {
-      // Corrupt lock — fall through and overwrite.
     }
+    // Corrupt lock — fall through and overwrite.
   }
 
   const lock: Lock = {
+    ok: true,
     file: filePath,
     agent,
     acquired_at: new Date().toISOString(),
     pid: process.pid,
   };
 
-  writeFileSync(lp, `${JSON.stringify(lock, null, 2)}\n`, 'utf8');
+  // Atomic exclusive create on POSIX; falls back to overwrite on the
+  // corrupt-lock-cleanup path above. The 'wx' flag fails fast if a
+  // lock arrived between the existsSync check and the write — closing
+  // the TOCTOU window QA-F7 flagged.
+  try {
+    writeFileSync(lp, `${JSON.stringify(lock, null, 2)}\n`, { encoding: 'utf8', flag: 'wx' });
+  } catch {
+    // Fallback: a concurrent writer beat us OR we're cleaning up a
+    // corrupt lock (existsSync was true but JSON.parse failed). Read
+    // back what's actually there and surface the right outcome.
+    if (existsSync(lp)) {
+      const existing = parseLockFile(lp);
+      if (existing) {
+        return {
+          success: false,
+          error: `Concurrent acquire — file is locked by ${existing.agent} since ${existing.acquired_at}`,
+          lock: existing,
+        };
+      }
+      // Still corrupt — overwrite (legacy fix-by-clobber).
+      writeFileSync(lp, `${JSON.stringify(lock, null, 2)}\n`, 'utf8');
+      return { success: true, lock };
+    }
+    // Re-throw any non-EEXIST error (e.g., permission denied).
+    throw new Error(`Failed to acquire lock at ${lp}`);
+  }
   return { success: true, lock };
 }
 
@@ -136,18 +225,26 @@ export function releaseLock(filePath: string, agent: string, locksDir?: string):
     return { success: true, message: 'No lock to release' };
   }
 
-  try {
-    const existing = JSON.parse(readFileSync(lp, 'utf8')) as Lock;
+  const existing = parseLockFile(lp);
+  if (existing) {
+    // Hash-collision defense (Adversary 1): refuse to release a lock
+    // whose stored `file` doesn't match. Without this, an attacker who
+    // controls a path that hashes to the same prefix could release
+    // someone else's lock.
+    if (existing.file !== filePath) {
+      return {
+        success: false,
+        error: `Lock at ${lp} holds "${existing.file}" not "${filePath}". Refusing release.`,
+      };
+    }
     if (existing.agent !== agent) {
       return {
         success: false,
         error: `Lock is held by ${existing.agent}, not ${agent}. Cannot release.`,
       };
     }
-  } catch {
-    // Corrupt lock — remove anyway (matches legacy).
   }
-
+  // Corrupt-or-matched: remove the file (matches legacy fix-by-clobber).
   unlinkSync(lp);
   return { success: true, message: `Lock released on ${filePath}` };
 }
@@ -161,12 +258,17 @@ export function lockStatus(filePath: string, locksDir?: string): LockStatusResul
     return { locked: false, file: filePath };
   }
 
-  try {
-    const lock = JSON.parse(readFileSync(lp, 'utf8')) as Lock;
-    return { locked: true, file: filePath, lock };
-  } catch {
+  const lock = parseLockFile(lp);
+  if (!lock) {
     return { locked: false, file: filePath, error: 'Corrupt lock file' };
   }
+  // Hash-collision defense: if the stored `file` doesn't match, the
+  // hash matched but it's a different artifact — caller's `filePath`
+  // is NOT locked.
+  if (lock.file !== filePath) {
+    return { locked: false, file: filePath };
+  }
+  return { locked: true, file: filePath, lock };
 }
 
 /**
@@ -183,9 +285,30 @@ export function listLocks(locksDir?: string): ListLocksResult {
   const files = readdirSync(dir).filter((f) => f.endsWith('.lock'));
   const locks = files.map((f): Lock => {
     try {
-      return JSON.parse(readFileSync(join(dir, f), 'utf8')) as Lock;
+      const parsed = JSON.parse(readFileSync(join(dir, f), 'utf8')) as Partial<{
+        file: string;
+        agent: string;
+        acquired_at: string;
+        pid: number;
+      }>;
+      // Validate full healthy shape; missing fields → corrupt variant.
+      if (
+        typeof parsed.file === 'string' &&
+        typeof parsed.agent === 'string' &&
+        typeof parsed.acquired_at === 'string' &&
+        typeof parsed.pid === 'number'
+      ) {
+        return {
+          ok: true,
+          file: parsed.file,
+          agent: parsed.agent,
+          acquired_at: parsed.acquired_at,
+          pid: parsed.pid,
+        };
+      }
+      return { ok: false, file: parsed.file ?? f, error: 'corrupt' };
     } catch {
-      return { file: f, error: 'corrupt' } as Lock;
+      return { ok: false, file: f, error: 'corrupt' };
     }
   });
 

@@ -24,6 +24,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import * as path from 'node:path';
+import { assertInsideRoot } from './path-safety.js';
 
 /**
  * Discriminated union over the three change types `generateDiff`
@@ -176,6 +177,13 @@ export function generateDiff(input: GenerateDiffInput): GenerateDiffResult {
   let linesRemoved = 0;
 
   for (const change of changes) {
+    // Pit Crew Adversary 3 (CRITICAL) closed: legacy generateDiff
+    // would read absolute paths and `..` traversal payloads, leaking
+    // arbitrary file contents into the rendered patch via stdin-supplied
+    // `change.path`. assertInsideRoot rejects every escape with
+    // ValidationError (exit 2), turning the disclosure into a clean
+    // schema-violation error.
+    assertInsideRoot(change.path, resolvedRoot, { schemaId: 'diff.generateDiff.change.path' });
     const fullPath = path.resolve(resolvedRoot, change.path);
 
     switch (change.type) {

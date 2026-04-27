@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "ok": true,
+  "timestamp": "<<RUNTIME_ISO>>",
+  "result": {
+    "locks": []
+  }
+}

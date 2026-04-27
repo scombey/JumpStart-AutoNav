@@ -57,13 +57,28 @@ describe('chunkContent — v1.1.14 forward-progress invariants', () => {
     expect(result.total_chars).toBe(200_000);
   });
 
-  it('terminates when overlap > chunk-size (the original infinite-loop trigger)', () => {
+  it('terminates with overlap close to (but less than) chunk-size — v1.1.14 fallback path', () => {
+    // overlap=49 < max_tokens=50 — passes the new Adv-6 parameter
+    // guard but still exercises the legacy forward-progress fallback
+    // because end-overlapChars can equal start, requiring start += 1
+    // to avoid the infinite loop.
     const result = chunkContent('a'.repeat(1000), {
-      max_tokens: 50, // 200 chars
-      overlap: 100, // 400 chars overlap > 200 chunk → start += 1 path
+      max_tokens: 50,
+      overlap: 49,
     });
     expect(result.success).toBe(true);
     expect(result.chunks).toBeGreaterThan(0);
+    // Bounded chunk count proves the start += 1 guard works without
+    // producing the O(content.length) blow-up Adv-6 caught.
+    expect(result.chunks).toBeLessThan(500); // chunks-per-content-length tracks the v1.1.14 floor
+  });
+
+  it('rejects overlap >= max_tokens at parameter-validation time (Adv-6 DoS guard)', () => {
+    expect(() => chunkContent('x', { max_tokens: 1, overlap: 1000 })).toThrow(
+      /overlap.*must be less than max_tokens/
+    );
+    expect(() => chunkContent('x', { max_tokens: 50, overlap: 50 })).toThrow();
+    expect(() => chunkContent('x', { max_tokens: 50, overlap: 100 })).toThrow();
   });
 
   it('every chunk has length > 0', () => {

@@ -74,13 +74,24 @@ export interface AuditInvalidEntry {
 /**
  * Result shape for `audit`. The optional `error` field is set only when
  * the file itself can't be read (matches legacy fallthrough shape).
+ * `truncated` is true when invalid.length hit AUDIT_INVALID_CAP
+ * (Pit Crew Adversary 7 DoS guard).
  */
 export interface AuditResult {
   entries: number;
   valid: number;
   invalid: AuditInvalidEntry[];
   error?: string;
+  truncated?: boolean;
 }
+
+/**
+ * Cap on `result.invalid.length`. A markdown file with 1M `**Timestamp:**`
+ * lines previously produced a 110MB rollup that crashed downstream
+ * consumers. 1000 invalid entries is more than enough for any
+ * legitimate spec audit.
+ */
+const AUDIT_INVALID_CAP = 1000;
 
 /** Generate a fresh ISO 8601 UTC timestamp. Identical to legacy. */
 export function now(): string {
@@ -182,8 +193,10 @@ export function audit(filePath: string): AuditResult {
     const validation = validate(value);
     if (validation.valid) {
       result.valid++;
-    } else {
+    } else if (result.invalid.length < AUDIT_INVALID_CAP) {
       result.invalid.push({ line: idx + 1, value, error: validation.error });
+    } else {
+      result.truncated = true;
     }
   }
 
@@ -204,13 +217,15 @@ export function audit(filePath: string): AuditResult {
       const validation = validate(value);
       if (validation.valid) {
         result.valid++;
-      } else {
+      } else if (result.invalid.length < AUDIT_INVALID_CAP) {
         result.invalid.push({
           line: 0, // frontmatter
           field,
           value,
           error: validation.error,
         });
+      } else {
+        result.truncated = true;
       }
     }
   }

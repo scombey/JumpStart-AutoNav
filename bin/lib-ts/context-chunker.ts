@@ -116,6 +116,19 @@ export function chunkContent(content: string, options: ChunkOptions = {}): Chunk
   const maxTokens = options.max_tokens || Math.floor(limits.tokens * 0.8);
   const overlapTokens = options.overlap || Math.floor(maxTokens * 0.05);
 
+  // Pit Crew Adversary 6 (HIGH) closed: when overlap >= maxTokens, the
+  // forward-progress fallback (start += 1) advances ONE char per chunk,
+  // producing O(content.length) chunks. The v1.1.14 fix prevented an
+  // infinite loop but didn't bound the chunk count. An attacker
+  // supplying { max_tokens: 1, overlap: 1000 } over an IPC envelope
+  // could force a multi-GB rollup. We reject the degenerate input
+  // here so it never reaches the loop.
+  if (overlapTokens >= maxTokens) {
+    throw new Error(
+      `chunkContent: overlap (${overlapTokens}) must be less than max_tokens (${maxTokens}); the chunker would produce an unbounded number of chunks.`
+    );
+  }
+
   const maxChars = maxTokens * 4;
   const overlapChars = overlapTokens * 4;
 

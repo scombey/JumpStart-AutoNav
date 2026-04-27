@@ -1,0 +1,9 @@
+{
+  "changes": [
+    {
+      "type": "create",
+      "path": "a.txt",
+      "content": "hello"
+    }
+  ]
+}

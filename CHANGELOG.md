@@ -8,6 +8,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 In progress. M0 establishes the TypeScript toolchain. M1 adds the cross-module contract harness and other detection-infrastructure gates. M2 begins porting leaf utilities into TypeScript using the full 11-step per-module recipe — first port: `bin/lib-ts/io.ts`.
 
+### M2 — Pit Crew remediation (sub-commit 14)
+
+Three Pit Crew agents (Reviewer, QA, Adversary) reviewed the 7-port leaf-utility cluster as a coherent set. **30 findings: 7 BLOCKER/CRITICAL, 13 HIGH, 9 MED, 1 LOW.** Adversary delivered 8 confirmed running-code exploits. This sub-commit closes 22 findings; 8 deferred via Deviation Log.
+
+**Confirmed-exploit fixes (3 CRITICAL + Adv-4 + Adv-5 + Adv-6 + Adv-7 + Adv-9 = 8 fixes):**
+- `bin/lib-ts/locks.ts` — **Adv-1** lock-stealing/DoS via path-collision: lock filenames now derived from a SHA-256 prefix instead of the irreversible `[/\\]→__, ..→_` map. `lock.file` is checked on every read so even hash collisions can't alias-steal a lock. Atomic O_EXCL acquire (writeFileSync `flag: 'wx'`) closes the QA-F7 TOCTOU window. Lock type refactored as a discriminated union (Rev-H1) — corrupt entries no longer lie about having `agent`/`pid` fields.
+- `bin/lib-ts/versioning.ts` — **Adv-2** YAML break-out: `injectVersion` now gates `version` against `SEMVER_REGEX` and rejects malformed inputs. The frontmatter regex is anchored with `^...$` + `m` flag (Rev-H2) so it only matches a real `version:` field, never a substring inside another field's value.
+- `bin/lib-ts/diff.ts` — **Adv-3** arbitrary file disclosure: every `change.path` now goes through `assertInsideRoot(path, resolvedRoot, …)` before any `fs.*` read. The thrown `ValidationError` (exitCode 2) replaces the silent contents-leak.
+- `bin/lib-ts/io.ts` — **Adv-4** EPIPE preserves contract: `wrapTool`'s catch block wraps the inner `writeError` call in its own try/catch so a broken stderr pipe doesn't drop the typed-throw contract; the `JumpstartError` rethrow ALWAYS reaches `runIpc`. **Adv-9** envelope shadow: `writeError` now spreads `details` BEFORE `code`/`message` so `details.code = 'OK'` can't shadow the canonical args.
+- `bin/lib-ts/hashing.ts` — **Adv-5** manifest read-modify-write race: `registerArtifact` now serializes via the locks module's `acquireLock` primitive (lock filename derived from the manifest path). 50 concurrent forked subprocesses no longer lose 32 entries.
+- `bin/lib-ts/context-chunker.ts` — **Adv-6** quadratic blow-up: `chunkContent` rejects `overlap >= max_tokens` at parameter-validation time. The v1.1.14 forward-progress fix is preserved; the new guard prevents a 1MB no-newline payload from producing 100k chunks (~1GB report).
+- `bin/lib-ts/timestamps.ts` — **Adv-7** unbounded `result.invalid`: `audit` caps the array at 1,000 entries with a `truncated: true` flag. A 1M-line malicious markdown can no longer produce a 110MB rollup that crashes downstream consumers.
+
+**Blocker remediation (BLOCKERs not in the exploit list):**
+- `tests/test-leaf-parity.test.ts` (NEW, 11 tests) — **QA-F1**: side-by-side TS↔JS byte-identical parity check for every M2 port (hashing, timestamps, diff, context-chunker, artifact-comparison, ambiguity-heatmap, complexity, versioning). The "byte-identical" claim is now verified, not just asserted.
+- `tests/fixtures/ipc/{timestamps,locks,diff,complexity}/v{0,1}/{input,expected-stdout}.json` (16 NEW fixture files) + `tests/test-ipc-fixtures.test.ts` (NEW, 16 tests) — **QA-F2 / Rev-B2**: per-module port recipe step 11 catch-up. v0 fixtures captured from the live legacy CLI driver; v1 fixtures encode the future `runIpc()` envelope shape per ADR-007. Replay test pipes input.json → `node bin/lib/<name>.js`, asserts byte-identical stdout against expected-stdout.json. v1 SHAPE (not byte-identical content) is locked now; the byte-identical comparison activates at M5 when `runIpc` lands.
+- `tests/test-io.test.ts` extended — **QA-F3**: 5 `readStdin` tests (TTY short-circuit, malformed JSON → `JumpstartError`, stdin error event, whitespace-only → `{}`, well-formed JSON parse). Plus a `withTTY()`-style afterEach restorer (**QA-F5**) so worker-pool reuse no longer pollutes other tests with `process.stdin.isTTY = true`.
+- `specs/decisions/adr-013-fs-safe-wrappers.md` (NEW, stub) — **Rev-B1**: closes the dangling `ADR-013` references in `hashing.ts`, `path-safety.ts`, and the Deviation Log. The full ADR will be accepted in M5 alongside `bin/lib-ts/ipc.ts`.
+
+**HIGH-tier additional regression tests:**
+- `tests/test-versioning.test.ts` — Adv-2 injection rejection (3 cases) + Rev-H2 substring-clobber prevention + Rev-H3 sentinel-file security test (actively proves the rm clause didn't execute, not just that the tag was created).
+- `tests/test-diff.test.ts` — Adv-3 path-traversal rejection (2 cases) + ADR-006 ValidationError contract pin + QA-F8 hunk-flush-after-3-unchanged-lines test.
+- `tests/test-io.test.ts` — Adv-4 EPIPE preserves typed throw + Rev-H4 non-Error message coercion + Adv-9 envelope shadow guard.
+- `tests/test-hashing.test.ts` — QA-F6 1MB SHA-256 known vector + non-ASCII multibyte determinism check.
+- `tests/test-locks.test.ts` — QA-F7 concurrent-acquire serialization + Adv-1 hash-collision defense (2 cases) + hash-based filename shape pin.
+- `tests/test-context-chunker.test.ts` — Adv-6 reject-overlap-≥-max test + tightened upper-bound on the v1.1.14 fallback path.
+
+**Deviation Log entries (8 deferrals):**
+Cross-port error-contract canonicalization (M1/Rev-M1 → T4.1.8 design), 4 docstring/comment-accuracy items (Rev M2-M5 → M3 sweep), Adv-8 duplicate-header collapse (spec-quality discussion → M3), Adv-10 `readStdin` AbortSignal (→ T4.1.8 with `runIpc` timeout policy), QA-F9 fake-timer adoption (→ M3 cross-port), boundary-realpath dead-code (intentional, kept for documented future case).
+
+**verify-baseline.mjs: 11/11 PASS.** Test count: **100 / 2191 / 5.07s** (+9 files / +49 tests since `d99378b`).
+
 ### M2 — T4.1.7 batch (4 leaf ports, sub-commit 13)
 Four pure-library ports landed together (the spec calls T4.1.7 a batch since the modules share the same recipe and have no inter-dependencies):
 - `bin/lib-ts/ambiguity-heatmap.ts` — vague-language + missing-constraint scanner. 5 exports (`scanAmbiguity`, `scanFile`, `generateHeatmap`, `VAGUE_TERMS`, `MISSING_CONSTRAINT_PATTERNS`). Vocabulary lists preserved verbatim. 12 tests.
