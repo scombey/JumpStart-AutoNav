@@ -66,3 +66,24 @@ export class ValidationError extends JumpstartError {
     this.issues = issues;
   }
 }
+
+/**
+ * LLM-layer failure — provider configuration error, endpoint validation
+ * rejection, upstream API error, malformed completion response. Exit
+ * code 3 by ADR-006 contract; surfaced via IPC envelope as
+ * `{code: 'LLM', message, details}`.
+ *
+ * Lands here in T4.3.1 alongside `bin/lib-ts/llm-provider.ts` per
+ * ADR-006's "stitch types in at port time, not up front" guidance.
+ */
+export class LLMError extends JumpstartError {
+  exitCode = 3;
+  /** Optional structured detail field (provider, model, status code,
+   *  upstream error body) for the IPC envelope renderer. */
+  details: Record<string, unknown>;
+
+  constructor(message: string, details: Record<string, unknown> = {}) {
+    super(message);
+    this.details = details;
+  }
+}
