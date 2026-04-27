@@ -215,6 +215,105 @@ describe('graph — auditTaskDependencies', () => {
     expect(audit.inversions[0].task).toBe('M1-T02');
     expect(audit.has_issues).toBe(true);
   });
+
+  it('Pit Crew M3 QA C1 — detects a 3-node cycle via DFS back-edge', () => {
+    // Setup: T01 -> T02 -> T03 -> T01 (cycle)
+    const graph = {
+      nodes: [
+        { id: 'M1-T01', type: 'task' },
+        { id: 'M1-T02', type: 'task' },
+        { id: 'M1-T03', type: 'task' },
+      ],
+      edges: [
+        { from: 'M1-T01', to: 'M1-T02', relationship: 'depends_on' },
+        { from: 'M1-T02', to: 'M1-T03', relationship: 'depends_on' },
+        { from: 'M1-T03', to: 'M1-T01', relationship: 'depends_on' },
+      ],
+    };
+    const audit = auditTaskDependencies(graph);
+    expect(audit.circular_dependencies.length).toBeGreaterThan(0);
+    // Cycle should mention all three nodes (in some rotation)
+    const cycleNodes = audit.circular_dependencies[0];
+    expect(cycleNodes).toContain('M1-T01');
+    expect(cycleNodes).toContain('M1-T02');
+    expect(cycleNodes).toContain('M1-T03');
+    expect(audit.has_issues).toBe(true);
+  });
+
+  it('Pit Crew M3 Reviewer M8 — does NOT emit spurious cycles for DAG cross-edges', () => {
+    // Setup: diamond DAG (no cycle) — A->B, A->C, B->D, C->D
+    // The walk from B to D and from C to D both hit D as visited;
+    // legacy code would emit a spurious 2-element "cycle" because
+    // indexOf(D, walkPathFromC) returned -1 and slice(-1) produced
+    // [D]. Post-fix: indexOf=-1 short-circuits, no spurious entry.
+    const graph = {
+      nodes: [
+        { id: 'A', type: 'task' },
+        { id: 'B', type: 'task' },
+        { id: 'C', type: 'task' },
+        { id: 'D', type: 'task' },
+      ],
+      edges: [
+        { from: 'A', to: 'B', relationship: 'depends_on' },
+        { from: 'A', to: 'C', relationship: 'depends_on' },
+        { from: 'B', to: 'D', relationship: 'depends_on' },
+        { from: 'C', to: 'D', relationship: 'depends_on' },
+      ],
+    };
+    const audit = auditTaskDependencies(graph);
+    expect(audit.circular_dependencies).toEqual([]);
+    expect(audit.has_issues).toBe(false);
+  });
+});
+
+describe('graph — Pit Crew M3 Adversary F2 prototype-pollution defense', () => {
+  it('addNode rejects __proto__ as id', () => {
+    const g = {
+      version: '1.0.0',
+      generated: 't',
+      nodes: {} as Record<string, never>,
+      edges: [] as never[],
+    };
+    expect(() => addNode(g as never, '__proto__', 'evil')).toThrow(
+      /forbidden key|prototype pollution/i
+    );
+  });
+  it('addNode rejects constructor / prototype', () => {
+    const g = {
+      version: '1.0.0',
+      generated: 't',
+      nodes: {} as Record<string, never>,
+      edges: [] as never[],
+    };
+    expect(() => addNode(g as never, 'constructor', 'evil')).toThrow();
+    expect(() => addNode(g as never, 'prototype', 'evil')).toThrow();
+  });
+});
+
+describe('graph — Pit Crew M3 Adversary F4 load-shape validation', () => {
+  it('loadGraph rejects __proto__ as node id', () => {
+    const file = path.join(tmpDir, 'evil.json');
+    // Write the JSON as a raw string. `JSON.stringify({__proto__: ...})`
+    // drops the key because it's the special prototype-setter; only a
+    // literal-string write preserves it as a real own-property key on
+    // parse, matching the attacker's POC.
+    writeFileSync(
+      file,
+      '{"version":"1.0.0","generated":"t","nodes":{"__proto__":{"id":"__proto__","type":"evil"}},"edges":[]}',
+      'utf8'
+    );
+    expect(() => loadGraph(file)).toThrow(/forbidden key|prototype pollution/i);
+  });
+  it('loadGraph rejects nodes:array (type confusion)', () => {
+    const file = path.join(tmpDir, 'wrong-shape.json');
+    writeFileSync(file, JSON.stringify({ nodes: [], edges: [] }), 'utf8');
+    expect(() => loadGraph(file)).toThrow(/nodes must be an object map/);
+  });
+  it('loadGraph rejects edges:object (type confusion)', () => {
+    const file = path.join(tmpDir, 'wrong-edges.json');
+    writeFileSync(file, JSON.stringify({ nodes: {}, edges: {} }), 'utf8');
+    expect(() => loadGraph(file)).toThrow(/edges must be an array/);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────

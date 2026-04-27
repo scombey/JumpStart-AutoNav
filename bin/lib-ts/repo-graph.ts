@@ -30,6 +30,18 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 
+// Pit Crew M3 Adversary F2: prototype-pollution defense for the
+// nodes map. Same defense as `graph.ts`.
+const FORBIDDEN_KEYS: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype']);
+
+function rejectForbiddenKey(key: unknown, fnName: string): void {
+  if (typeof key === 'string' && FORBIDDEN_KEYS.has(key)) {
+    throw new Error(
+      `${fnName}: forbidden key "${key}" — prototype pollution rejected (Pit Crew M3 Adv F2).`
+    );
+  }
+}
+
 // Public types
 
 export interface RepoGraphNode {
@@ -98,17 +110,46 @@ export function defaultRepoGraph(): RepoGraph {
   };
 }
 
-/** Load a repo graph from disk; returns a fresh graph on missing/invalid. */
+/** Load a repo graph from disk; returns a fresh graph on
+ *  missing/invalid/corrupt input.
+ *
+ *  Pit Crew M3 Adversary F4: validates structural shape before
+ *  returning. A malicious manifest with `nodes: {"__proto__": {...}}`
+ *  or `nodes: 42` would otherwise feed a poisoned graph to every
+ *  consumer. Soft-fails to a fresh graph (legacy semantics) so the
+ *  caller doesn't have to add new error handling.
+ */
 export function loadRepoGraph(graphFile?: string): RepoGraph {
   const filePath = graphFile || DEFAULT_GRAPH_FILE;
   if (!existsSync(filePath)) {
     return defaultRepoGraph();
   }
+  let parsed: unknown;
   try {
-    return JSON.parse(readFileSync(filePath, 'utf8')) as RepoGraph;
+    parsed = JSON.parse(readFileSync(filePath, 'utf8'));
   } catch {
     return defaultRepoGraph();
   }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return defaultRepoGraph();
+  }
+  const obj = parsed as Record<string, unknown>;
+  if (
+    obj.nodes !== undefined &&
+    (typeof obj.nodes !== 'object' || obj.nodes === null || Array.isArray(obj.nodes))
+  ) {
+    return defaultRepoGraph();
+  }
+  if (obj.edges !== undefined && !Array.isArray(obj.edges)) {
+    return defaultRepoGraph();
+  }
+  // F2 + F4 prototype-pollution rejection on load.
+  for (const id of Object.keys(obj.nodes || {})) {
+    if (FORBIDDEN_KEYS.has(id)) {
+      return defaultRepoGraph();
+    }
+  }
+  return parsed as RepoGraph;
 }
 
 /** Persist a repo graph to disk (auto-creates parent dirs, trailing
@@ -123,13 +164,18 @@ export function saveRepoGraph(graph: RepoGraph, graphFile?: string): void {
   writeFileSync(filePath, `${JSON.stringify(graph, null, 2)}\n`, 'utf8');
 }
 
-/** Upsert (insert-or-update) a node, preserving prior fields. */
+/** Upsert (insert-or-update) a node, preserving prior fields.
+ *
+ *  Pit Crew M3 Adversary F2: rejects `__proto__`, `constructor`, and
+ *  `prototype` as node ids (same defense as `graph.addNode`).
+ */
 export function upsertNode(
   graph: RepoGraph,
   id: string,
   type: string,
   metadata: Record<string, unknown> = {}
 ): void {
+  rejectForbiddenKey(id, 'upsertNode');
   graph.nodes[id] = {
     ...(graph.nodes[id] || {}),
     id,

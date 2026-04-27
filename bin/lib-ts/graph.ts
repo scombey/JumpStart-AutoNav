@@ -29,6 +29,22 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 
+// Pit Crew M3 Adversary F2 + F4 + F9: keys we never accept into a node
+// id, edge endpoint, or arbitrary object key. `__proto__` lookup
+// pollutes the prototype chain of `graph.nodes` (a plain object map).
+// `constructor` and `prototype` round out the standard prototype-
+// poisoning catalog. Apply at every entry point that writes into the
+// nodes map or trusts a JSON-loaded graph.
+const FORBIDDEN_KEYS: ReadonlySet<string> = new Set(['__proto__', 'constructor', 'prototype']);
+
+function rejectForbiddenKey(key: unknown, fnName: string): void {
+  if (typeof key === 'string' && FORBIDDEN_KEYS.has(key)) {
+    throw new Error(
+      `${fnName}: forbidden key "${key}" — prototype pollution rejected (Pit Crew M3 Adv F2).`
+    );
+  }
+}
+
 // Public types
 
 export interface GraphNode {
@@ -91,17 +107,43 @@ export interface AuditResult {
 
 // Implementation
 
-/** Load `graphPath`, or return a fresh empty graph if missing. */
+/** Load `graphPath`, or return a fresh empty graph if missing.
+ *
+ *  Pit Crew M3 Adversary F4: validates the loaded JSON shape before
+ *  returning. Rejects `nodes`/`edges` of wrong type AND any node id
+ *  in `FORBIDDEN_KEYS` (prototype-pollution defense paired with F2).
+ *  On invalid shape, throws a descriptive error rather than returning
+ *  a poisoned graph that silently breaks downstream walks.
+ */
 export function loadGraph(graphPath: string): SpecGraph {
-  if (existsSync(graphPath)) {
-    return JSON.parse(readFileSync(graphPath, 'utf8')) as SpecGraph;
+  if (!existsSync(graphPath)) {
+    return {
+      version: '1.0.0',
+      generated: new Date().toISOString(),
+      nodes: {},
+      edges: [],
+    };
   }
-  return {
-    version: '1.0.0',
-    generated: new Date().toISOString(),
-    nodes: {},
-    edges: [],
-  };
+  const parsed = JSON.parse(readFileSync(graphPath, 'utf8')) as unknown;
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error(`loadGraph: expected JSON object at ${graphPath}, got ${typeof parsed}`);
+  }
+  const obj = parsed as Record<string, unknown>;
+  if (
+    obj.nodes !== undefined &&
+    (typeof obj.nodes !== 'object' || obj.nodes === null || Array.isArray(obj.nodes))
+  ) {
+    throw new Error(`loadGraph: nodes must be an object map at ${graphPath}.`);
+  }
+  if (obj.edges !== undefined && !Array.isArray(obj.edges)) {
+    throw new Error(`loadGraph: edges must be an array at ${graphPath}.`);
+  }
+  // F2 + F4 prototype-pollution rejection: a malicious manifest can
+  // declare `__proto__` as a node id; reject before it touches the map.
+  for (const id of Object.keys(obj.nodes || {})) {
+    rejectForbiddenKey(id, 'loadGraph');
+  }
+  return parsed as SpecGraph;
 }
 
 /** Save `graph` to `graphPath`, creating parent dirs and stamping
@@ -115,13 +157,22 @@ export function saveGraph(graphPath: string, graph: SpecGraph): void {
   writeFileSync(graphPath, JSON.stringify(graph, null, 2), 'utf8');
 }
 
-/** Add (or replace) a node with metadata. */
+/** Add (or replace) a node with metadata.
+ *
+ *  Pit Crew M3 Adversary F2: rejects `__proto__`, `constructor`, and
+ *  `prototype` as node ids — assigning to those keys on a plain
+ *  `graph.nodes` object pollutes its prototype chain, allowing an
+ *  attacker who reaches `addNode` (e.g. via a build step that ingests
+ *  user-controlled IDs) to plant arbitrary fields on every subsequent
+ *  unknown lookup.
+ */
 export function addNode(
   graph: SpecGraph,
   id: string,
   type: string,
   metadata: Record<string, unknown> = {}
 ): void {
+  rejectForbiddenKey(id, 'addNode');
   graph.nodes[id] = {
     id,
     type,
@@ -297,8 +348,15 @@ export function auditTaskDependencies(graph: {
       if (!visited.has(neighbor)) {
         dfs(neighbor, [...walkPath, neighbor]);
       } else if (recStack.has(neighbor)) {
+        // Pit Crew M3 Reviewer M8: guard against indexOf=-1 which
+        // happens for cross-edges (visited via a separate DFS root,
+        // not in current walk path). Without this guard we'd emit a
+        // spurious 2-element "cycle" that's actually a DAG cross-
+        // edge. Only emit a real back-edge cycle.
         const cycleStart = walkPath.indexOf(neighbor);
-        circularDeps.push(walkPath.slice(cycleStart).concat(neighbor));
+        if (cycleStart >= 0) {
+          circularDeps.push(walkPath.slice(cycleStart).concat(neighbor));
+        }
       }
     }
     recStack.delete(node);

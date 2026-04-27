@@ -279,10 +279,20 @@ export function scanFile(filePath: string, patterns: SecretPattern[]): SecretFin
     return findings;
   }
 
-  const lines = content.split('\n');
+  // Split on either LF or CRLF so Windows-style line endings don't
+  // leave \r on the line content (which the patterns and the comment-
+  // skip regex would otherwise treat as part of the match).
+  const lines = content.split(/\r?\n/);
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    // Pit Crew M3 Reviewer M4 (DEFERRED): the legacy skip-line regex
+    // `^\s*(#|\/\/)\s*(example|TODO|FIXME|NOTE)` allows `// TODO
+    // actualSecret = "ghp_..."` to bypass the scanner. Tightening it
+    // breaks the parity test in `test-secret-scanner.test.ts` which
+    // explicitly validates that a `// example: ghp_<40 X>` line is
+    // skipped. Logged in Deviation Log under T4.2.4b for a coordinated
+    // ADR-012 v2 amendment alongside the M4 redaction layer.
     if (/^\s*(#|\/\/)\s*(example|TODO|FIXME|NOTE)/i.test(line)) continue;
 
     for (const patternDef of patterns) {
@@ -290,8 +300,14 @@ export function scanFile(filePath: string, patterns: SecretPattern[]): SecretFin
         continue;
       }
 
-      const m = line.match(patternDef.pattern);
-      if (m) {
+      // Pit Crew M3 Reviewer M10: legacy used `.match(pattern)` which
+      // returns ONLY the first match for non-global regexes. That
+      // silently drops multi-secret-per-line. Build a global variant
+      // and iterate every match (mirroring `scanForSecrets` semantics).
+      const globalPattern = patternDef.pattern.flags.includes('g')
+        ? patternDef.pattern
+        : new RegExp(patternDef.pattern.source, `${patternDef.pattern.flags}g`);
+      for (const m of line.matchAll(globalPattern)) {
         const matched = m[1] || m[0];
         findings.push({
           file: filePath,
@@ -326,6 +342,23 @@ export function runSecretScan(input: SecretScanInput): SecretScanResult {
 
   for (const file of files) {
     const fullPath = path.isAbsolute(file) ? file : path.join(resolvedRoot, file);
+    const resolvedFull = path.resolve(fullPath);
+
+    // Pit Crew M3 Adversary F3 (BLOCKER, confirmed exploit): legacy
+    // accepted any absolute path including `/etc/passwd`, then read
+    // and scanned it. Filter to paths that lexically resolve under
+    // `resolvedRoot`. Skip silently (rather than throw) so caller can
+    // pass a heterogeneous list of files without surface-level
+    // failure — consistent with the existing skip-on-error pattern.
+    //
+    // Edge case: when `resolvedRoot === '/'` (or `'C:\\'` on Windows),
+    // appending a separator would produce `'//'` which never starts
+    // any real path. Use `path.relative` and accept the result iff it
+    // doesn't ascend (no leading `..`) and isn't absolute.
+    const rel = path.relative(resolvedRoot, resolvedFull);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+      continue;
+    }
 
     if (!existsSync(fullPath)) continue;
     if (shouldSkip(file, allowlist)) continue;
@@ -430,7 +463,8 @@ function redactSecretsImpl(value: unknown, seen: WeakSet<object>): unknown {
   if (value === null || typeof value !== 'object') {
     return value;
   }
-  // Cycle protection
+  // Cycle protection (covers direct AND indirect cycles via the
+  // shared WeakSet across the entire walk).
   if (seen.has(value)) return value;
   seen.add(value);
 
@@ -438,10 +472,42 @@ function redactSecretsImpl(value: unknown, seen: WeakSet<object>): unknown {
     return value.map((item) => redactSecretsImpl(item, seen));
   }
 
-  // Plain object recursion (skip class instances except plain Object)
+  // Pit Crew M3 Reviewer H2: Buffer / Map / Set handling. ADR-012
+  // mandates redaction on every log-write path; usage.ts and
+  // timeline.ts will receive Buffer payloads from `fs.readFileSync`
+  // and Map/Set values from internal IPC plumbing. Leaving them
+  // shape-preserved-by-reference would silently leak the bytes.
+  if (Buffer.isBuffer(value)) {
+    // Round-trip through utf-8 so embedded secrets are redacted in
+    // string form, then re-emit as a Buffer for shape preservation.
+    return Buffer.from(redactString(value.toString('utf8')), 'utf8');
+  }
+  if (value instanceof Map) {
+    const out = new Map();
+    for (const [k, v] of value.entries()) {
+      // Keys are typically strings/numbers but might be objects;
+      // recursively redact both sides for safety.
+      out.set(redactSecretsImpl(k, seen), redactSecretsImpl(v, seen));
+    }
+    return out;
+  }
+  if (value instanceof Set) {
+    const out = new Set();
+    for (const v of value) {
+      out.add(redactSecretsImpl(v, seen));
+    }
+    return out;
+  }
+
+  // Plain object recursion. Class instances (Date, RegExp, Error, and
+  // user-land classes) pass through by reference per the shape-
+  // preservation contract — callers that want them redacted should
+  // stringify first. Pit Crew M3 Adversary F11 noted that classes
+  // with dynamic toString() can leak via downstream String() coercion;
+  // this is documented behavior, not a regression.
   const proto = Object.getPrototypeOf(value);
   if (proto !== null && proto !== Object.prototype) {
-    return value; // class instance — leave as-is per "shape preserving"
+    return value;
   }
 
   const result: Record<string, unknown> = {};
@@ -463,12 +529,19 @@ function redactString(input: string): string {
   const matches = scanForSecrets(input);
   if (matches.length === 0) return input;
 
-  // Resolve overlaps: keep earliest-start, longest-match. Sort by
-  // (start asc, length desc), then drop any match whose start lies
-  // within a kept match.
-  const sorted = [...matches].sort(
-    (a, b) => a.start - b.start || b.end - b.start - (a.end - a.start)
-  );
+  // Resolve overlaps: keep earliest-start, longest-match. Tie-break
+  // first by length (longest wins), then by pattern_name (alphabetical)
+  // so the kept marker is DETERMINISTIC across runs — Pit Crew M3
+  // Reviewer H3 caught that the previous tie-break by length-only
+  // could pick either of two equal-length matches non-deterministically
+  // depending on V8's sort stability across versions.
+  const sorted = [...matches].sort((a, b) => {
+    if (a.start !== b.start) return a.start - b.start;
+    const lenA = a.end - a.start;
+    const lenB = b.end - b.start;
+    if (lenA !== lenB) return lenB - lenA;
+    return a.pattern_name.localeCompare(b.pattern_name);
+  });
   const kept: SecretMatch[] = [];
   let cursor = -1;
   for (const m of sorted) {

@@ -128,7 +128,7 @@ describe('runSecretScan', () => {
     writeFileSync(f1, `const k = "${FAKE_GH_TOKEN}";\n`);
     const f2 = path.join(tmpDir, 'b.js');
     writeFileSync(f2, 'no secrets here\n');
-    const result = runSecretScan({ files: [f1, f2], root: '/' });
+    const result = runSecretScan({ files: [f1, f2], root: tmpDir });
     expect(result.files_scanned).toBe(2);
     expect(result.secrets_found).toBeGreaterThanOrEqual(1);
     expect(result.critical).toBeGreaterThanOrEqual(1);
@@ -138,7 +138,7 @@ describe('runSecretScan', () => {
   it('returns pass=true when nothing matches', () => {
     const f1 = path.join(tmpDir, 'clean.js');
     writeFileSync(f1, 'const x = 1;\n');
-    const result = runSecretScan({ files: [f1], root: '/' });
+    const result = runSecretScan({ files: [f1], root: tmpDir });
     expect(result.pass).toBe(true);
     expect(result.findings).toEqual([]);
   });
@@ -148,7 +148,7 @@ describe('runSecretScan', () => {
     writeFileSync(allowed, `${FAKE_GH_TOKEN}\n`);
     const result = runSecretScan({
       files: [allowed],
-      root: '/',
+      root: tmpDir,
       config: { allowlist: ['.env.example'] },
     });
     expect(result.files_scanned).toBe(0);
@@ -226,5 +226,74 @@ describe('redactSecrets', () => {
 
   it('leaves clean strings unchanged', () => {
     expect(redactSecrets('nothing-to-redact')).toBe('nothing-to-redact');
+  });
+});
+
+describe('Pit Crew M3 Reviewer H2 — redactSecrets handles Buffer / Map / Set', () => {
+  it('redacts Buffer payload (round-trip via utf-8)', () => {
+    const buf = Buffer.from(`embed ${FAKE_GH_TOKEN} here`, 'utf8');
+    const out = redactSecrets(buf);
+    expect(Buffer.isBuffer(out)).toBe(true);
+    expect((out as Buffer).toString('utf8')).toContain('[REDACTED:GitHub Token]');
+    expect((out as Buffer).toString('utf8')).not.toContain(FAKE_GH_TOKEN);
+  });
+  it('walks Map values + keys', () => {
+    const m = new Map<string, string>([['key', FAKE_GH_TOKEN]]);
+    const out = redactSecrets(m) as Map<string, string>;
+    expect(out).toBeInstanceOf(Map);
+    expect(out.get('key')).toContain('[REDACTED:GitHub Token]');
+  });
+  it('walks Set members', () => {
+    const s = new Set([FAKE_GH_TOKEN, 'safe']);
+    const out = redactSecrets(s) as Set<string>;
+    expect(out).toBeInstanceOf(Set);
+    expect(Array.from(out).some((v) => v.includes('[REDACTED:GitHub Token]'))).toBe(true);
+    expect(out.has('safe')).toBe(true);
+  });
+});
+
+describe('Pit Crew M3 QA C3 + Reviewer H3 — redactString overlap determinism', () => {
+  it('produces deterministic redaction marker when two patterns overlap', () => {
+    // Construct a string that triggers both Generic Token Assignment
+    // (token = "...") and Generic Secret Assignment (secret = "...")
+    // simultaneously. Both regexes match the same offset region.
+    // Pre-fix: V8 sort stability picked one non-deterministically.
+    // Post-fix: tie-break by pattern_name.localeCompare guarantees
+    // the same marker every run.
+    const input = `secret = "${FAKE_GH_TOKEN}"`;
+    const out1 = redactSecrets(input);
+    const out2 = redactSecrets(input);
+    expect(out1).toBe(out2);
+    expect(out1).toMatch(/\[REDACTED:.+\]/);
+  });
+  it('handles string with no matches as identity', () => {
+    expect(redactSecrets('nothing-to-redact-here')).toBe('nothing-to-redact-here');
+  });
+});
+
+describe('Pit Crew M3 Reviewer M10 — scanFile multi-secret-per-line', () => {
+  it('reports both secrets when two appear on one line', () => {
+    const file = path.join(tmpDir, 'multi.js');
+    writeFileSync(file, `const a = "${FAKE_GH_TOKEN}", b = "${'C'.repeat(36)}_ghp"; // unused\n`);
+    // Just two real GH tokens on one line:
+    const both = `${FAKE_GH_TOKEN} ${`ghp_${'D'.repeat(36)}`}`;
+    writeFileSync(file, `const x = "${both}";\n`);
+    const findings = scanFile(file, DEFAULT_PATTERNS);
+    const ghFindings = findings.filter((f) => f.pattern_name === 'GitHub Token');
+    expect(ghFindings.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('Pit Crew M3 Adversary F3 — runSecretScan boundary check', () => {
+  it('skips files outside resolvedRoot', () => {
+    const result = runSecretScan({ files: ['/etc/passwd'], root: tmpDir });
+    expect(result.files_scanned).toBe(0);
+    expect(result.findings).toEqual([]);
+  });
+  it('accepts files inside resolvedRoot', () => {
+    const inside = path.join(tmpDir, 'inside.js');
+    writeFileSync(inside, `// no secret here\n`);
+    const result = runSecretScan({ files: [inside], root: tmpDir });
+    expect(result.files_scanned).toBe(1);
   });
 });

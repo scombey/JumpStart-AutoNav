@@ -196,13 +196,25 @@ export function analyze(input: AnalyzeInput): AnalysisResult {
     }
   }
 
-  // 3. Task coverage: plan tasks should reference stories
+  // 3. Task coverage: plan tasks should reference stories.
+  //
+  // Pit Crew M3 Reviewer M3: legacy used `String.prototype.includes`
+  // which produces false-positives on substring collisions. A line
+  // mentioning `E1-S10` would match story `E1-S1` because `'E1-S10'
+  // .includes('E1-S1') === true`. Fixed by anchoring with word
+  // boundaries via RegExp. The story IDs come from the PRD's own
+  // extractor (already validated shape `E\d+-S\d+`), so RegExp
+  // construction is safe — no caller-controlled metacharacters reach
+  // the pattern.
   if (artifacts.plan && artifacts.prd) {
     const planTasks = extractTaskIds(artifacts.plan);
     const prdStories = extractStoryIds(artifacts.prd);
     for (const task of planTasks) {
-      const taskLines = artifacts.plan.split('\n').filter((l) => l.includes(task));
-      const hasStory = taskLines.some((l) => prdStories.some((s) => l.includes(s)));
+      const taskRe = new RegExp(`\\b${task}\\b`);
+      const taskLines = artifacts.plan.split('\n').filter((l) => taskRe.test(l));
+      const hasStory = taskLines.some((l) =>
+        prdStories.some((s) => new RegExp(`\\b${s}\\b`).test(l))
+      );
       if (!hasStory) {
         missingCoverage.push({
           source: 'implementation-plan.md',

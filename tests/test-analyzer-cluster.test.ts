@@ -116,6 +116,24 @@ describe('analyzer — analyze()', () => {
     expect(result.pass).toBe(true);
     expect(result.score).toBe(100);
   });
+
+  it('Pit Crew M3 Reviewer M3 — story IDs match by word-boundary, not substring', () => {
+    // Pre-fix: a task line referencing E1-S10 would falsely "link" to
+    // story E1-S1 because String.includes('E1-S1') is true for the
+    // 'E1-S10' substring. The plan/PRD here defines E1-S1 only; the
+    // task references E1-S10 (a story that does NOT exist in PRD).
+    // The task should therefore be flagged as orphan, not silently
+    // passed. Post-fix: \b boundary matching catches the false-positive.
+    writeSpec('specs/prd.md', 'Only story E1-S1 exists.\n');
+    writeSpec(
+      'specs/implementation-plan.md',
+      ['## M1-T01', 'implements story E1-S10 (does not exist in PRD)', ''].join('\n')
+    );
+    const result = analyze({ root: tmpDir });
+    expect(result.missing_coverage.some((m) => m.id === 'M1-T01' && m.type === 'orphan_task')).toBe(
+      true
+    );
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────

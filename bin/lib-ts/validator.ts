@@ -36,10 +36,32 @@
  * @see specs/implementation-plan.md T4.2.2
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import type { ZodType } from 'zod';
 import * as generated from '../../src/schemas/generated/index.js';
+
+// Resolve this module's on-disk directory in a build-mode-agnostic way.
+// `__dirname` is undefined under pure ESM; `import.meta.url` is rejected
+// by tsc in CommonJS mode (TS1470). The strangler-phase tsconfig
+// classifies .ts as CJS, so we use the legacy CJS sentinel here and
+// flip to `fileURLToPath(import.meta.url)` at the M9 ESM cutover.
+//
+// Pit Crew M3 Reviewer H6 noted that direct `__dirname` will break
+// when downstream consumers import the ESM build artifact. The fix
+// below stays CJS-safe for now AND surfaces a clean error if a
+// future ESM consumer reaches it: typeof __dirname === 'undefined'
+// is impossible in CJS but defensive in case of bundler weirdness.
+const MODULE_DIR =
+  typeof __dirname === 'string' ? __dirname : path.dirname(path.resolve('bin/lib-ts/validator.ts'));
+
+// Pit Crew M3 Adversary F9 + F2: forbidden frontmatter keys that
+// would pollute the prototype chain of the returned object.
+const FORBIDDEN_FRONTMATTER_KEYS: ReadonlySet<string> = new Set([
+  '__proto__',
+  'constructor',
+  'prototype',
+]);
 
 // ─────────────────────────────────────────────────────────────────────────
 // Public types
@@ -92,11 +114,15 @@ function buildIdToZodMap(): Map<string, ZodMapEntry> {
   // export. Fails-soft on entries without a matching export so a new
   // .schema.json that hasn't been re-codegen'd yet doesn't crash this
   // module at load time.
+  //
+  // Pit Crew M3 Reviewer H6: previously used inline `require('node:fs')`
+  // which breaks under ESM-strict tooling. Now uses the static imports
+  // (readdirSync, readFileSync) declared at module top so dual-mode
+  // consumers get the same code path.
   const result = new Map<string, ZodMapEntry>();
-  const schemasDir = path.join(__dirname, '..', '..', '.jumpstart', 'schemas');
+  const schemasDir = path.join(MODULE_DIR, '..', '..', '.jumpstart', 'schemas');
   if (!existsSync(schemasDir)) return result;
-  const fs = require('node:fs') as typeof import('node:fs');
-  const filenames = fs.readdirSync(schemasDir).filter((f) => f.endsWith('.schema.json'));
+  const filenames = readdirSync(schemasDir).filter((f) => f.endsWith('.schema.json'));
   for (const filename of filenames) {
     const stem = filename.replace(/\.schema\.json$/, '');
     const pascal = stem
@@ -107,7 +133,7 @@ function buildIdToZodMap(): Map<string, ZodMapEntry> {
     const zodSchema = (generated as Record<string, unknown>)[exportName];
     if (!zodSchema) continue;
     try {
-      const json = JSON.parse(fs.readFileSync(path.join(schemasDir, filename), 'utf8')) as {
+      const json = JSON.parse(readFileSync(path.join(schemasDir, filename), 'utf8')) as {
         $id?: string;
       };
       if (typeof json.$id === 'string') {
@@ -143,14 +169,31 @@ export function _rebuildZodMap(): void {
  * an exit code).
  */
 export function loadSchema(schemaName: string, schemasDir?: string): JSONSchema {
-  const dir = schemasDir || path.join(__dirname, '..', '..', '.jumpstart', 'schemas');
-  const schemaPath = path.join(dir, schemaName);
+  const dir = schemasDir || path.join(MODULE_DIR, '..', '..', '.jumpstart', 'schemas');
 
-  if (!existsSync(schemaPath)) {
-    throw new Error(`Schema not found: ${schemaPath}`);
+  // Pit Crew M3 Adversary F1 (BLOCKER, confirmed exploit): the legacy
+  // `loadSchema('../../etc/passwd', dir)` would `path.join` the
+  // traversal into a real read of /etc/passwd. JSON.parse then throws,
+  // BUT the file IS read, leaking timing/error data. Defense:
+  // (a) reject names containing `..` segments
+  // (b) reject absolute names
+  // (c) require the resolved path to live inside `dir`
+  const resolvedDir = path.resolve(dir);
+  const resolvedSchema = path.resolve(dir, schemaName);
+  if (
+    schemaName.includes('..') ||
+    path.isAbsolute(schemaName) ||
+    schemaName.includes('\0') ||
+    !(resolvedSchema === resolvedDir || resolvedSchema.startsWith(`${resolvedDir}${path.sep}`))
+  ) {
+    throw new Error(`Schema not found: ${path.join(dir, schemaName)}`);
   }
 
-  return JSON.parse(readFileSync(schemaPath, 'utf8')) as JSONSchema;
+  if (!existsSync(resolvedSchema)) {
+    throw new Error(`Schema not found: ${resolvedSchema}`);
+  }
+
+  return JSON.parse(readFileSync(resolvedSchema, 'utf8')) as JSONSchema;
 }
 
 /**
@@ -189,6 +232,16 @@ export function extractFrontmatter(content: string): Record<string, unknown> | n
     // Key-value pair
     const kvMatch = trimmed.match(/^(\w[\w_-]*)\s*:\s*(.*)/);
     if (kvMatch) {
+      // Pit Crew M3 Adversary F9: skip __proto__/constructor/prototype.
+      // These are not legal frontmatter keys for jumpstart artifacts;
+      // accepting them creates a prototype-pollution vector for any
+      // downstream consumer that does `Object.entries(frontmatter)` or
+      // shape-based lookups.
+      if (FORBIDDEN_FRONTMATTER_KEYS.has(kvMatch[1])) {
+        currentKey = null;
+        currentList = null;
+        continue;
+      }
       currentKey = kvMatch[1];
       const value = kvMatch[2].trim();
       currentList = null;
@@ -316,32 +369,46 @@ function walkValidate(
   }
   const dataObj = data as Record<string, unknown>;
 
-  // Resolve $ref if present — merge referenced schema into current
+  // Resolve $ref if present — merge referenced schema into current.
+  //
+  // Pit Crew M3 Adversary F8: tighten the $ref allowlist. Legacy
+  // accepted any basename, allowing an attacker who controls
+  // schemasDir contents to point `$ref` at any sibling JSON file
+  // (e.g. an uploaded snapshot fixture). Now require the $ref target
+  // to end with `.schema.json` — matching the canonical naming
+  // convention enforced by `scripts/generate-zod-schemas.mjs`.
   let resolved = schema;
   if (typeof schema.$ref === 'string' && schemasDir) {
-    try {
-      const refSchema = loadSchema(path.basename(schema.$ref), schemasDir);
-      const refProps =
-        (refSchema.properties as Record<string, JSONSchema> | undefined) || undefined;
-      const ownProps = (schema.properties as Record<string, JSONSchema> | undefined) || undefined;
-      resolved = { ...refSchema, ...schema };
-      // Strip $ref from the merged schema so downstream walkers don't
-      // re-resolve. Setting to undefined (vs delete) keeps the key in
-      // the object but with undefined value — equivalent for the
-      // legacy walker's `if (resolved.$ref && schemasDir)` check on
-      // nested properties.
-      resolved.$ref = undefined;
-      if (refProps || ownProps) {
-        resolved.properties = { ...(refProps || {}), ...(ownProps || {}) };
+    const refBasename = path.basename(schema.$ref);
+    if (!refBasename.endsWith('.schema.json')) {
+      errors.push(
+        `Could not resolve $ref '${String(schema.$ref)}': $ref target must end with '.schema.json' (Pit Crew M3 Adv F8 — confused-deputy defense).`
+      );
+    } else {
+      try {
+        const refSchema = loadSchema(refBasename, schemasDir);
+        const refProps =
+          (refSchema.properties as Record<string, JSONSchema> | undefined) || undefined;
+        const ownProps = (schema.properties as Record<string, JSONSchema> | undefined) || undefined;
+        resolved = { ...refSchema, ...schema };
+        // Strip $ref from the merged schema so downstream walkers don't
+        // re-resolve. Setting to undefined (vs delete) keeps the key in
+        // the object but with undefined value — equivalent for the
+        // legacy walker's `if (resolved.$ref && schemasDir)` check on
+        // nested properties.
+        resolved.$ref = undefined;
+        if (refProps || ownProps) {
+          resolved.properties = { ...(refProps || {}), ...(ownProps || {}) };
+        }
+        const refReq = (refSchema.required as string[] | undefined) || [];
+        const ownReq = (schema.required as string[] | undefined) || [];
+        if (refReq.length || ownReq.length) {
+          resolved.required = Array.from(new Set([...refReq, ...ownReq]));
+        }
+      } catch (err) {
+        errors.push(`Could not resolve $ref '${String(schema.$ref)}': ${(err as Error).message}`);
       }
-      const refReq = (refSchema.required as string[] | undefined) || [];
-      const ownReq = (schema.required as string[] | undefined) || [];
-      if (refReq.length || ownReq.length) {
-        resolved.required = Array.from(new Set([...refReq, ...ownReq]));
-      }
-    } catch (err) {
-      errors.push(`Could not resolve $ref '${String(schema.$ref)}': ${(err as Error).message}`);
-    }
+    } // close `else` from F8 allowlist guard
   }
 
   // Check required fields

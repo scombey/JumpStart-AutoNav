@@ -346,3 +346,42 @@ describe('validateAgentDefinition', () => {
     expect(r.errors[0]).toContain('File not found');
   });
 });
+
+describe('Pit Crew M3 Adversary F1 — loadSchema path-traversal defense', () => {
+  it('rejects schemaName containing ".." segments', () => {
+    expect(() => loadSchema('../../etc/passwd', SCHEMAS_DIR)).toThrow(/Schema not found/);
+  });
+  it('rejects absolute schemaName', () => {
+    expect(() => loadSchema('/etc/passwd', SCHEMAS_DIR)).toThrow(/Schema not found/);
+  });
+  it('rejects schemaName containing null bytes', () => {
+    expect(() =>
+      loadSchema(`spec-metadata.schema.json${String.fromCharCode(0)}`, SCHEMAS_DIR)
+    ).toThrow(/Schema not found/);
+  });
+});
+
+describe('Pit Crew M3 Adversary F8 — $ref allowlist', () => {
+  it('rejects $ref target without .schema.json suffix', () => {
+    const schema = {
+      $ref: 'malicious.json',
+      properties: { x: { type: 'string' } },
+    };
+    const result = validate({ x: 'a' }, schema, SCHEMAS_DIR);
+    expect(result.valid).toBe(false);
+    expect(
+      result.errors.some((e) => e.includes('$ref target must end') || e.includes('schema.json'))
+    ).toBe(true);
+  });
+});
+
+describe('Pit Crew M3 Adversary F9 — extractFrontmatter prototype pollution defense', () => {
+  it('skips __proto__ key in frontmatter', () => {
+    const fm = extractFrontmatter('---\n__proto__: poisoned\nname: real\n---\n');
+    expect(fm).toEqual({ name: 'real' });
+  });
+  it('skips constructor / prototype keys', () => {
+    const fm = extractFrontmatter('---\nconstructor: x\nprototype: y\nname: real\n---\n');
+    expect(fm).toEqual({ name: 'real' });
+  });
+});
