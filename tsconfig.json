@@ -40,6 +40,7 @@
   },
   "include": [
     "bin/lib-ts/**/*.ts",
+    "src/cli/**/*.ts",
     "scripts/**/*.mjs",
     "tests/**/*.test.ts",
     "tsdown.config.ts",

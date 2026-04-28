@@ -73,16 +73,53 @@ const FRAMEWORK_VERSION = '1.1.14';
  * For now (T4.7.1), only the seed `version-tag` command is wired —
  * just enough to prove the citty plumbing typechecks and runs.
  */
+/** Lazy command loader. The cast widens each command's tightly-inferred
+ *  CommandDef<{...specific args...}> shape into the map's
+ *  CommandDef<any> index signature without losing type-safety inside
+ *  each command's own module. */
+function lazy<T>(loader: () => Promise<T>): () => Promise<CommandDef> {
+  return async () => (await loader()) as unknown as CommandDef;
+}
+
 const subCommands: Record<string, () => Promise<CommandDef>> = {
-  // Lazy: returns the imported default export at resolution time.
-  // citty unwraps the returned Promise. The cast widens the
-  // tightly-inferred CommandDef<{...specific args...}> shape into the
-  // map's `CommandDef<any>` index signature without losing
-  // type-safety inside each command's own module.
-  'version-tag': async () => {
-    const mod = await import('./commands/version-tag.js');
-    return mod.default as unknown as CommandDef;
-  },
+  // Seed (T4.7.1)
+  'version-tag': lazy(() => import('./commands/version-tag.js').then((m) => m.default)),
+
+  // Spec-validation cluster (T4.7.2 batch 1 — bin/cli.js lines ~972-1205)
+  validate: lazy(() => import('./commands/spec-validation.js').then((m) => m.validateCommand)),
+  'spec-drift': lazy(() => import('./commands/spec-validation.js').then((m) => m.specDriftCommand)),
+  hash: lazy(() => import('./commands/spec-validation.js').then((m) => m.hashCommand)),
+  graph: lazy(() => import('./commands/spec-validation.js').then((m) => m.graphCommand)),
+  simplicity: lazy(() => import('./commands/spec-validation.js').then((m) => m.simplicityCommand)),
+  'scan-wrappers': lazy(() =>
+    import('./commands/spec-validation.js').then((m) => m.scanWrappersCommand)
+  ),
+  invariants: lazy(() => import('./commands/spec-validation.js').then((m) => m.invariantsCommand)),
+  'template-check': lazy(() =>
+    import('./commands/spec-validation.js').then((m) => m.templateCheckCommand)
+  ),
+  'freshness-audit': lazy(() =>
+    import('./commands/spec-validation.js').then((m) => m.freshnessAuditCommand)
+  ),
+  shard: lazy(() => import('./commands/spec-validation.js').then((m) => m.shardCommand)),
+  checklist: lazy(() => import('./commands/spec-validation.js').then((m) => m.checklistCommand)),
+  smells: lazy(() => import('./commands/spec-validation.js').then((m) => m.smellsCommand)),
+
+  // Handoff/coverage cluster (T4.7.2 batch 1 — bin/cli.js lines ~1217-1340)
+  'handoff-check': lazy(() => import('./commands/handoff.js').then((m) => m.handoffCheckCommand)),
+  coverage: lazy(() => import('./commands/handoff.js').then((m) => m.coverageCommand)),
+  consistency: lazy(() => import('./commands/handoff.js').then((m) => m.consistencyCommand)),
+  lint: lazy(() => import('./commands/handoff.js').then((m) => m.lintCommand)),
+  contracts: lazy(() => import('./commands/handoff.js').then((m) => m.contractsCommand)),
+  regulatory: lazy(() => import('./commands/handoff.js').then((m) => m.regulatoryCommand)),
+  boundaries: lazy(() => import('./commands/handoff.js').then((m) => m.boundariesCommand)),
+  'task-deps': lazy(() => import('./commands/handoff.js').then((m) => m.taskDepsCommand)),
+  diff: lazy(() => import('./commands/handoff.js').then((m) => m.diffCommand)),
+  modules: lazy(() => import('./commands/handoff.js').then((m) => m.modulesCommand)),
+  'validate-module': lazy(() =>
+    import('./commands/handoff.js').then((m) => m.validateModuleCommand)
+  ),
+  handoff: lazy(() => import('./commands/handoff.js').then((m) => m.handoffCommand)),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
