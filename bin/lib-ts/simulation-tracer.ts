@@ -628,6 +628,10 @@ export class SimulationTracer {
     }
     const report = this.getReport();
     const redacted = redactSecrets(report);
-    writeFileSync(reportPath, JSON.stringify(redacted, null, 2));
+    // Pit Crew M7 MED (Reviewer): add trailing newline for consistency
+    // with sibling persistence sites (holodeck.saveReport,
+    // headless-runner persistence) — newline-sensitive diff tools and
+    // POSIX text-file conventions both expect one.
+    writeFileSync(reportPath, `${JSON.stringify(redacted, null, 2)}\n`);
   }
 }

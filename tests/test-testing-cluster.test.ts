@@ -296,8 +296,8 @@ describe('regression — public surface', () => {
     expect(score).toBeLessThan(100);
   });
 
-  it('runRegressionSuite returns empty + pass=true for missing dir', () => {
-    const r = regression.runRegressionSuite(path.join(tmp, 'no-dir'));
+  it('runRegressionSuite returns empty + pass=true for missing dir', async () => {
+    const r = await regression.runRegressionSuite(path.join(tmp, 'no-dir'));
     expect(r.pass).toBe(true);
     expect(r.results).toEqual([]);
   });

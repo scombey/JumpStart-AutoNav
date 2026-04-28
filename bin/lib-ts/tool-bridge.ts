@@ -67,6 +67,7 @@
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { assertInsideRoot } from './path-safety.js';
 import type { TimelineLike } from './simulation-tracer.js';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -181,11 +182,34 @@ export function createToolBridge(options: ToolBridgeOptions): ToolBridge {
   const callHistory: ToolCallRecord[] = [];
   let todoState: TodoItem[] = [];
 
+  /**
+   * Pit Crew M7 HIGH (Reviewer + Adversary): file-touching tools
+   * (`read_file` / `create_file` / `replace_string_in_file` / `list_dir`)
+   * previously accepted arbitrary absolute paths from the LLM, citing
+   * "the bridge runs inside a workspace the user already trusts." The
+   * threat model explicitly includes malicious .agent.md prompts —
+   * which IS the attack vector for this surface. Post-fix: every
+   * file-touching tool gates its path through `assertInsideRoot` against
+   * `workspaceDir`. Returns a structured error result on escape so the
+   * agent loop can keep going (vs throwing — `tool-bridge` returns
+   * informational errors to the LLM by convention).
+   */
+  function gateInsideWorkspace(p: string): { error: string } | null {
+    try {
+      assertInsideRoot(p, workspaceDir, { schemaId: 'tool-bridge-path' });
+      return null;
+    } catch (err) {
+      return { error: `Path escapes workspace: ${(err as Error).message}` };
+    }
+  }
+
   // ── Tool Handlers ─────────────────────────────────────────────────────
   const handlers: Record<string, Handler> = {
     async read_file(args) {
       const filePath = asString(args.filePath);
       if (!filePath) return { error: 'filePath is required' };
+      const gateErr = gateInsideWorkspace(filePath);
+      if (gateErr) return gateErr;
       const startLine = typeof args.startLine === 'number' ? args.startLine : 1;
       const endLine = typeof args.endLine === 'number' ? args.endLine : undefined;
       if (!existsSync(filePath)) {
@@ -204,6 +228,8 @@ export function createToolBridge(options: ToolBridgeOptions): ToolBridge {
       const content = asString(args.content);
       if (!filePath) return { error: 'filePath is required' };
       if (content === undefined) return { error: 'content is required' };
+      const gateErr = gateInsideWorkspace(filePath);
+      if (gateErr) return gateErr;
       if (dryRun) {
         return { success: true, dryRun: true, filePath };
       }
@@ -218,6 +244,8 @@ export function createToolBridge(options: ToolBridgeOptions): ToolBridge {
     async list_dir(args) {
       const dirPath = asString(args.path);
       if (!dirPath) return { error: 'path is required' };
+      const gateErr = gateInsideWorkspace(dirPath);
+      if (gateErr) return gateErr;
       if (!existsSync(dirPath)) {
         return { error: `Directory not found: ${dirPath}` };
       }
@@ -236,6 +264,8 @@ export function createToolBridge(options: ToolBridgeOptions): ToolBridge {
       if (!filePath) return { error: 'filePath is required' };
       if (oldString === undefined) return { error: 'oldString is required' };
       if (newString === undefined) return { error: 'newString is required' };
+      const gateErr = gateInsideWorkspace(filePath);
+      if (gateErr) return gateErr;
       if (!existsSync(filePath)) {
         return { error: `File not found: ${filePath}` };
       }

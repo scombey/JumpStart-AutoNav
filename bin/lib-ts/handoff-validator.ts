@@ -448,11 +448,33 @@ export function validateHandoff(
 ): ValidationOutcome {
   const dir = handoffsDir ?? HANDOFFS_DIR_DEFAULT;
 
+  // Pit Crew M7 HIGH (Adversary 5): the pre-fix containment check
+  // accepted `handoffsDir = "/"` + `schemaName = "etc/passwd"` because
+  // the resolved schemaPath (`/etc/passwd`) trivially started with
+  // resolvedDir (`/`) + path.sep. Post-fix: reject filesystem-root
+  // handoffsDir values explicitly, AND require handoffsDir to lexically
+  // resolve to a proper sub-path (not just `/`). Callers that need a
+  // custom handoffsDir must pass an absolute path under the project
+  // tree.
+  const resolvedDir = path.resolve(dir);
+  if (resolvedDir === path.parse(resolvedDir).root) {
+    throw new ValidationError(
+      `handoffsDir cannot be filesystem root ("${resolvedDir}").`,
+      'handoff-validator-validateHandoff',
+      []
+    );
+  }
+
   // Path-safety: reject schema names that would escape the handoffs dir
-  // (e.g. `../../etc/passwd`, absolute paths, null-byte injection).
+  // (e.g. `../../etc/passwd`, absolute paths, null-byte injection,
+  // backslash-prefixed Windows-style paths, path separators that
+  // attempt to walk into sub-directories).
   if (
     typeof schemaName !== 'string' ||
+    schemaName.length === 0 ||
     schemaName.includes('..') ||
+    schemaName.includes('/') ||
+    schemaName.includes('\\') ||
     path.isAbsolute(schemaName) ||
     schemaName.includes('\0')
   ) {
@@ -463,7 +485,6 @@ export function validateHandoff(
     );
   }
 
-  const resolvedDir = path.resolve(dir);
   const schemaPath = path.resolve(dir, schemaName);
   if (!(schemaPath === resolvedDir || schemaPath.startsWith(`${resolvedDir}${path.sep}`))) {
     throw new ValidationError(

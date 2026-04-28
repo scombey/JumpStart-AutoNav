@@ -525,8 +525,14 @@ export async function runHolodeck(
   options: HolodeckOptions = {}
 ): Promise<HolodeckReport> {
   const { verifySubagents = false, verbose = false } = options;
-  const { scenariosDir, reportsDir, handoffsDir } = resolvePaths(options);
+  const { projectRoot, scenariosDir, reportsDir, handoffsDir } = resolvePaths(options);
   const outputDir = options.output || reportsDir;
+
+  // Pit Crew M7 MED (Adversary 6): pre-fix path accepted any
+  // `options.output` without containment, so an orchestrator passing
+  // `output: '../../.ssh'` would write reports outside the project
+  // tree. Post-fix: gate `outputDir` by `assertInsideRoot(projectRoot)`.
+  assertInsideRoot(outputDir, projectRoot, { schemaId: 'holodeck-runHolodeck-output' });
 
   // Path-safety: scenario name may come from CLI argv or scripted callers.
   assertInsideRoot(scenario, scenariosDir, { schemaId: 'holodeck-runHolodeck' });

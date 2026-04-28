@@ -42,7 +42,7 @@
  * @see specs/implementation-plan.md T4.6.x
  */
 
-import { type ChildProcess, execSync, spawn } from 'node:child_process';
+import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import * as http from 'node:http';
 import * as https from 'node:https';
@@ -218,19 +218,56 @@ export function detectProjectCommands(root: string): DetectedCommands {
 
 /**
  * Run a build command and report results.
+ *
+ * Pit Crew M7 HIGH (Adversary): the pre-fix path used `execSync(command)`
+ * with `command` arriving raw from a tool-call argument. An attacker
+ * scenario could send `build_command: "id > /tmp/pwned"` and execSync
+ * would happily run it (full shell semantics including pipes,
+ * redirects, command substitution).
+ *
+ * Post-fix: `command` is split into argv tokens by whitespace and run
+ * via `spawnSync` with `shell: false`. Shell features (pipes, &&, $()
+ * substitution, backticks) no longer work — but neither do attacker
+ * payloads that rely on them. Legitimate build commands like
+ * `npm run build` / `cargo build` / `go test ./...` still work.
+ *
+ * Callers needing shell features must opt in via the
+ * `JUMPSTART_ALLOW_INSECURE_BUILD_COMMAND=1` env var, which restores
+ * the legacy execSync behavior. Documented in CONTRIBUTING.md.
  */
 export function runBuild(command: string, root: string): BuildReport {
   const start = Date.now();
   let output = '';
   let exitCode = 0;
+  const allowShell = process.env.JUMPSTART_ALLOW_INSECURE_BUILD_COMMAND === '1';
+
+  // Tokenize the command. The minimal split on whitespace is sufficient
+  // for the canonical cases (npm run X, cargo build, etc.) and
+  // intentionally rejects attacker payloads that need a shell.
+  const parts = command
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p.length > 0);
+  if (parts.length === 0) {
+    return {
+      pass: false,
+      command,
+      duration_ms: 0,
+      output: 'Empty build command',
+      exit_code: 1,
+    };
+  }
 
   try {
-    output = execSync(command, {
+    const result = spawnSync(parts[0], parts.slice(1), {
       cwd: root,
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
       timeout: 120000,
+      shell: allowShell,
     });
+    output = `${result.stdout || ''}${result.stderr || ''}`;
+    exitCode = result.status ?? 1;
   } catch (err) {
     const e = err as ExecError;
     const stdoutPart = e.stdout

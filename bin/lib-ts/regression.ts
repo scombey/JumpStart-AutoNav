@@ -265,11 +265,29 @@ export function computeSimilarityScore(actual: string, expected: string): number
 
 /**
  * Run the full regression suite against all golden masters.
+ *
+ * Pit Crew M7 HIGH (Reviewer): the pre-fix implementation called
+ * `structuralDiff(expected, expected)` — comparing the expected file
+ * against itself, ALWAYS reporting 100% similarity. A regression that
+ * broke the actual artifact generation would have shipped green.
+ *
+ * Post-fix: `runRegressionSuite` requires an `actualGenerator` callback
+ * that produces the artifact to compare against the golden master. If
+ * no generator is supplied, the function is documented as a no-op
+ * (returns `pass: true, results: []`) rather than producing a false
+ * "100% similarity" signal that misleads CI gates.
  */
-export function runRegressionSuite(
+export interface RegressionRunOptions extends RegressionOptions {
+  /** Generator that returns the actual artifact bytes for a given input
+   *  filename. Caller-supplied; receives the input file's path inside
+   *  `mastersDir/input/`. If omitted, the suite runs in no-op mode. */
+  actualGenerator?: (inputFilePath: string) => string | Promise<string>;
+}
+
+export async function runRegressionSuite(
   mastersDir: string,
-  options: RegressionOptions = {}
-): RegressionSuiteResult {
+  options: RegressionRunOptions = {}
+): Promise<RegressionSuiteResult> {
   const threshold = options.threshold ?? DEFAULT_THRESHOLD;
 
   if (!existsSync(mastersDir)) {
@@ -283,6 +301,12 @@ export function runRegressionSuite(
     return { results: [], pass: true };
   }
 
+  // No-op mode (no generator supplied): return empty results rather
+  // than a false-positive 100% match signal.
+  if (!options.actualGenerator) {
+    return { results: [], pass: true };
+  }
+
   // Find golden master pairs (match by name pattern)
   const expectedFiles = readdirSync(expectedDir).filter((f) => f.endsWith('.md'));
   const results: RegressionResult[] = [];
@@ -290,18 +314,30 @@ export function runRegressionSuite(
   for (const expectedFile of expectedFiles) {
     // Extract name from expected file (e.g., 'todo-app-prd.md' → 'todo-app')
     const nameParts = expectedFile.replace('.md', '').split('-');
-    // Try to find matching input file
     const baseName = nameParts.slice(0, -1).join('-') || nameParts[0];
 
     const inputFiles = readdirSync(inputDir).filter((f) => f.includes(baseName));
     if (inputFiles.length === 0) continue;
 
+    const inputFilePath = path.join(inputDir, inputFiles[0]);
     const expected = readFileSync(path.join(expectedDir, expectedFile), 'utf8');
 
-    // For regression testing, compare the expected against itself
-    // (in real usage, this would compare a freshly-generated artifact)
-    const diff = structuralDiff(expected, expected);
+    let actual: string;
+    try {
+      actual = await options.actualGenerator(inputFilePath);
+    } catch (err) {
+      results.push({
+        name: baseName,
+        input_file: inputFiles[0],
+        expected_file: expectedFile,
+        similarity: 0,
+        pass: false,
+        differences: [`actualGenerator threw: ${(err as Error).message}`],
+      });
+      continue;
+    }
 
+    const diff = structuralDiff(actual, expected);
     results.push({
       name: baseName,
       input_file: inputFiles[0],

