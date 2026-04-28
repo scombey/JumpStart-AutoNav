@@ -1,0 +1,160 @@
+/**
+ * main.ts — CLI Dispatcher root entry (T4.7.1).
+ *
+ * Replaces the 5359-line `bin/cli.js` monolith with a citty-driven
+ * tree. Per ADR-002 v2.0.0 (resolved 2026-04-28), the framework is
+ * **citty `^0.2.2`** — its lazy `subCommands` map saves the +2370-
+ * line registration boilerplate commander would have charged across
+ * the 147-leaf 4–5-level subcommand tree.
+ *
+ * Public surface preserved by the eventual full decomposition (T4.7.2):
+ *
+ *   - Every `bin/cli.js` `subcommand === '<name>'` branch becomes a
+ *     `src/cli/commands/<group>.ts` module exporting a default
+ *     `defineCommand`-shaped object.
+ *   - `--help` output remains byte-identical (NFR-R02; gated by
+ *     `scripts/diff-cli-help.mjs` at T4.7.3).
+ *   - Exit codes preserved (per ADR-006 — only this file and
+ *     `runIpc` may call `process.exit`).
+ *
+ * **Lazy loading**: every entry in `subCommands` is a thunk that
+ * dynamically imports the leaf module. `node dist/cli.js --version`
+ * imports ZERO command modules — a meaningful startup-time win when
+ * the eventual tree has ~30 command files.
+ *
+ * **Deps injection**: `runMain()` is a thin wrapper around citty's
+ * `runMain` that constructs a single `Deps` via `createRealDeps()`
+ * and threads it into every command's `run()`. Per-command tests
+ * pass `createTestDeps({ ... })` directly into the same handler
+ * function (commands export both the `defineCommand` object AND the
+ * inner handler function for test access).
+ *
+ * **NOT YET PORTED in this file** (T4.7.2): the actual 147 command
+ * modules. T4.7.1's scope is the entry point + deps wiring + a
+ * minimal sub-tree showing the pattern. Subsequent commits in this
+ * branch decompose the legacy `bin/cli.js` into the full tree.
+ *
+ * @see specs/decisions/adr-002-cli-framework.md (citty + lazy subCommands)
+ * @see specs/architecture.md §System Components — CLI Dispatcher
+ * @see specs/implementation-plan.md T4.7.1
+ */
+
+import { type CommandDef, runMain as cittyRunMain, defineCommand } from 'citty';
+import { createRealDeps, type Deps } from './deps.js';
+
+// ─────────────────────────────────────────────────────────────────────────
+// Package version
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Static framework version — kept in lockstep with `package.json`
+ * (the contract harness flags drift). Replaces the legacy runtime
+ * `import.meta.url` → `package.json` read which TS1470 rejects under
+ * the strangler-phase CJS classification. At M9 ESM cutover this
+ * becomes a `createRequire`-driven runtime read.
+ */
+const FRAMEWORK_VERSION = '1.1.14';
+
+// ─────────────────────────────────────────────────────────────────────────
+// SubCommands map
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Lazy `subCommands` map — citty resolves each entry only when the
+ * matching sub-command is invoked. T4.7.2 grows this map to ~30
+ * entries covering all 147 leaf commands (most leaves nest under
+ * group commands like `hash <register|verify>`,
+ * `graph <build|coverage>`, `cab <add|view|...>`).
+ *
+ * Pattern (T4.7.2 onward):
+ *
+ *   verify: () => import('./commands/verify.js').then((m) => m.default),
+ *
+ * For now (T4.7.1), only the seed `version-tag` command is wired —
+ * just enough to prove the citty plumbing typechecks and runs.
+ */
+const subCommands: Record<string, () => Promise<CommandDef>> = {
+  // Lazy: returns the imported default export at resolution time.
+  // citty unwraps the returned Promise. The cast widens the
+  // tightly-inferred CommandDef<{...specific args...}> shape into the
+  // map's `CommandDef<any>` index signature without losing
+  // type-safety inside each command's own module.
+  'version-tag': async () => {
+    const mod = await import('./commands/version-tag.js');
+    return mod.default as unknown as CommandDef;
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Root program
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * The root citty command. `meta` provides `--version` + `--help`;
+ * `subCommands` provides the lazy dispatch tree.
+ *
+ * No `args` at the root level — every meaningful positional arg
+ * belongs to a sub-command. This deliberately diverges from the
+ * legacy `bin/cli.js` which accepted a bare positional `targetDir`
+ * for the bootstrap default; that path is moving to an explicit
+ * `init` sub-command in T4.7.2 alongside the rest of the tree.
+ *
+ * Pit Crew M8 will validate the migration is byte-identical at the
+ * `--help` snapshot level (T4.7.3).
+ */
+export const main = defineCommand({
+  meta: {
+    name: 'jumpstart-mode',
+    version: FRAMEWORK_VERSION,
+    description:
+      'Jump Start Framework — spec-driven agentic coding workflow with 147 sub-commands.',
+  },
+  subCommands,
+  setup() {
+    // Hooks per citty docs. setup() runs before run(); cleanup()
+    // runs after (or on throw). Currently no-op; reserved for
+    // future cross-command instrumentation (timing, telemetry).
+  },
+  cleanup() {
+    // Reserved.
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// Top-level entry
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Entry point invoked by `bin/cli.js` (post-port) or
+ * `dist/cli.js` (post-M9). Constructs a single `Deps` instance via
+ * `createRealDeps()` and hands off to citty.
+ *
+ * The `_deps` parameter is reserved for future use — once T4.7.2
+ * threads deps into every command, this is where they get
+ * constructed. Today, commands construct their own deps for backward
+ * compat with the legacy `bin/cli.js` invocation surface; the
+ * threading happens incrementally as commands port over.
+ *
+ * **ADR-006 exit-code contract**: this is one of two allowlisted
+ * `process.exit` sites in the codebase (the other is `runIpc`). All
+ * non-CLI library code throws `JumpstartError` subclasses; the
+ * top-level catch here translates them to exit codes.
+ */
+export async function runMain(): Promise<void> {
+  // Reserved: const deps = createRealDeps();
+  // Threaded into commands incrementally as T4.7.2 lands.
+  void createRealDeps;
+  await cittyRunMain(main);
+}
+
+// Allow direct invocation for the pre-M9 strangler phase. Once we
+// flip ESM at M9, this file becomes the package's `bin` target
+// directly and the require-vs-import-shaped check disappears.
+//
+// Currently NOT wired — `bin/cli.js` still serves as the npm-bin
+// entry. T4.7.2 finishes the decomposition; T5.1 (M9) flips this
+// file to the bin target.
+//
+// We export the `Deps` type so command modules importing this file
+// for type-only references get the right symbols.
+export type { Deps };
