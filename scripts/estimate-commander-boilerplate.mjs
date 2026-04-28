@@ -190,7 +190,8 @@ function computeCost(subcommands) {
 
   for (const sub of subcommands) {
     totalOptions += sub.options;
-    commanderLines += COMMANDER_LINES_PER_SUBCOMMAND_BASE + sub.options * COMMANDER_LINES_PER_OPTION;
+    commanderLines +=
+      COMMANDER_LINES_PER_SUBCOMMAND_BASE + sub.options * COMMANDER_LINES_PER_OPTION;
     cittyLines += CITTY_LINES_PER_SUBCOMMAND;
 
     if (sub.nestedSubcommands > 0) {
@@ -198,7 +199,7 @@ function computeCost(subcommands) {
       // Commander needs each nested leaf registered too — full chain
       // per nested entry.
       commanderLines +=
-        sub.nestedSubcommands * (COMMANDER_LINES_PER_SUBCOMMAND_BASE + 1 /* avg options */);
+        sub.nestedSubcommands * (COMMANDER_LINES_PER_SUBCOMMAND_BASE + 1) /* avg options */;
       // Citty: just one extra map line per nested leaf.
       cittyLines += sub.nestedSubcommands * CITTY_LINES_PER_SUBCOMMAND;
     }
