@@ -1,0 +1,1197 @@
+{
+  "generated_at": "2026-04-28T19:35:33.305Z",
+  "source_file": "bin/cli.js",
+  "source_lines": 5360,
+  "subcommand_count": 147,
+  "nested_groups": 91,
+  "options_count": 0,
+  "commander_lines": 2709,
+  "citty_lines": 339,
+  "delta": 2370,
+  "decision": "citty",
+  "rationale": "Commander adds 2370 lines of boilerplate over citty (>1000 threshold per ADR-002). Coordinated sweep required across architecture.md + Technology Stack + C4 diagram BEFORE T4.7.1.",
+  "notes": [
+    "Per-subcommand cost models live at the top of this script.",
+    "Body line counts use a rough { } depth tracker — string literals can introduce small noise.",
+    "Both frameworks share the per-command-module boilerplate (5 lines of imports/exports per file); excluded from the delta.",
+    "Decision criterion: delta > 1000 lines → citty (per ADR-002)."
+  ],
+  "per_subcommand": [
+    {
+      "name": "verify",
+      "startLine": 972,
+      "endLine": 977,
+      "bodyLines": 5,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "validate",
+      "startLine": 979,
+      "endLine": 996,
+      "bodyLines": 17,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "spec-drift",
+      "startLine": 998,
+      "endLine": 1007,
+      "bodyLines": 9,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "hash",
+      "startLine": 1009,
+      "endLine": 1036,
+      "bodyLines": 27,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "graph",
+      "startLine": 1038,
+      "endLine": 1058,
+      "bodyLines": 20,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "simplicity",
+      "startLine": 1060,
+      "endLine": 1073,
+      "bodyLines": 13,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "scan-wrappers",
+      "startLine": 1075,
+      "endLine": 1087,
+      "bodyLines": 12,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "invariants",
+      "startLine": 1089,
+      "endLine": 1098,
+      "bodyLines": 9,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "version-tag",
+      "startLine": 1100,
+      "endLine": 1111,
+      "bodyLines": 11,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "template-check",
+      "startLine": 1113,
+      "endLine": 1126,
+      "bodyLines": 13,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "freshness-audit",
+      "startLine": 1128,
+      "endLine": 1135,
+      "bodyLines": 7,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "shard",
+      "startLine": 1137,
+      "endLine": 1164,
+      "bodyLines": 27,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "test",
+      "startLine": 1166,
+      "endLine": 1188,
+      "bodyLines": 22,
+      "options": 0,
+      "nestedSubcommands": 4
+    },
+    {
+      "name": "checklist",
+      "startLine": 1190,
+      "endLine": 1203,
+      "bodyLines": 13,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "smells",
+      "startLine": 1205,
+      "endLine": 1215,
+      "bodyLines": 10,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "handoff-check",
+      "startLine": 1217,
+      "endLine": 1236,
+      "bodyLines": 19,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "coverage",
+      "startLine": 1238,
+      "endLine": 1249,
+      "bodyLines": 11,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "consistency",
+      "startLine": 1251,
+      "endLine": 1259,
+      "bodyLines": 8,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "lint",
+      "startLine": 1261,
+      "endLine": 1269,
+      "bodyLines": 8,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "contracts",
+      "startLine": 1271,
+      "endLine": 1279,
+      "bodyLines": 8,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "regulatory",
+      "startLine": 1281,
+      "endLine": 1289,
+      "bodyLines": 8,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "boundaries",
+      "startLine": 1291,
+      "endLine": 1299,
+      "bodyLines": 8,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "task-deps",
+      "startLine": 1301,
+      "endLine": 1314,
+      "bodyLines": 13,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "diff",
+      "startLine": 1316,
+      "endLine": 1324,
+      "bodyLines": 8,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "modules",
+      "startLine": 1326,
+      "endLine": 1334,
+      "bodyLines": 8,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "validate-module",
+      "startLine": 1336,
+      "endLine": 1348,
+      "bodyLines": 12,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "install",
+      "startLine": 1350,
+      "endLine": 1473,
+      "bodyLines": 123,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "uninstall",
+      "startLine": 1475,
+      "endLine": 1503,
+      "bodyLines": 28,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "status",
+      "startLine": 1505,
+      "endLine": 1529,
+      "bodyLines": 24,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "integrate",
+      "startLine": 1531,
+      "endLine": 1586,
+      "bodyLines": 55,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "update",
+      "startLine": 1588,
+      "endLine": 1635,
+      "bodyLines": 47,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "upgrade",
+      "startLine": 1637,
+      "endLine": 1732,
+      "bodyLines": 95,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "usage",
+      "startLine": 1734,
+      "endLine": 1746,
+      "bodyLines": 12,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "self-evolve",
+      "startLine": 1748,
+      "endLine": 1760,
+      "bodyLines": 12,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "next",
+      "startLine": 1762,
+      "endLine": 1769,
+      "bodyLines": 7,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "ceremony",
+      "startLine": 1771,
+      "endLine": 1813,
+      "bodyLines": 42,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "focus",
+      "startLine": 1815,
+      "endLine": 1899,
+      "bodyLines": 84,
+      "options": 0,
+      "nestedSubcommands": 4
+    },
+    {
+      "name": "summarize",
+      "startLine": 1901,
+      "endLine": 1925,
+      "bodyLines": 24,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "dashboard",
+      "startLine": 1927,
+      "endLine": 1939,
+      "bodyLines": 12,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "timeline",
+      "startLine": 1941,
+      "endLine": 2029,
+      "bodyLines": 88,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "validate-all",
+      "startLine": 2031,
+      "endLine": 2057,
+      "bodyLines": 26,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "quickstart",
+      "startLine": 2059,
+      "endLine": 2164,
+      "bodyLines": 105,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "rewind",
+      "startLine": 2166,
+      "endLine": 2188,
+      "bodyLines": 22,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "approve",
+      "startLine": 2190,
+      "endLine": 2216,
+      "bodyLines": 26,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "reject",
+      "startLine": 2218,
+      "endLine": 2244,
+      "bodyLines": 26,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "checkpoint",
+      "startLine": 2246,
+      "endLine": 2307,
+      "bodyLines": 61,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "handoff",
+      "startLine": 2309,
+      "endLine": 2329,
+      "bodyLines": 20,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "merge-templates",
+      "startLine": 2331,
+      "endLine": 2344,
+      "bodyLines": 13,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "multi-repo",
+      "startLine": 2347,
+      "endLine": 2402,
+      "bodyLines": 55,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "bidirectional-trace",
+      "startLine": 2405,
+      "endLine": 2438,
+      "bodyLines": 33,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "impact",
+      "startLine": 2441,
+      "endLine": 2464,
+      "bodyLines": 23,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "repo-graph",
+      "startLine": 2467,
+      "endLine": 2495,
+      "bodyLines": 28,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "memory",
+      "startLine": 2498,
+      "endLine": 2554,
+      "bodyLines": 56,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "policy",
+      "startLine": 2557,
+      "endLine": 2613,
+      "bodyLines": 56,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "branch-workflow",
+      "startLine": 2616,
+      "endLine": 2655,
+      "bodyLines": 39,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "pr-package",
+      "startLine": 2658,
+      "endLine": 2700,
+      "bodyLines": 42,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "parallel-agents",
+      "startLine": 2703,
+      "endLine": 2740,
+      "bodyLines": 37,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "role-approval",
+      "startLine": 2743,
+      "endLine": 2817,
+      "bodyLines": 74,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "requirements-baseline",
+      "startLine": 2820,
+      "endLine": 2877,
+      "bodyLines": 57,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "semantic-diff",
+      "startLine": 2880,
+      "endLine": 2918,
+      "bodyLines": 38,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "backlog-sync",
+      "startLine": 2921,
+      "endLine": 2957,
+      "bodyLines": 36,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "delivery-confidence",
+      "startLine": 2960,
+      "endLine": 2994,
+      "bodyLines": 34,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "plan-executor",
+      "startLine": 2997,
+      "endLine": 3053,
+      "bodyLines": 56,
+      "options": 0,
+      "nestedSubcommands": 4
+    },
+    {
+      "name": "fitness-functions",
+      "startLine": 3056,
+      "endLine": 3101,
+      "bodyLines": 45,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "reference-arch",
+      "startLine": 3104,
+      "endLine": 3158,
+      "bodyLines": 54,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "decision-conflicts",
+      "startLine": 3161,
+      "endLine": 3182,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "spec-maturity",
+      "startLine": 3185,
+      "endLine": 3221,
+      "bodyLines": 36,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "portfolio",
+      "startLine": 3224,
+      "endLine": 3289,
+      "bodyLines": 65,
+      "options": 0,
+      "nestedSubcommands": 4
+    },
+    {
+      "name": "ci-cd-integration",
+      "startLine": 3292,
+      "endLine": 3319,
+      "bodyLines": 27,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "env-promotion",
+      "startLine": 3322,
+      "endLine": 3354,
+      "bodyLines": 32,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "raci-matrix",
+      "startLine": 3357,
+      "endLine": 3389,
+      "bodyLines": 32,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "compliance-packs",
+      "startLine": 3392,
+      "endLine": 3421,
+      "bodyLines": 29,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "evidence-collector",
+      "startLine": 3424,
+      "endLine": 3447,
+      "bodyLines": 23,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "release-readiness",
+      "startLine": 3450,
+      "endLine": 3477,
+      "bodyLines": 27,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "waiver-workflow",
+      "startLine": 3480,
+      "endLine": 3515,
+      "bodyLines": 35,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "sla-slo",
+      "startLine": 3518,
+      "endLine": 3547,
+      "bodyLines": 29,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "risk-register",
+      "startLine": 3550,
+      "endLine": 3578,
+      "bodyLines": 28,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "data-classification",
+      "startLine": 3581,
+      "endLine": 3608,
+      "bodyLines": 27,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "credential-boundary",
+      "startLine": 3611,
+      "endLine": 3625,
+      "bodyLines": 14,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "ea-review-packet",
+      "startLine": 3628,
+      "endLine": 3640,
+      "bodyLines": 12,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "model-governance",
+      "startLine": 3643,
+      "endLine": 3666,
+      "bodyLines": 23,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "ai-intake",
+      "startLine": 3669,
+      "endLine": 3691,
+      "bodyLines": 22,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "finops-planner",
+      "startLine": 3694,
+      "endLine": 3715,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "vendor-risk",
+      "startLine": 3718,
+      "endLine": 3738,
+      "bodyLines": 20,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "cab-output",
+      "startLine": 3741,
+      "endLine": 3753,
+      "bodyLines": 12,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "bcdr-planning",
+      "startLine": 3756,
+      "endLine": 3785,
+      "bodyLines": 29,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "ops-ownership",
+      "startLine": 3788,
+      "endLine": 3814,
+      "bodyLines": 26,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "governance-dashboard",
+      "startLine": 3817,
+      "endLine": 3826,
+      "bodyLines": 9,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "codebase-retrieval",
+      "startLine": 3829,
+      "endLine": 3853,
+      "bodyLines": 24,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "ast-edit",
+      "startLine": 3856,
+      "endLine": 3873,
+      "bodyLines": 17,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "refactor-planner",
+      "startLine": 3876,
+      "endLine": 3887,
+      "bodyLines": 11,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "test-generator",
+      "startLine": 3890,
+      "endLine": 3916,
+      "bodyLines": 26,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "contract-first",
+      "startLine": 3919,
+      "endLine": 3940,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "runtime-debugger",
+      "startLine": 3943,
+      "endLine": 3958,
+      "bodyLines": 15,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "migration-planner",
+      "startLine": 3961,
+      "endLine": 3972,
+      "bodyLines": 11,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "legacy-modernizer",
+      "startLine": 3975,
+      "endLine": 3986,
+      "bodyLines": 11,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "db-evolution",
+      "startLine": 3989,
+      "endLine": 4000,
+      "bodyLines": 11,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "safe-rename",
+      "startLine": 4003,
+      "endLine": 4028,
+      "bodyLines": 25,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "dependency-upgrade",
+      "startLine": 4031,
+      "endLine": 4050,
+      "bodyLines": 19,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "incident-feedback",
+      "startLine": 4053,
+      "endLine": 4074,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "context-chunker",
+      "startLine": 4077,
+      "endLine": 4093,
+      "bodyLines": 16,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "model-router",
+      "startLine": 4096,
+      "endLine": 4115,
+      "bodyLines": 19,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "cost-router",
+      "startLine": 4118,
+      "endLine": 4135,
+      "bodyLines": 17,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "deterministic",
+      "startLine": 4138,
+      "endLine": 4159,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "agent-checkpoint",
+      "startLine": 4162,
+      "endLine": 4194,
+      "bodyLines": 32,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "tool-guardrails",
+      "startLine": 4197,
+      "endLine": 4210,
+      "bodyLines": 13,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "root-cause",
+      "startLine": 4213,
+      "endLine": 4234,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "quality-graph",
+      "startLine": 4237,
+      "endLine": 4254,
+      "bodyLines": 17,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "web-dashboard",
+      "startLine": 4257,
+      "endLine": 4284,
+      "bodyLines": 27,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "role-views",
+      "startLine": 4287,
+      "endLine": 4312,
+      "bodyLines": 25,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "spec-comments",
+      "startLine": 4315,
+      "endLine": 4343,
+      "bodyLines": 28,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "workshop-mode",
+      "startLine": 4346,
+      "endLine": 4367,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "collaboration",
+      "startLine": 4370,
+      "endLine": 4390,
+      "bodyLines": 20,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "elicitation",
+      "startLine": 4393,
+      "endLine": 4418,
+      "bodyLines": 25,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "enterprise-templates",
+      "startLine": 4421,
+      "endLine": 4452,
+      "bodyLines": 31,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "playback-summaries",
+      "startLine": 4455,
+      "endLine": 4478,
+      "bodyLines": 23,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "design-system",
+      "startLine": 4481,
+      "endLine": 4500,
+      "bodyLines": 19,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "diagram-studio",
+      "startLine": 4503,
+      "endLine": 4535,
+      "bodyLines": 32,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "ambiguity-heatmap",
+      "startLine": 4538,
+      "endLine": 4562,
+      "bodyLines": 24,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "estimation-studio",
+      "startLine": 4565,
+      "endLine": 4588,
+      "bodyLines": 23,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "guided-handoff",
+      "startLine": 4591,
+      "endLine": 4614,
+      "bodyLines": 23,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "transcript-ingestion",
+      "startLine": 4617,
+      "endLine": 4643,
+      "bodyLines": 26,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "chat-integration",
+      "startLine": 4646,
+      "endLine": 4673,
+      "bodyLines": 27,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "context-onboarding",
+      "startLine": 4676,
+      "endLine": 4691,
+      "bodyLines": 15,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "promptless-mode",
+      "startLine": 4694,
+      "endLine": 4719,
+      "bodyLines": 25,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "artifact-comparison",
+      "startLine": 4722,
+      "endLine": 4749,
+      "bodyLines": 27,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "workstream-ownership",
+      "startLine": 4752,
+      "endLine": 4771,
+      "bodyLines": 19,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "persona-packs",
+      "startLine": 4774,
+      "endLine": 4805,
+      "bodyLines": 31,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "knowledge-graph",
+      "startLine": 4808,
+      "endLine": 4835,
+      "bodyLines": 27,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "pattern-library",
+      "startLine": 4838,
+      "endLine": 4867,
+      "bodyLines": 29,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "domain-ontology",
+      "startLine": 4870,
+      "endLine": 4895,
+      "bodyLines": 25,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "data-contracts",
+      "startLine": 4898,
+      "endLine": 4917,
+      "bodyLines": 19,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "event-modeling",
+      "startLine": 4920,
+      "endLine": 4941,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "platform-engineering",
+      "startLine": 4944,
+      "endLine": 4970,
+      "bodyLines": 26,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "ai-evaluation",
+      "startLine": 4973,
+      "endLine": 4994,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "prompt-governance",
+      "startLine": 4997,
+      "endLine": 5025,
+      "bodyLines": 28,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "sre-integration",
+      "startLine": 5028,
+      "endLine": 5064,
+      "bodyLines": 36,
+      "options": 0,
+      "nestedSubcommands": 4
+    },
+    {
+      "name": "telemetry-feedback",
+      "startLine": 5067,
+      "endLine": 5095,
+      "bodyLines": 28,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "enterprise-search",
+      "startLine": 5098,
+      "endLine": 5121,
+      "bodyLines": 23,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "revert",
+      "startLine": 5124,
+      "endLine": 5145,
+      "bodyLines": 21,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "adr",
+      "startLine": 5148,
+      "endLine": 5172,
+      "bodyLines": 24,
+      "options": 0,
+      "nestedSubcommands": 1
+    },
+    {
+      "name": "complexity",
+      "startLine": 5175,
+      "endLine": 5188,
+      "bodyLines": 13,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "crossref",
+      "startLine": 5191,
+      "endLine": 5210,
+      "bodyLines": 19,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "init",
+      "startLine": 5213,
+      "endLine": 5229,
+      "bodyLines": 16,
+      "options": 0,
+      "nestedSubcommands": 0
+    },
+    {
+      "name": "lock",
+      "startLine": 5232,
+      "endLine": 5274,
+      "bodyLines": 42,
+      "options": 0,
+      "nestedSubcommands": 3
+    },
+    {
+      "name": "timestamp",
+      "startLine": 5277,
+      "endLine": 5308,
+      "bodyLines": 31,
+      "options": 0,
+      "nestedSubcommands": 2
+    },
+    {
+      "name": "scan",
+      "startLine": 5311,
+      "endLine": 5333,
+      "bodyLines": 22,
+      "options": 0,
+      "nestedSubcommands": 0
+    }
+  ]
+}
