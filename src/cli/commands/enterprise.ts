@@ -41,6 +41,7 @@ import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
+import * as legacyPrPackage from '../../lib/pr-package.js';
 import * as legacyReleaseReadiness from '../../lib/release-readiness.js';
 import * as legacyTemplateMerge from '../../lib/template-merge.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
@@ -800,13 +801,37 @@ export interface PrPackageArgs {
 }
 
 export function prPackageImpl(deps: Deps, args: PrPackageArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('pr-package');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('pr-package')`
+  // to a static import of the TS port at `src/lib/pr-package.ts`. The
+  // previous wiring called `lib.generatePrPackage` / `lib.getStatus` —
+  // neither was exported by the legacy module, so the command silently
+  // produced `undefined` results regardless of arg shape. Replaced with
+  // the actual legacy contract: `createPRPackage` / `listPRPackages` /
+  // `exportPRPackage`. The legacy CLI default action was `generate` (see
+  // bin/cli.js ~2658); preserved as a thin wrapper that turns the optional
+  // branch arg into a minimal title + summary so the call shape stays
+  // stable without accreting new args.
   const action = args.action ?? 'generate';
   let result: unknown;
   if (action === 'generate') {
-    result = lib.generatePrPackage?.(deps.projectRoot, { branch: args.arg });
+    const branch = args.arg ?? 'unknown-branch';
+    result = legacyPrPackage.createPRPackage(
+      {
+        title: `Work package — ${branch}`,
+        summary: `Auto-generated work package for branch \`${branch}\`.`,
+      },
+      deps.projectRoot
+    );
+  } else if (action === 'list') {
+    result = legacyPrPackage.listPRPackages(deps.projectRoot);
+  } else if (action === 'export') {
+    if (!args.arg) {
+      deps.logger.error('Usage: jumpstart-mode pr-package export <package-id>');
+      return { exitCode: 1 };
+    }
+    result = legacyPrPackage.exportPRPackage(args.arg, deps.projectRoot);
   } else {
-    result = lib.getStatus?.(deps.projectRoot) ?? {};
+    result = legacyPrPackage.listPRPackages(deps.projectRoot);
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`PR package: ${action}`);
@@ -816,8 +841,8 @@ export function prPackageImpl(deps: Deps, args: PrPackageArgs): CommandResult {
 export const prPackageCommand = defineCommand({
   meta: { name: 'pr-package', description: 'Pull-request review package generator' },
   args: {
-    action: { type: 'positional', required: false, description: 'generate | status' },
-    arg: { type: 'positional', required: false, description: 'branch name' },
+    action: { type: 'positional', required: false, description: 'generate | list | export' },
+    arg: { type: 'positional', required: false, description: 'branch name or package id' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
   run({ args }) {
