@@ -35,7 +35,11 @@ jobs:
         run: npm ci
 
       - name: Run holodeck baseline scenario
-        run: node bin/holodeck.js --scenario baseline
+        # M9 ESM cutover: bin/holodeck.js → bin/holodeck.mjs (two of its
+        # deps — state-store and usage — ported to ESM and CJS require()
+        # cannot synchronously load .mjs; the runner switched to ESM
+        # imports + createRequire fallback for CJS deps).
+        run: node bin/holodeck.mjs --scenario baseline
 
       - name: Upload holodeck report on failure
         if: failure()
