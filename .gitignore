@@ -52,3 +52,6 @@ tests/coverage-baseline.candidate.json
 # Contract-harness output (per-CI-run; rolled up by metrics-cron.yml T3.7)
 .jumpstart/metrics/drift-catches.json
 .jumpstart/metrics/regression-share.json
+
+# Claude agent state (transient; not worth preserving across runs)
+.claude
