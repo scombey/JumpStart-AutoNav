@@ -7,7 +7,7 @@
  *   - Walker fallback for inline / unknown schemas.
  *   - Error-string shape compatibility (substring-grep parity).
  *
- * @see bin/lib-ts/validator.ts
+ * @see src/lib/validator.ts
  * @see bin/lib/validator.js (legacy reference)
  */
 
@@ -21,7 +21,7 @@ import {
   validateAgentDefinition,
   validateArtifact,
   validateMarkdownStructure,
-} from '../bin/lib-ts/validator.js';
+} from '../src/lib/validator.js';
 
 const SCHEMAS_DIR = path.join(__dirname, '..', '.jumpstart', 'schemas');
 const FIXTURES_DIR = path.join(__dirname, 'fixtures');

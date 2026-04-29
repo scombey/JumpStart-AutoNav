@@ -1,7 +1,7 @@
 /**
  * test-config-yaml.test.ts — T4.1.8 unit tests for config-yaml.ts.
  *
- * @see bin/lib-ts/config-yaml.ts
+ * @see src/lib/config-yaml.ts
  * @see bin/lib/config-yaml.cjs (legacy reference)
  */
 
@@ -15,7 +15,7 @@ import {
   setWorkflowCurrentPhase,
   updateBootstrapAnswers,
   writeConfigDocument,
-} from '../bin/lib-ts/config-yaml.js';
+} from '../src/lib/config-yaml.js';
 
 let tmpDir: string;
 

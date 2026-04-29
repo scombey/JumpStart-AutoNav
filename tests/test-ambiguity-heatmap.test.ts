@@ -1,7 +1,7 @@
 /**
  * test-ambiguity-heatmap.test.ts — T4.1.7 batch (1/4).
  *
- * @see bin/lib-ts/ambiguity-heatmap.ts
+ * @see src/lib/ambiguity-heatmap.ts
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -14,7 +14,7 @@ import {
   scanAmbiguity,
   scanFile,
   VAGUE_TERMS,
-} from '../bin/lib-ts/ambiguity-heatmap.js';
+} from '../src/lib/ambiguity-heatmap.js';
 
 let tmpDir: string;
 

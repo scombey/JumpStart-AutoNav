@@ -8,9 +8,9 @@
  *   - smell-detector.ts: detectSmells(), scoreSmellDensity(),
  *     scanDirectory(), generateSmellReport(), SMELL_PATTERNS
  *
- * @see bin/lib-ts/analyzer.ts
- * @see bin/lib-ts/crossref.ts
- * @see bin/lib-ts/smell-detector.ts
+ * @see src/lib/analyzer.ts
+ * @see src/lib/crossref.ts
+ * @see src/lib/smell-detector.ts
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -23,15 +23,15 @@ import {
   extractStoryIds,
   extractTaskIds,
   extractTerms,
-} from '../bin/lib-ts/analyzer.js';
-import { extractAnchors, extractLinks, validateCrossRefs } from '../bin/lib-ts/crossref.js';
+} from '../src/lib/analyzer.js';
+import { extractAnchors, extractLinks, validateCrossRefs } from '../src/lib/crossref.js';
 import {
   detectSmells,
   generateSmellReport,
   SMELL_PATTERNS,
   scanDirectory,
   scoreSmellDensity,
-} from '../bin/lib-ts/smell-detector.js';
+} from '../src/lib/smell-detector.js';
 
 let tmpDir: string;
 

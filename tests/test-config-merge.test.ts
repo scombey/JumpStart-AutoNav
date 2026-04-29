@@ -3,8 +3,8 @@
  *
  * Pin the three-way merge contract from the legacy upgrade flow.
  *
- * @see bin/lib-ts/config-merge.ts
- * @see bin/lib/config-merge.js (legacy reference)
+ * @see src/lib/config-merge.ts
+ * @see bin/lib/config-merge.mjs (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
@@ -17,7 +17,7 @@ import {
   readConfig,
   writeConfig,
   writeConflictsFile,
-} from '../bin/lib-ts/config-merge.js';
+} from '../src/lib/config-merge.js';
 
 let tmpDir: string;
 

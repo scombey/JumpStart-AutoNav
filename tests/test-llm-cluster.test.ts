@@ -8,7 +8,7 @@
  *   - llm-provider.ts: createProvider (mock + ADR-011 endpoint validation)
  *   - usage.ts: logUsage / summarizeUsage / ADR-012 redaction
  *
- * @see bin/lib-ts/{mock-responses,cost-router,model-router,llm-provider,usage}.ts
+ * @see src/lib/{mock-responses,cost-router,model-router,llm-provider,usage}.ts
  */
 
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
@@ -23,23 +23,23 @@ import {
   MODEL_COSTS,
   recordSpending,
   routeByCost,
-} from '../bin/lib-ts/cost-router.js';
+} from '../src/lib/cost-router.js';
 import {
   createProvider,
   getModelConfig,
   listModels,
   MODEL_REGISTRY,
   validateLLMEndpoint,
-} from '../bin/lib-ts/llm-provider.js';
-import { createMockRegistry, createPersonaRegistry } from '../bin/lib-ts/mock-responses.js';
+} from '../src/lib/llm-provider.js';
+import { createMockRegistry, createPersonaRegistry } from '../src/lib/mock-responses.js';
 import {
   configureRoute,
   DEFAULT_ROUTING,
   generateReport as routerGenerateReport,
   routeTask,
   TASK_TYPES,
-} from '../bin/lib-ts/model-router.js';
-import { logUsage, summarizeUsage } from '../bin/lib-ts/usage.js';
+} from '../src/lib/model-router.js';
+import { logUsage, summarizeUsage } from '../src/lib/usage.js';
 
 let tmpDir: string;
 

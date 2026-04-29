@@ -10,18 +10,18 @@
  *   - upgrade.ts: dry-run path counts, real upgrade with backup, path-safety
  *                 rejection of malicious manifest entries.
  *
- * @see bin/lib-ts/{integrate,registry,upgrade}.ts
+ * @see src/lib/{integrate,registry,upgrade}.ts
  */
 
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ValidationError } from '../bin/lib-ts/errors.js';
-import { writeFrameworkManifest } from '../bin/lib-ts/framework-manifest.js';
-import * as integrate from '../bin/lib-ts/integrate.js';
-import * as registry from '../bin/lib-ts/registry.js';
-import * as upgrade from '../bin/lib-ts/upgrade.js';
+import { ValidationError } from '../src/lib/errors.js';
+import { writeFrameworkManifest } from '../src/lib/framework-manifest.js';
+import * as integrate from '../src/lib/integrate.js';
+import * as registry from '../src/lib/registry.js';
+import * as upgrade from '../src/lib/upgrade.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Test scaffolding
@@ -595,7 +595,7 @@ describe('upgrade.upgrade — path-safety', () => {
     // pushing upgrade into the first-upgrade path. So the manifest never
     // reaches diffManifest. Instead, we directly verify
     // readFrameworkManifest's path-safety behavior.
-    const manifest = (await import('../bin/lib-ts/framework-manifest.js')).readFrameworkManifest(
+    const manifest = (await import('../src/lib/framework-manifest.js')).readFrameworkManifest(
       projectRoot
     );
     expect(manifest).toBeNull();
@@ -604,7 +604,7 @@ describe('upgrade.upgrade — path-safety', () => {
   it('rejects malicious framework manifest entries via diffManifest at upgrade time', async () => {
     // To actually exercise the ValidationError throw, we use diffManifest
     // directly — that's the lowest-level API where the assertion fires.
-    const { diffManifest } = await import('../bin/lib-ts/framework-manifest.js');
+    const { diffManifest } = await import('../src/lib/framework-manifest.js');
     expect(() =>
       diffManifest(
         {

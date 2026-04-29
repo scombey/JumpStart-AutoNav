@@ -40,15 +40,15 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ValidationError } from '../bin/lib-ts/errors.js';
+import { ValidationError } from '../src/lib/errors.js';
 import {
   _extractZipSafely_TEST_ONLY,
   downloadAndVerify,
   fetchRegistryIndex,
   readInstalled,
   uninstallItem,
-} from '../bin/lib-ts/install.js';
-import { validateForPublishing } from '../bin/lib-ts/registry.js';
+} from '../src/lib/install.js';
+import { validateForPublishing } from '../src/lib/registry.js';
 
 const ZIPSLIP_FIXTURES = path.join(__dirname, 'fixtures', 'zipslip');
 

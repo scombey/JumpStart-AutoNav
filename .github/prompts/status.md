@@ -42,7 +42,7 @@ Run or retrieve results from:
 - `bin/lib/spec-tester.js` — Spec quality score
 - `bin/lib/coverage.js` — Story-to-task coverage
 - `bin/lib/smell-detector.js` — Spec smell count
-- `bin/lib/analyzer.js` — Consistency score
+- `bin/lib/analyzer.mjs` — Consistency score
 
 ### Step 3: Open Items
 

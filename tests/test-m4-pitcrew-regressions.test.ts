@@ -12,19 +12,19 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { applyProfile, expandDotNotation } from '../bin/lib-ts/ceremony.js';
-import { routeByCost } from '../bin/lib-ts/cost-router.js';
-import { LLMError } from '../bin/lib-ts/errors.js';
-import { validateLLMEndpoint } from '../bin/lib-ts/llm-provider.js';
-import { redactSecrets } from '../bin/lib-ts/secret-scanner.js';
+import { applyProfile, expandDotNotation } from '../src/lib/ceremony.js';
+import { routeByCost } from '../src/lib/cost-router.js';
+import { LLMError } from '../src/lib/errors.js';
+import { validateLLMEndpoint } from '../src/lib/llm-provider.js';
+import { redactSecrets } from '../src/lib/secret-scanner.js';
 import {
   createCheckpoint,
   loadState,
   restoreCheckpoint,
   updateState,
-} from '../bin/lib-ts/state-store.js';
-import { createTimeline, loadTimeline, renderHTML } from '../bin/lib-ts/timeline.js';
-import { logUsage } from '../bin/lib-ts/usage.js';
+} from '../src/lib/state-store.js';
+import { createTimeline, loadTimeline, renderHTML } from '../src/lib/timeline.js';
+import { logUsage } from '../src/lib/usage.js';
 
 let tmpDir: string;
 let statePath: string;

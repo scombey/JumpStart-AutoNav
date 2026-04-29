@@ -1,7 +1,7 @@
 /**
  * test-install.test.ts — T4.5.1 marketplace installer port tests.
  *
- * Coverage for `bin/lib-ts/install.ts`:
+ * Coverage for `src/lib/install.ts`:
  *   - IDE detection (vscode-copilot vs generic)
  *   - normalizeItemId (3 forms: dotted, type+name, single)
  *   - findItem / findItemByName / searchItems
@@ -14,7 +14,7 @@
  *   - getStatus / uninstallItem / checkUpdates
  *   - ZIP reader: ADR-010 zipslip enforcement on 5 fixture archives
  *
- * @see bin/lib-ts/install.ts
+ * @see src/lib/install.ts
  * @see specs/decisions/adr-010-marketplace-zipslip-prevention.md
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
  */
@@ -32,8 +32,8 @@ import {
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ValidationError } from '../bin/lib-ts/errors.js';
-import type { RegistryIndex } from '../bin/lib-ts/install.js';
+import { ValidationError } from '../src/lib/errors.js';
+import type { RegistryIndex } from '../src/lib/install.js';
 import {
   checkCompatibility,
   checkUpdates,
@@ -50,7 +50,7 @@ import {
   searchItems,
   uninstallItem,
   writeInstalled,
-} from '../bin/lib-ts/install.js';
+} from '../src/lib/install.js';
 
 // Type-narrowing helpers — the install module is in transit so we re-import
 // the private extractor by reading the file. Instead of cracking it open
@@ -702,7 +702,7 @@ async function callExtractor(
   zipPath: string,
   targetDir: string
 ): Promise<{ ok: boolean; error?: Error }> {
-  const installMod = (await import('../bin/lib-ts/install.js')) as Record<string, unknown>;
+  const installMod = (await import('../src/lib/install.js')) as Record<string, unknown>;
   const extractZipSafely = installMod._extractZipSafely_TEST_ONLY as
     | ((zipPath: string, targetDir: string) => void)
     | undefined;

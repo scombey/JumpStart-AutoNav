@@ -27,26 +27,16 @@
  */
 
 import { defineCommand } from 'citty';
-import { createIntake, listIntakes } from '../../../bin/lib-ts/ai-intake.js';
-import {
-  generateReport as costGenerateReport,
-  routeByCost,
-} from '../../../bin/lib-ts/cost-router.js';
-import { writeResult } from '../../../bin/lib-ts/io.js';
+import { createIntake, listIntakes } from '../../lib/ai-intake.js';
+import { generateReport as costGenerateReport, routeByCost } from '../../lib/cost-router.js';
+import { writeResult } from '../../lib/io.js';
 import {
   generateReport as governanceGenerateReport,
   registerModel,
-} from '../../../bin/lib-ts/model-governance.js';
-import {
-  generateReport as routerGenerateReport,
-  routeTask,
-} from '../../../bin/lib-ts/model-router.js';
-import {
-  approveVersion,
-  listAssets,
-  registerAsset,
-} from '../../../bin/lib-ts/prompt-governance.js';
-import { generateUsageReport, summarizeUsage } from '../../../bin/lib-ts/usage.js';
+} from '../../lib/model-governance.js';
+import { generateReport as routerGenerateReport, routeTask } from '../../lib/model-router.js';
+import { approveVersion, listAssets, registerAsset } from '../../lib/prompt-governance.js';
+import { generateUsageReport, summarizeUsage } from '../../lib/usage.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { legacyRequire, safeJoin } from './_helpers.js';
 

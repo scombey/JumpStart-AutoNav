@@ -1,7 +1,7 @@
 /**
  * test-artifact-comparison.test.ts — T4.1.7 batch (4/4).
  *
- * @see bin/lib-ts/artifact-comparison.ts
+ * @see src/lib/artifact-comparison.ts
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -14,7 +14,7 @@ import {
   compareFiles,
   extractSections,
   getArtifactHistory,
-} from '../bin/lib-ts/artifact-comparison.js';
+} from '../src/lib/artifact-comparison.js';
 
 let tmpDir: string;
 

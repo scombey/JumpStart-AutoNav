@@ -2,7 +2,7 @@
  * test-public-surface.test.ts — T3.1 + T3.3 acceptance gate.
  *
  * Two assertions per Checkpoint C3:
- *   1. Run harness against current `bin/lib/` + `bin/lib-ts/` (i.e. v1.1.14
+ *   1. Run harness against current `bin/lib/` + `src/lib/` (i.e. v1.1.14
  *      main + any sub-commits since the rewrite-baseline tag) — must
  *      report ZERO drift incidents.
  *   2. Run harness against the synthetic T3.2 fixture — must report
@@ -92,7 +92,7 @@ describe('public-surface contract harness (T3.1 + T3.3 acceptance)', () => {
   });
 
   it('reports zero drift on current main (T3.3 acceptance #1)', () => {
-    // Default scan roots: bin/lib-ts + bin/lib (set by the script itself).
+    // Default scan roots: src/lib + bin/lib (set by the script itself).
     const { report, status } = runHarness(null);
     expect(status).toBe(0);
     if (!report) throw new Error('harness produced no report');
@@ -185,7 +185,7 @@ describe('public-surface contract harness (T3.1 + T3.3 acceptance)', () => {
     // assert the harness happily produces a 0-incident report there.
     // The DEFAULT-roots false-green case is exercised by the harness's
     // own self-check in the smoke harness above (no source files in
-    // bin/lib-ts/ + bin/lib/ would have crashed every prior test).
+    // src/lib/ + bin/lib/ would have crashed every prior test).
     const tmpDir = mkdtempSync(path.join(tmpdir(), 'drift-empty-'));
     const { report, status } = runHarness(tmpDir);
     rmSync(tmpDir, { recursive: true, force: true });

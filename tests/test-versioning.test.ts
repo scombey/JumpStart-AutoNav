@@ -6,7 +6,7 @@
  * tmpdir + `git init` per test, so the suite runs hermetically inside
  * vitest workers without touching the project's own tags.
  *
- * @see bin/lib-ts/versioning.ts
+ * @see src/lib/versioning.ts
  * @see bin/lib/versioning.js (legacy reference)
  */
 
@@ -21,7 +21,7 @@ import {
   getNextVersion,
   injectVersion,
   listVersions,
-} from '../bin/lib-ts/versioning.js';
+} from '../src/lib/versioning.js';
 
 let tmpDir: string;
 

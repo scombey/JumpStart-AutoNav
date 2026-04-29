@@ -25,12 +25,12 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { configure as configureChat, queueNotification } from '../bin/lib-ts/chat-integration.js';
+import { configure as configureChat, queueNotification } from '../src/lib/chat-integration.js';
 import {
   collectEvidence,
   packageEvidence,
   saveState as saveEvidenceState,
-} from '../bin/lib-ts/evidence-collector.js';
+} from '../src/lib/evidence-collector.js';
 
 let tmpDir: string;
 

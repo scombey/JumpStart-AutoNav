@@ -1,5 +1,5 @@
 /**
- * test-smoke-tester.test.js — Tests for bin/lib/smoke-tester.js
+ * test-smoke-tester.test.js — Tests for bin/lib/smoke-tester.mjs
  *
  * Covers:
  * - Project type and command detection
@@ -16,7 +16,7 @@ import { tmpdir } from 'os';
 let runSmokeTest, detectProjectCommands, runBuild, checkHealth;
 
 beforeEach(async () => {
-  const mod = await import('../bin/lib/smoke-tester.js');
+  const mod = await import('../bin/lib/smoke-tester.mjs');
   runSmokeTest = mod.runSmokeTest;
   detectProjectCommands = mod.detectProjectCommands;
   runBuild = mod.runBuild;

@@ -1,5 +1,5 @@
 /**
- * Tests for bin/lib/rewind.js — Phase Rewind with Cascade (UX Feature 2)
+ * Tests for bin/lib/rewind.mjs — Phase Rewind with Cascade (UX Feature 2)
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -61,7 +61,7 @@ describe('rewind', () => {
 
   // Dynamic import (ESM)
   async function loadRewind() {
-    const mod = await import('../bin/lib/rewind.js');
+    const mod = await import('../bin/lib/rewind.mjs');
     return mod;
   }
 

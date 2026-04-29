@@ -7,7 +7,7 @@
  *   - checkpoint         (state-store.createCheckpoint/list/restore, lib-ts)
  *   - agent-checkpoint   (legacy bin/lib/agent-checkpoint.js)
  *   - focus              (focus.buildFocusConfig/writeFocusToConfig/clearFocusFromConfig/getFocusStatus, lib-ts)
- *   - init               (legacy bin/lib/init.js — ESM, dynamic import)
+ *   - init               (legacy bin/lib/init.mjs — ESM, dynamic import)
  *   - lock               (locks.acquireLock/releaseLock/lockStatus/listLocks, lib-ts)
  *   - memory             (legacy bin/lib/project-memory.js — but lib-ts port exists; uses legacyRequire to match cli.js)
  *   - rewind             (rewind.rewindToPhase, lib-ts)
@@ -35,7 +35,7 @@ import {
   rejectArtifact,
   renderApprovalResult,
   renderRejectionResult,
-} from '../../../bin/lib-ts/approve.js';
+} from '../../lib/approve.js';
 import {
   buildFocusConfig,
   clearFocusFromConfig,
@@ -43,16 +43,12 @@ import {
   listPresets,
   VALID_PRESETS,
   writeFocusToConfig,
-} from '../../../bin/lib-ts/focus.js';
-import { writeResult } from '../../../bin/lib-ts/io.js';
-import { acquireLock, listLocks, lockStatus, releaseLock } from '../../../bin/lib-ts/locks.js';
-import { determineNextAction } from '../../../bin/lib-ts/next-phase.js';
-import { renderRewindReport, rewindToPhase } from '../../../bin/lib-ts/rewind.js';
-import {
-  createCheckpoint,
-  listCheckpoints,
-  restoreCheckpoint,
-} from '../../../bin/lib-ts/state-store.js';
+} from '../../lib/focus.js';
+import { writeResult } from '../../lib/io.js';
+import { acquireLock, listLocks, lockStatus, releaseLock } from '../../lib/locks.js';
+import { determineNextAction } from '../../lib/next-phase.js';
+import { renderRewindReport, rewindToPhase } from '../../lib/rewind.js';
+import { createCheckpoint, listCheckpoints, restoreCheckpoint } from '../../lib/state-store.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { asRest, assertUserPath, legacyRequire, parseFlag, safeJoin } from './_helpers.js';
 
@@ -480,7 +476,7 @@ interface InitLib {
 }
 
 export async function initImpl(deps: Deps, args: InitArgs): Promise<CommandResult> {
-  // bin/lib/init.js is ESM (uses `export`), so it must be loaded via
+  // bin/lib/init.mjs is ESM (uses `export`), so it must be loaded via
   // dynamic import — `legacyRequire` would fail with ERR_REQUIRE_ESM.
   const initMod = (await import(path.join(deps.projectRoot, 'bin', 'lib', 'init.js'))) as InitLib;
   const skillLevel = args.skillLevel ?? 'intermediate';

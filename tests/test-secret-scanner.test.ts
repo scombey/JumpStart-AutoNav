@@ -9,7 +9,7 @@
  *   - redactSecrets recursive walk + cycle protection + class-instance
  *     preservation
  *
- * @see bin/lib-ts/secret-scanner.ts
+ * @see src/lib/secret-scanner.ts
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
  */
 
@@ -25,7 +25,7 @@ import {
   scanFile,
   scanForSecrets,
   shouldSkip,
-} from '../bin/lib-ts/secret-scanner.js';
+} from '../src/lib/secret-scanner.js';
 
 // Test fixtures: realistic-looking but obviously-fake secrets so they
 // trip the patterns without ever being a real key.

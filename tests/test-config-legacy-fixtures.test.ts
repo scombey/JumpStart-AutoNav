@@ -21,7 +21,7 @@
  *
  * Cross-references:
  *   - tests/fixtures/config-legacy/README.md — the 10 shapes + rationale
- *   - bin/lib-ts/{config-yaml,config-loader,config-merge}.ts — the ports
+ *   - src/lib/{config-yaml,config-loader,config-merge}.ts — the ports
  *   - specs/decisions/adr-003-yaml-roundtrip.md
  *   - specs/implementation-plan.md T4.1.12
  */
@@ -31,12 +31,12 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { loadConfig as tsLoadConfig } from '../bin/lib-ts/config-loader.js';
+import { loadConfig as tsLoadConfig } from '../src/lib/config-loader.js';
 import {
   flattenYaml as tsFlattenYaml,
   mergeConfigs as tsMergeConfigs,
-} from '../bin/lib-ts/config-merge.js';
-import { parseConfigDocument, writeConfigDocument } from '../bin/lib-ts/config-yaml.js';
+} from '../src/lib/config-merge.js';
+import { parseConfigDocument, writeConfigDocument } from '../src/lib/config-yaml.js';
 
 const require = createRequire(`${process.cwd()}/`);
 
@@ -60,7 +60,7 @@ type LegacyConfigMerge = {
   };
 };
 
-const legacyConfigMerge = require(`${process.cwd()}/bin/lib/config-merge.js`) as LegacyConfigMerge;
+const legacyConfigMerge = require(`${process.cwd()}/bin/lib/config-merge.mjs`) as LegacyConfigMerge;
 
 // Legacy config-loader is ESM — dynamic-import via promise.
 let legacyLoadConfig: (input: { root?: string; global_path?: string }) => Promise<{
@@ -86,7 +86,7 @@ beforeEach(async () => {
   tmpRoot = mkdtempSync(path.join(tmpdir(), 'cfg-legacy-test-'));
   mkdirSync(path.join(tmpRoot, '.jumpstart'), { recursive: true });
   if (!legacyLoadConfig) {
-    const mod = (await import(`${process.cwd()}/bin/lib/config-loader.js`)) as {
+    const mod = (await import(`${process.cwd()}/bin/lib/config-loader.mjs`)) as {
       loadConfig: typeof legacyLoadConfig;
     };
     legacyLoadConfig = mod.loadConfig;

@@ -39,6 +39,7 @@
  * @see specs/implementation-plan.md T4.7.1
  */
 
+import { createRequire } from 'node:module';
 import { type CommandDef, runMain as cittyRunMain, defineCommand } from 'citty';
 import { createRealDeps, type Deps } from './deps.js';
 
@@ -53,14 +54,17 @@ import { createRealDeps, type Deps } from './deps.js';
  * Pit Crew M8 MED (QA 4) fix: pre-fix used a hardcoded `'1.1.14'`
  * constant + matching test assertion. A version bump in package.json
  * would NOT have caused either to fail; the version contract was
- * silent-drift-prone. Post-fix: `require('../../../package.json')`
- * reads the canonical value at module-load time. The `version`
- * field is the spec's source of truth.
+ * silent-drift-prone. Post-fix: `createRequire(import.meta.url)` reads
+ * the canonical value at module-load time. The `version` field in
+ * package.json is the spec's source of truth.
  *
- * Strangler-phase note: bare `require()` is allowed under the CJS
- * tsconfig. M9 cutover swaps to `import { createRequire } from
- * 'node:module'; const require = createRequire(import.meta.url)`.
+ * M9 ESM cutover: replaced the strangler-phase bare `require()` (which
+ * was permitted by the legacy CJS tsconfig) with the ESM-canonical
+ * `createRequire(import.meta.url)` form. From `dist/cli/main.mjs` the
+ * relative path resolves to `<package-root>/package.json` whether
+ * running from source under tsx or from the published tarball.
  */
+const require = createRequire(import.meta.url);
 function readPackageVersion(): string {
   const pkg = require('../../package.json') as { version?: string };
   return pkg.version ?? '0.0.0';

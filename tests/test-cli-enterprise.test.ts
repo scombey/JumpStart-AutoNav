@@ -99,9 +99,9 @@ describe('enterprise cluster — Impl missing-required-args smoke', () => {
     expect(r.exitCode).toBe(1);
   });
 
-  it('mergeTemplatesImpl returns exitCode=1 with no paths', () => {
+  it('mergeTemplatesImpl returns exitCode=1 with no paths', async () => {
     const deps = createTestDeps({ projectRoot: process.cwd() });
-    const r = mergeTemplatesImpl(deps, {});
+    const r = await mergeTemplatesImpl(deps, {});
     expect(r.exitCode).toBe(1);
   });
 

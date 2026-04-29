@@ -9,15 +9,15 @@
  * Tests use vi.spyOn on process.stdin/stdout/stderr/exit so the suite
  * runs in-process without spawning subprocesses.
  *
- * @see bin/lib-ts/ipc.ts
+ * @see src/lib/ipc.ts
  * @see specs/decisions/adr-006-error-model.md
  * @see specs/decisions/adr-007-ipc-envelope-versioning.md
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { JumpstartError, ValidationError } from '../bin/lib-ts/errors.js';
-import { isDirectRun, runIpc } from '../bin/lib-ts/ipc.js';
+import { JumpstartError, ValidationError } from '../src/lib/errors.js';
+import { isDirectRun, runIpc } from '../src/lib/ipc.js';
 
 const ORIGINAL_IS_TTY = process.stdin.isTTY;
 

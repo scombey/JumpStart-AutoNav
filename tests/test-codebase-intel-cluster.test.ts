@@ -9,7 +9,7 @@
  *   - quality-graph.ts: scanQuality / analyzeFileMetrics / calculateOverallScore / generateReport
  *   - type-checker.ts: detectTypeChecker / parseTypeErrors / runTypeCheck
  *
- * @see bin/lib-ts/{ast-edit-engine,codebase-retrieval,refactor-planner,safe-rename,quality-graph,type-checker}.ts
+ * @see src/lib/{ast-edit-engine,codebase-retrieval,refactor-planner,safe-rename,quality-graph,type-checker}.ts
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -23,13 +23,13 @@ import {
   STRUCTURE_PATTERNS,
   SUPPORTED_LANGUAGES,
   validateEdit,
-} from '../bin/lib-ts/ast-edit-engine.js';
+} from '../src/lib/ast-edit-engine.js';
 import {
   FILE_PATTERNS,
   indexProject,
   queryFiles,
   RETRIEVABLE_TYPES,
-} from '../bin/lib-ts/codebase-retrieval.js';
+} from '../src/lib/codebase-retrieval.js';
 import {
   analyzeFileMetrics,
   COMPLEXITY_THRESHOLDS,
@@ -37,7 +37,7 @@ import {
   QUALITY_DIMENSIONS,
   generateReport as qualityReport,
   scanQuality,
-} from '../bin/lib-ts/quality-graph.js';
+} from '../src/lib/quality-graph.js';
 import {
   createPlan,
   defaultState,
@@ -46,14 +46,14 @@ import {
   REFACTOR_TYPES,
   RISK_LEVELS,
   validatePlan,
-} from '../bin/lib-ts/refactor-planner.js';
+} from '../src/lib/refactor-planner.js';
 import {
   findReferences,
   planRename,
   REFERENCE_PATTERNS,
   validateRename,
-} from '../bin/lib-ts/safe-rename.js';
-import { detectTypeChecker, parseTypeErrors, runTypeCheck } from '../bin/lib-ts/type-checker.js';
+} from '../src/lib/safe-rename.js';
+import { detectTypeChecker, parseTypeErrors, runTypeCheck } from '../src/lib/type-checker.js';
 
 let tmpRoot: string;
 

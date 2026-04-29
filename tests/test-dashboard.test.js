@@ -1,7 +1,7 @@
 /**
  * test-dashboard.test.js — Tests for Interactive Progress Dashboard (UX Feature 5)
  *
- * Tests for bin/lib/dashboard.js covering:
+ * Tests for bin/lib/dashboard.mjs covering:
  * - Empty project → all phases pending
  * - Approved artifacts → phases marked approved
  * - Progress percentage calculation
@@ -68,7 +68,7 @@ describe('dashboard', () => {
 
   beforeEach(async () => {
     tmpDir = createTempProject();
-    dashboard = await import('../bin/lib/dashboard.js');
+    dashboard = await import('../bin/lib/dashboard.mjs');
   });
 
   afterEach(() => {

@@ -11,15 +11,15 @@
  *   - ConfigLoaderInputSchema rejects path-traversal payloads (Zod
  *     refinement gated by safePathSchema per ADR-009)
  *
- * @see bin/lib-ts/config-loader.ts
- * @see bin/lib/config-loader.js (legacy reference)
+ * @see src/lib/config-loader.ts
+ * @see bin/lib/config-loader.mjs (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ConfigLoaderInputSchema, deepMerge, loadConfig } from '../bin/lib-ts/config-loader.js';
+import { ConfigLoaderInputSchema, deepMerge, loadConfig } from '../src/lib/config-loader.js';
 
 let tmpRoot: string;
 
@@ -251,7 +251,7 @@ describe('runIpc(loadConfig, ConfigLoaderInputSchema) — e2e wiring (Pit Crew M
   }
 
   it('rejects /etc/passwd as root with VALIDATION error + exit 2', async () => {
-    const { runIpc } = await import('../bin/lib-ts/ipc.js');
+    const { runIpc } = await import('../src/lib/ipc.js');
     const { stderr, exitCalls } = captureE2E();
     setTTY(false);
     const p = runIpc(loadConfig, ConfigLoaderInputSchema);
@@ -267,7 +267,7 @@ describe('runIpc(loadConfig, ConfigLoaderInputSchema) — e2e wiring (Pit Crew M
   });
 
   it('rejects ../etc/passwd as root with VALIDATION error', async () => {
-    const { runIpc } = await import('../bin/lib-ts/ipc.js');
+    const { runIpc } = await import('../src/lib/ipc.js');
     const { exitCalls } = captureE2E();
     setTTY(false);
     const p = runIpc(loadConfig, ConfigLoaderInputSchema);
@@ -280,7 +280,7 @@ describe('runIpc(loadConfig, ConfigLoaderInputSchema) — e2e wiring (Pit Crew M
   });
 
   it('happy path: valid input produces v0 envelope + exit 0', async () => {
-    const { runIpc } = await import('../bin/lib-ts/ipc.js');
+    const { runIpc } = await import('../src/lib/ipc.js');
     const os = await import('node:os');
     const { stdout, exitCalls } = captureE2E();
     setTTY(false);
@@ -320,7 +320,7 @@ describe('loadConfig — ceremony profile expansion (legacy soft-fail behavior)'
     expect(result.profile_applied).toBeNull();
   });
 
-  it('soft-fails to profile_applied=null when bin/lib/ceremony.js cannot be loaded', async () => {
+  it('soft-fails to profile_applied=null when bin/lib/ceremony.mjs cannot be loaded', async () => {
     // We can't easily make the legacy ceremony.js reject without
     // touching the real repo's file. Instead spy on console to
     // confirm no unhandled rejection escapes.

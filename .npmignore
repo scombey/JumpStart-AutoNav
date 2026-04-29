@@ -4,6 +4,7 @@ src/
 tests/
 docs_site/
 docs/
+coverage/
 
 # Exclude development files
 .git
@@ -11,6 +12,18 @@ docs/
 .vscode/
 .idea/
 vitest.config.js
+vitest.config.mjs
+biome.json
+tsconfig.json
+tsconfig.tsbuildinfo
+tsdown.config.ts
+
+# M9 cutover: dist/ ships compiled TS as the canonical surface. Source
+# maps are ~3 MB of the published package; consumers debugging the dist
+# code can rebuild from source. Excluding the maps cuts the published
+# tarball by ~60% without affecting runtime behavior.
+dist/**/*.mjs.map
+dist/**/*.d.mts.map
 
 # Exclude bash installer (superseded by npm CLI)
 install.sh

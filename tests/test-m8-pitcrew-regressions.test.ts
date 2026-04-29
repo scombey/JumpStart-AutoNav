@@ -31,11 +31,11 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ValidationError } from '../bin/lib-ts/errors.js';
 import { assertUserPath, legacyRequire, safeJoin } from '../src/cli/commands/_helpers.js';
 import { diffImpl, validateModuleImpl } from '../src/cli/commands/handoff.js';
 import { validateImpl } from '../src/cli/commands/spec-validation.js';
 import { createTestDeps, type Deps } from '../src/cli/deps.js';
+import { ValidationError } from '../src/lib/errors.js';
 
 let tmpDir: string;
 let depsAt: Deps;
@@ -151,12 +151,17 @@ describe('Pit Crew M8 BLOCKER 3 (Reviewer 2 + Adversary 4) — validateModuleImp
 // ─────────────────────────────────────────────────────────────────────────
 
 describe('Pit Crew M8 HIGH (Adversary 5) — diffImpl gates user path', () => {
-  it('rejects /home/user/.ssh as diff target', () => {
-    expect(() => diffImpl(depsAt, { path: '/home/user/.ssh' })).toThrow(ValidationError);
+  // M9 ESM cutover: diffImpl became async because the legacy `diff` module
+  // is now ESM (`bin/lib/diff.mjs`) and must be loaded via `legacyImport`.
+  // The path-safety guard still fires at the top of the function, but
+  // since the function is async the throw surfaces as a promise rejection
+  // — use `.rejects.toThrow` rather than `.toThrow`.
+  it('rejects /home/user/.ssh as diff target', async () => {
+    await expect(diffImpl(depsAt, { path: '/home/user/.ssh' })).rejects.toThrow(ValidationError);
   });
 
-  it('rejects traversal-shaped path', () => {
-    expect(() => diffImpl(depsAt, { path: '../../../etc' })).toThrow(ValidationError);
+  it('rejects traversal-shaped path', async () => {
+    await expect(diffImpl(depsAt, { path: '../../../etc' })).rejects.toThrow(ValidationError);
   });
 });
 

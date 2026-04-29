@@ -14,14 +14,14 @@
  *                    upsertNode/addEdge/buildRepoGraph/queryGraph/
  *                    getNeighbours)
  *
- * @see bin/lib-ts/{graph,traceability,bidirectional-trace,impact-analysis,adr-index,repo-graph}.ts
+ * @see src/lib/{graph,traceability,bidirectional-trace,impact-analysis,adr-index,repo-graph}.ts
  */
 
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { buildIndex, parseADR, searchIndex } from '../bin/lib-ts/adr-index.js';
+import { buildIndex, parseADR, searchIndex } from '../src/lib/adr-index.js';
 import {
   buildCoverageReport,
   loadTraceMap,
@@ -29,7 +29,7 @@ import {
   scanTraceLinks,
   traceForward,
   traceReverse,
-} from '../bin/lib-ts/bidirectional-trace.js';
+} from '../src/lib/bidirectional-trace.js';
 import {
   addEdge,
   addNode,
@@ -40,8 +40,8 @@ import {
   loadGraph,
   type SpecGraph,
   saveGraph,
-} from '../bin/lib-ts/graph.js';
-import { analyzeImpact, renderImpactReport } from '../bin/lib-ts/impact-analysis.js';
+} from '../src/lib/graph.js';
+import { analyzeImpact, renderImpactReport } from '../src/lib/impact-analysis.js';
 import {
   buildRepoGraph,
   defaultRepoGraph,
@@ -50,7 +50,7 @@ import {
   queryGraph,
   saveRepoGraph,
   upsertNode,
-} from '../bin/lib-ts/repo-graph.js';
+} from '../src/lib/repo-graph.js';
 import {
   buildNFRMap,
   buildTraceabilityChain,
@@ -58,7 +58,7 @@ import {
   extractStories,
   extractTasks,
   extractValidationCriteria,
-} from '../bin/lib-ts/traceability.js';
+} from '../src/lib/traceability.js';
 
 let tmpDir: string;
 

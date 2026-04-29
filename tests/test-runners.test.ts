@@ -23,11 +23,11 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ValidationError } from '../bin/lib-ts/errors.js';
-import * as handoffValidator from '../bin/lib-ts/handoff-validator.js';
-import { AGENT_PHASES, DEFAULT_CONFIG } from '../bin/lib-ts/headless-runner.js';
-import * as holodeck from '../bin/lib-ts/holodeck.js';
-import { SimulationTracer } from '../bin/lib-ts/simulation-tracer.js';
+import { ValidationError } from '../src/lib/errors.js';
+import * as handoffValidator from '../src/lib/handoff-validator.js';
+import { AGENT_PHASES, DEFAULT_CONFIG } from '../src/lib/headless-runner.js';
+import * as holodeck from '../src/lib/holodeck.js';
+import { SimulationTracer } from '../src/lib/simulation-tracer.js';
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const HANDOFFS_DIR = path.join(REPO_ROOT, '.jumpstart', 'handoffs');

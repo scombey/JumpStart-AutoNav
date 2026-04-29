@@ -26,7 +26,7 @@
  * `json-schema-to-zod`'s output is wrapping it with a stable file
  * header + the inferred type alias. Anything more sophisticated
  * (custom enums, brand types, refinements) lives in a separate
- * `bin/lib-ts/validator.ts` layer that imports from `generated/`.
+ * `src/lib/validator.ts` layer that imports from `generated/`.
  *
  * @see specs/decisions/adr-004-schema-direction.md
  * @see specs/implementation-plan.md T4.2.1

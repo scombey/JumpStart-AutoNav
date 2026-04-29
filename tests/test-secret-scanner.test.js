@@ -1,5 +1,5 @@
 /**
- * test-secret-scanner.test.js — Tests for bin/lib/secret-scanner.js
+ * test-secret-scanner.test.js — Tests for bin/lib/secret-scanner.mjs
  *
  * Covers:
  * - Pattern detection (AWS keys, GitHub tokens, private keys, etc.)
@@ -17,7 +17,7 @@ import { tmpdir } from 'os';
 let runSecretScan, scanFile, shouldSkip, compileCustomPatterns, DEFAULT_PATTERNS;
 
 beforeEach(async () => {
-  const mod = await import('../bin/lib/secret-scanner.js');
+  const mod = await import('../bin/lib/secret-scanner.mjs');
   runSecretScan = mod.runSecretScan;
   scanFile = mod.scanFile;
   shouldSkip = mod.shouldSkip;

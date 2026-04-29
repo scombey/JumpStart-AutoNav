@@ -5,7 +5,7 @@
  * the strangler phase at BOTH layers:
  *
  *   1. tsc typecheck: tsconfig.json `paths` maps `@lib/*` to
- *      `bin/lib-ts/*` (preferred) then `bin/lib/*` (legacy). The import
+ *      `src/lib/*` (preferred) then `bin/lib/*` (legacy). The import
  *      below would fail `tsc --noEmit` if the alias were misconfigured.
  *   2. Vitest runtime: vitest.config.js `resolve.alias` mirrors the
  *      tsconfig mapping so tests exercise the same resolution. Without
@@ -18,11 +18,11 @@
  * @see specs/implementation-plan.md T1.1
  */
 
-import { smokeIdentity, strictCheck } from '@lib/_smoke';
+import { smokeIdentity, strictCheck } from '@lib/_smoke.js';
 import { describe, expect, it } from 'vitest';
 
 describe('paths alias smoke (T1.1 acceptance gate)', () => {
-  it('resolves @lib/_smoke to bin/lib-ts/_smoke.ts via tsconfig + vitest alias', () => {
+  it('resolves @lib/_smoke to src/lib/_smoke.ts via tsconfig + vitest alias', () => {
     const id = smokeIdentity();
     expect(id.phase).toBe('strangler-ts');
     expect(id.version).toBe(1);

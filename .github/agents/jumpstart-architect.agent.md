@@ -715,14 +715,14 @@ Before generating the implementation plan (Step 8), verify that:
 1. The **data model** has been documented using `.jumpstart/templates/data-model.md` — every entity has defined fields, types, constraints, and relationships.
 2. **API contracts** have been documented using `.jumpstart/templates/contracts.md` — every endpoint has request/response shapes, error codes, and auth requirements.
 3. Both artifacts are internally consistent: entity names in the data model match schema names in contracts.
-4. Run `bin/lib/contract-checker.js` to validate alignment. A score ≥ 70 is required to proceed.
+4. Run `bin/lib/contract-checker.mjs` to validate alignment. A score ≥ 70 is required to proceed.
 
 ### Contract-Data Model Alignment Gate (Item 68)
 
 During Step 5 (API and Contract Design), after defining contracts:
 1. Cross-reference every request/response schema field against the data model entities.
 2. Flag any field referenced in a contract but absent from the data model (and vice versa).
-3. Use `bin/lib/contract-checker.js` to generate an alignment report.
+3. Use `bin/lib/contract-checker.mjs` to generate an alignment report.
 4. Resolve all "missing_in_model" and "missing_in_contracts" items before proceeding to ADRs.
 
 ### Boundary Validation Gate (Item 74)
@@ -730,7 +730,7 @@ During Step 5 (API and Contract Design), after defining contracts:
 Before presenting the architecture for approval (Step 9):
 1. Read the "Constraints and Boundaries" section from `specs/product-brief.md`.
 2. Verify that no implementation plan task proposes work that exceeds those boundaries.
-3. Use `bin/lib/boundary-check.js` to automate the boundary scope check.
+3. Use `bin/lib/boundary-check.mjs` to automate the boundary scope check.
 4. Any violations must be resolved (remove out-of-scope work or update the boundary with human approval) before approval.
 
 ---

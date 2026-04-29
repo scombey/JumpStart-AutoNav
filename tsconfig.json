@@ -16,8 +16,6 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
 
-    "allowJs": true,
-    "checkJs": false,
     "esModuleInterop": true,
     "isolatedModules": true,
     "skipLibCheck": true,
@@ -35,16 +33,15 @@
 
     "baseUrl": ".",
     "paths": {
-      "@lib/*": ["bin/lib-ts/*", "bin/lib/*"]
+      "@lib/*": ["src/lib/*"]
     }
   },
   "include": [
-    "bin/lib-ts/**/*.ts",
-    "src/cli/**/*.ts",
+    "src/**/*.ts",
     "scripts/**/*.mjs",
     "tests/**/*.test.ts",
     "tsdown.config.ts",
-    "vitest.config.js"
+    "vitest.config.mjs"
   ],
   "exclude": ["node_modules", "dist", "docs_site", "tests/e2e/.tmp"]
 }

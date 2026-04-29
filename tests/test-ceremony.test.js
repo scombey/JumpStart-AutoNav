@@ -1,7 +1,7 @@
 /**
  * test-ceremony.test.js — Tests for Tiered Ceremony Profiles (UX Feature 3)
  *
- * Tests for bin/lib/ceremony.js covering:
+ * Tests for bin/lib/ceremony.mjs covering:
  * - Profile expansion (light, standard, rigorous)
  * - Dot-notation expansion to nested objects
  * - Profile application with user override precedence
@@ -17,7 +17,7 @@ let ceremony;
 
 async function loadCeremony() {
   if (!ceremony) {
-    ceremony = await import('../bin/lib/ceremony.js');
+    ceremony = await import('../bin/lib/ceremony.mjs');
   }
   return ceremony;
 }

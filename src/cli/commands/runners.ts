@@ -27,11 +27,11 @@
 
 import { spawnSync } from 'node:child_process';
 import { defineCommand } from 'citty';
-import { HeadlessRunner } from '../../../bin/lib-ts/headless-runner.js';
-import { runAllScenarios, runHolodeck } from '../../../bin/lib-ts/holodeck.js';
-import { runRegressionSuite } from '../../../bin/lib-ts/regression.js';
-import { runSmokeTest } from '../../../bin/lib-ts/smoke-tester.js';
-import { run as runVerifyDiagrams } from '../../../bin/lib-ts/verify-diagrams.js';
+import { HeadlessRunner } from '../../lib/headless-runner.js';
+import { runAllScenarios, runHolodeck } from '../../lib/holodeck.js';
+import { runRegressionSuite } from '../../lib/regression.js';
+import { runSmokeTest } from '../../lib/smoke-tester.js';
+import { run as runVerifyDiagrams } from '../../lib/verify-diagrams.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath } from './_helpers.js';
 

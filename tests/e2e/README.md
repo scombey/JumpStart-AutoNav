@@ -114,6 +114,6 @@ The holodeck uses several lib modules that can be reused:
 
 - `bin/lib/validator.js` - Schema and artifact validation
 - `bin/lib/handoff-validator.js` - Phase handoff validation
-- `bin/lib/usage.js` - Cost tracking and usage logging
-- `bin/lib/state-store.js` - Workflow state persistence
+- `bin/lib/usage.mjs` - Cost tracking and usage logging
+- `bin/lib/state-store.mjs` - Workflow state persistence
 - `bin/lib/simulation-tracer.js` - Observability and reporting

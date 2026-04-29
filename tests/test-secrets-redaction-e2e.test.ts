@@ -29,9 +29,9 @@ import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync }
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { redactSecrets, scanForSecrets } from '../bin/lib-ts/secret-scanner.js';
-import { createTimeline, loadTimeline } from '../bin/lib-ts/timeline.js';
-import { logUsage, summarizeUsage } from '../bin/lib-ts/usage.js';
+import { redactSecrets, scanForSecrets } from '../src/lib/secret-scanner.js';
+import { createTimeline, loadTimeline } from '../src/lib/timeline.js';
+import { logUsage, summarizeUsage } from '../src/lib/usage.js';
 
 // Fake secrets — obviously-fake values that still trip the patterns.
 // AKIAIOSFODNN7EXAMPLE is the AWS-published example. The OpenAI / GitHub

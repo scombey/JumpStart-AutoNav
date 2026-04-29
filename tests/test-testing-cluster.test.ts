@@ -30,14 +30,14 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import * as context7 from '../bin/lib-ts/context7-setup.js';
-import { ValidationError } from '../bin/lib-ts/errors.js';
-import * as regression from '../bin/lib-ts/regression.js';
-import { SimulationTracer } from '../bin/lib-ts/simulation-tracer.js';
-import * as smokeTester from '../bin/lib-ts/smoke-tester.js';
-import { createToolBridge } from '../bin/lib-ts/tool-bridge.js';
-import { getToolByName, getToolsForPhase } from '../bin/lib-ts/tool-schemas.js';
-import * as verifyDiagrams from '../bin/lib-ts/verify-diagrams.js';
+import * as context7 from '../src/lib/context7-setup.js';
+import { ValidationError } from '../src/lib/errors.js';
+import * as regression from '../src/lib/regression.js';
+import { SimulationTracer } from '../src/lib/simulation-tracer.js';
+import * as smokeTester from '../src/lib/smoke-tester.js';
+import { createToolBridge } from '../src/lib/tool-bridge.js';
+import { getToolByName, getToolsForPhase } from '../src/lib/tool-schemas.js';
+import * as verifyDiagrams from '../src/lib/verify-diagrams.js';
 
 let tmp: string;
 beforeEach(() => {

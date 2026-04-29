@@ -81,7 +81,11 @@ describe('src/cli/main.ts — citty root program', () => {
     // function-or-value pattern.
     const meta = typeof main.meta === 'function' ? await main.meta() : await main.meta;
     expect(meta?.name).toBe('jumpstart-mode');
-    expect(meta?.version).toBe('1.1.14');
+    // Read the canonical version from package.json so this test tracks
+    // the shipped version automatically (Pit Crew M8 MED, QA 4: drop the
+    // hardcoded '1.1.14' that wouldn't catch a missing version bump).
+    const { default: pkg } = await import('../package.json', { with: { type: 'json' } });
+    expect(meta?.version).toBe(pkg.version);
     expect(meta?.description).toBeTruthy();
   });
 

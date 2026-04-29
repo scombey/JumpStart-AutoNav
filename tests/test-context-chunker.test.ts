@@ -7,7 +7,7 @@
  * v1.1.14 a long content with overlap >= chunk-size left `start`
  * stuck and `chunkContent` looped forever, OOMing the worker pool.
  *
- * @see bin/lib-ts/context-chunker.ts
+ * @see src/lib/context-chunker.ts
  * @see CHANGELOG.md v1.1.14
  */
 
@@ -20,7 +20,7 @@ import {
   chunkImplementationPlan,
   estimateTokens,
   MODEL_CONTEXT_LIMITS,
-} from '../bin/lib-ts/context-chunker.js';
+} from '../src/lib/context-chunker.js';
 
 let tmpDir: string;
 

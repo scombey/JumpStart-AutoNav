@@ -20,7 +20,7 @@ import os from 'os';
 // ── Dynamic import helper ───────────────────────────────────────────────────
 let mod;
 beforeEach(async () => {
-  mod = await import('../bin/lib/install.js');
+  mod = await import('../bin/lib/install.mjs');
 });
 
 // ── Realistic Registry Fixture ──────────────────────────────────────────────

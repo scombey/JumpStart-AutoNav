@@ -32,131 +32,63 @@
  */
 
 import { defineCommand } from 'citty';
-import { buildIndex, searchIndex } from '../../../bin/lib-ts/adr-index.js';
+// `adrImpl`/`adrCommand` lived here in the strangler phase; the live
+// implementation now lives in `cleanup.ts` and is the only one wired
+// into `src/cli/main.ts`. Pit Crew M9 Reviewer H1: dead code removed.
 import {
   evaluate as aiEvaluate,
   generateReport as aiEvaluationReport,
-} from '../../../bin/lib-ts/ai-evaluation.js';
+} from '../../lib/ai-evaluation.js';
 import {
   applyFramework,
   checkCompliance as checkComplianceFrameworks,
   listFrameworks,
-} from '../../../bin/lib-ts/compliance-packs.js';
-import { scanProject as scanCredentialBoundary } from '../../../bin/lib-ts/credential-boundary.js';
+} from '../../lib/compliance-packs.js';
+import { scanProject as scanCredentialBoundary } from '../../lib/credential-boundary.js';
 import {
   checkCompliance as checkDataClassification,
   classifyAsset,
   generateReport as dataClassificationReport,
-} from '../../../bin/lib-ts/data-classification.js';
+} from '../../lib/data-classification.js';
 import {
   collectEvidence,
   getStatus as evidenceStatus,
   packageEvidence,
-} from '../../../bin/lib-ts/evidence-collector.js';
-import {
-  gatherGovernanceData,
-  renderDashboardText,
-} from '../../../bin/lib-ts/governance-dashboard.js';
-import {
-  generateReport as incidentReport,
-  logIncident,
-} from '../../../bin/lib-ts/incident-feedback.js';
-import { writeResult } from '../../../bin/lib-ts/io.js';
+} from '../../lib/evidence-collector.js';
+import { gatherGovernanceData, renderDashboardText } from '../../lib/governance-dashboard.js';
+import { generateReport as incidentReport, logIncident } from '../../lib/incident-feedback.js';
+import { writeResult } from '../../lib/io.js';
 import {
   checkCompleteness as opsCheckCompleteness,
   defineOwnership as opsDefineOwnership,
   generateReport as opsReport,
-} from '../../../bin/lib-ts/ops-ownership.js';
-import { addPolicy, checkPolicies, listPolicies } from '../../../bin/lib-ts/policy-engine.js';
+} from '../../lib/ops-ownership.js';
+import { addPolicy, checkPolicies, listPolicies } from '../../lib/policy-engine.js';
 import {
   checkPermission,
   defineAssignment,
   generateReport as raciReport,
-} from '../../../bin/lib-ts/raci-matrix.js';
-import {
-  addRisk,
-  listRisks,
-  generateReport as riskReport,
-} from '../../../bin/lib-ts/risk-register.js';
+} from '../../lib/raci-matrix.js';
+import { addRisk, listRisks, generateReport as riskReport } from '../../lib/risk-register.js';
 import {
   assignApprovers,
   getApprovalStatus,
   listApprovalWorkflows,
   recordRoleAction,
-} from '../../../bin/lib-ts/role-approval.js';
-import {
-  scanDependencies,
-  generateReport as vendorReport,
-} from '../../../bin/lib-ts/vendor-risk.js';
+} from '../../lib/role-approval.js';
+import { scanDependencies, generateReport as vendorReport } from '../../lib/vendor-risk.js';
 import {
   expireWaivers,
   listWaivers,
   requestWaiver,
   resolveWaiver,
-} from '../../../bin/lib-ts/waiver-workflow.js';
+} from '../../lib/waiver-workflow.js';
 import {
   defineWorkstream,
   generateReport as workstreamReport,
-} from '../../../bin/lib-ts/workstream-ownership.js';
+} from '../../lib/workstream-ownership.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { asRest, parseFlag, safeJoin } from './_helpers.js';
-
-// ─────────────────────────────────────────────────────────────────────────
-// adr
-// ─────────────────────────────────────────────────────────────────────────
-
-export interface AdrArgs {
-  action?: string;
-  query?: string;
-  tag?: string;
-  json?: boolean;
-}
-
-export function adrImpl(deps: Deps, args: AdrArgs): CommandResult {
-  const action = args.action ?? 'build';
-  if (action === 'search') {
-    const result = searchIndex(deps.projectRoot, {
-      query: args.query ?? '',
-      tag: args.tag,
-    });
-    if (args.json) {
-      writeResult(result as unknown as Record<string, unknown>);
-    } else {
-      deps.logger.info(`ADR Search: "${args.query ?? ''}" — ${result.total} results`);
-      for (const r of result.results) {
-        deps.logger.info(`  ${r.id}: ${r.title} [${r.status}]`);
-      }
-    }
-    return { exitCode: 0 };
-  }
-  const result = buildIndex(deps.projectRoot);
-  if (args.json) {
-    writeResult(result as unknown as Record<string, unknown>);
-  } else {
-    deps.logger.info(`ADR Index: ${result.indexed} records indexed`);
-    deps.logger.info(`  Index path: ${result.index_path}`);
-  }
-  return { exitCode: 0 };
-}
-
-export const adrCommand = defineCommand({
-  meta: { name: 'adr', description: 'ADR index — build/search architectural decision records' },
-  args: {
-    action: { type: 'positional', description: 'build | search', required: false },
-    query: { type: 'positional', description: 'Search query (for search)', required: false },
-    tag: { type: 'string', description: 'Tag filter (for search)', required: false },
-    json: { type: 'boolean', description: 'JSON output mode', required: false },
-  },
-  run({ args }) {
-    const r = adrImpl(createRealDeps(), {
-      action: args.action,
-      query: args.query,
-      tag: args.tag,
-      json: Boolean(args.json),
-    });
-    if (r.exitCode !== 0) throw new Error(r.message ?? 'adr failed');
-  },
-});
 
 // ─────────────────────────────────────────────────────────────────────────
 // policy

@@ -5,15 +5,15 @@
  * hash-based filename derivation + collision-defense (Pit Crew
  * Adversary 1), and the atomic-acquire path (Pit Crew QA F7).
  *
- * @see bin/lib-ts/locks.ts
- * @see bin/lib/locks.js (legacy reference)
+ * @see src/lib/locks.ts
+ * @see bin/lib/locks.mjs (legacy reference)
  */
 
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { acquireLock, listLocks, lockStatus, releaseLock } from '../bin/lib-ts/locks.js';
+import { acquireLock, listLocks, lockStatus, releaseLock } from '../src/lib/locks.js';
 
 let locksDir: string;
 

@@ -3,8 +3,8 @@
  *
  * Pin the file-classification rules + manifest round-trip + diff math.
  *
- * @see bin/lib-ts/framework-manifest.ts
- * @see bin/lib/framework-manifest.js (legacy reference)
+ * @see src/lib/framework-manifest.ts
+ * @see bin/lib/framework-manifest.mjs (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -24,7 +24,7 @@ import {
   readFrameworkManifest,
   USER_OWNED_PATHS,
   writeFrameworkManifest,
-} from '../bin/lib-ts/framework-manifest.js';
+} from '../src/lib/framework-manifest.js';
 
 let tmpDir: string;
 
