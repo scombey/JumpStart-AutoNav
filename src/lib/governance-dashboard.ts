@@ -28,69 +28,16 @@
  */
 
 import { existsSync, readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { join } from 'node:path';
+import { loadState as loadCompliance } from './compliance-packs.js';
+import { loadPolicies } from './policy-engine.js';
+import { loadState as loadRisk } from './risk-register.js';
+import { loadState as loadWaivers } from './waiver-workflow.js';
 
-// Sibling state-loader modules (compliance-packs, risk-register,
-// waiver-workflow, policy-engine) are loaded via lazy `createRequire`
-// against `bin/lib/` so this dashboard works whether or not the TS
-// ports are present at runtime. Once the legacy strangler is removed
-// (M11 cleanup), these flip to static `import` from the sibling TS
-// modules in `src/lib/`.
-//
-// M9 ESM cutover: replaced bare `require()` (CJS module-scope) with
-// `createRequire(import.meta.url)` per Pit Crew M4 Reviewer M3.
-const require = createRequire(import.meta.url);
-
-interface PolicySibling {
-  loadPolicies(file?: string): { policies?: Array<{ enabled?: boolean }> };
-}
-
-interface WaiverSibling {
-  loadState(file?: string): { waivers?: Array<{ status?: string }> };
-}
-
-interface RiskSibling {
-  loadState(file?: string): {
-    risks?: Array<{ score?: number; mitigation?: string | null; status?: string }>;
-  };
-}
-
-interface ComplianceSibling {
-  loadState(file?: string): { applied_frameworks?: string[] };
-}
-
-function loadPolicySibling(): PolicySibling | null {
-  try {
-    return require('../../bin/lib/policy-engine.js') as PolicySibling;
-  } catch {
-    return null;
-  }
-}
-
-function loadWaiverSibling(): WaiverSibling | null {
-  try {
-    return require('../../bin/lib/waiver-workflow.js') as WaiverSibling;
-  } catch {
-    return null;
-  }
-}
-
-function loadRiskSibling(): RiskSibling | null {
-  try {
-    return require('../../bin/lib/risk-register.js') as RiskSibling;
-  } catch {
-    return null;
-  }
-}
-
-function loadComplianceSibling(): ComplianceSibling | null {
-  try {
-    return require('../../bin/lib/compliance-packs.js') as ComplianceSibling;
-  } catch {
-    return null;
-  }
-}
+// All four sibling state-loaders are TS ports in src/lib/. M11 cleanup
+// retired the lazy createRequire('../../bin/lib/<x>.js') pattern in
+// favour of direct ESM imports — the strangler-fallback null-return
+// path is dead code now that bin/lib/ is gone.
 
 // Public types
 
@@ -281,12 +228,14 @@ export function gatherGovernanceData(root: string, _options: GatherOptions = {})
     }
   }
 
-  // Sibling lazy-loads (kept available so future TS callers can plug
-  // in via the same surface).
-  loadPolicySibling();
-  loadWaiverSibling();
-  loadRiskSibling();
-  loadComplianceSibling();
+  // Reference the imported loaders so the imports aren't tree-shaken
+  // away by tsdown — the dashboard reads its data through `safeParse`
+  // on disk paths above, not through these loaders, but the TS ports
+  // remain part of the public surface for downstream consumers.
+  void loadPolicies;
+  void loadWaivers;
+  void loadRisk;
+  void loadCompliance;
 
   // Governance score calculation
   let scoreItems = 0;
