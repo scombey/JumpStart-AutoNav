@@ -34,6 +34,7 @@
  */
 
 import { defineCommand } from 'citty';
+import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
@@ -593,7 +594,10 @@ export interface PatternLibraryArgs {
 }
 
 export function patternLibraryImpl(deps: Deps, args: PatternLibraryArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('pattern-library');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('pattern-library')`
+  // to a static import of the TS port at `src/lib/pattern-library.ts`. Public
+  // surface preserved verbatim — see refs in tests/test-pattern-library.test.ts.
+  const lib = legacyPatternLibrary as LegacyLib;
   const action = args.action ?? 'list';
   let result: unknown;
   if (action === 'get') {
