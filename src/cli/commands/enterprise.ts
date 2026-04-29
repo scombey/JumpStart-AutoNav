@@ -37,6 +37,7 @@ import { defineCommand } from 'citty';
 import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
 import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
 import * as legacyEnvironmentPromotion from '../../lib/environment-promotion.js';
+import * as legacyFitnessFunctions from '../../lib/fitness-functions.js';
 import * as legacyLegacyModernizer from '../../lib/legacy-modernizer.js';
 import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
 import * as legacyMultiRepo from '../../lib/multi-repo.js';
@@ -242,7 +243,10 @@ export interface FitnessFunctionsArgs {
 }
 
 export function fitnessFunctionsImpl(deps: Deps, args: FitnessFunctionsArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('fitness-functions');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('fitness-
+  // functions')` to a static import of the TS port at
+  // `src/lib/fitness-functions.ts`. Existing wiring already invoked the
+  // actual exports — no latent bugs to fix here.
   const action = args.action ?? 'evaluate';
   const registryFile = safeJoin(deps, '.jumpstart', 'fitness-functions.json');
   let result: unknown;
@@ -251,7 +255,7 @@ export function fitnessFunctionsImpl(deps: Deps, args: FitnessFunctionsArgs): Co
       deps.logger.error('Usage: jumpstart-mode fitness-functions add <name> <category>');
       return { exitCode: 1 };
     }
-    result = lib.addFitnessFunction(
+    result = legacyFitnessFunctions.addFitnessFunction(
       {
         name: args.name,
         category: args.category,
@@ -262,9 +266,9 @@ export function fitnessFunctionsImpl(deps: Deps, args: FitnessFunctionsArgs): Co
       { registryFile }
     );
   } else if (action === 'list') {
-    result = lib.listFitnessFunctions({}, { registryFile });
+    result = legacyFitnessFunctions.listFitnessFunctions({}, { registryFile });
   } else {
-    result = lib.evaluateFitness(deps.projectRoot, { registryFile });
+    result = legacyFitnessFunctions.evaluateFitness(deps.projectRoot, { registryFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Fitness functions: ${action}`);
