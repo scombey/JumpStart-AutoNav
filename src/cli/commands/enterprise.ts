@@ -34,6 +34,7 @@
  */
 
 import { defineCommand } from 'citty';
+import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -637,7 +638,10 @@ export interface PersonaPacksArgs {
 }
 
 export function personaPacksImpl(deps: Deps, args: PersonaPacksArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('persona-packs');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('persona-packs')`
+  // to a static import of the TS port at `src/lib/persona-packs.ts`. Public
+  // surface preserved verbatim — see refs in tests/test-persona-packs.test.ts.
+  const lib = legacyPersonaPacks as LegacyLib;
   const action = args.action ?? 'list';
   let result: unknown;
   if (action === 'apply') {
