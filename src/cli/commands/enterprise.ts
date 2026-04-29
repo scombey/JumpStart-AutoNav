@@ -36,6 +36,7 @@
 import { defineCommand } from 'citty';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
+import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -690,7 +691,10 @@ export interface PlatformEngineeringArgs {
 }
 
 export function platformEngineeringImpl(deps: Deps, args: PlatformEngineeringArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('platform-engineering');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('platform-engineering')`
+  // to a static import of the TS port at `src/lib/platform-engineering.ts`. Public
+  // surface preserved verbatim — see refs in tests/test-platform-engineering.test.ts.
+  const lib = legacyPlatformEngineering as LegacyLib;
   const action = args.action ?? 'status';
   let result: unknown;
   if (action === 'scaffold') {
