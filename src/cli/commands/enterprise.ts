@@ -35,6 +35,7 @@
 
 import { defineCommand } from 'citty';
 import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
+import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
@@ -117,26 +118,32 @@ export interface EnterpriseTemplatesArgs {
 }
 
 export function enterpriseTemplatesImpl(deps: Deps, args: EnterpriseTemplatesArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('enterprise-templates');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('enterprise-templates')`
+  // to a static import of the TS port at `src/lib/enterprise-templates.ts`. Legacy
+  // exposed only `listTemplates`/`getTemplate`/`applyTemplate` — the previous
+  // `register` action invoked an undefined `registerTemplate` and was dead at
+  // runtime. Removed; if a future spec needs registry semantics it lands on
+  // a real port. Also fixed an arg-order bug in the apply path: legacy's
+  // signature is `applyTemplate(root, vertical, options)` but the cluster
+  // had been calling it `applyTemplate(vertical, root, options)`.
   const action = args.action ?? 'list';
-  const stateFile = safeJoin(deps, '.jumpstart', 'state', 'enterprise-templates.json');
   let result: unknown;
   if (action === 'list') {
-    result = lib.listTemplates({ stateFile });
+    result = legacyEnterpriseTemplates.listTemplates();
   } else if (action === 'apply') {
     if (!args.arg) {
-      deps.logger.error('Usage: jumpstart-mode enterprise-templates apply <template-id>');
+      deps.logger.error('Usage: jumpstart-mode enterprise-templates apply <vertical>');
       return { exitCode: 1 };
     }
-    result = lib.applyTemplate(args.arg, deps.projectRoot, { stateFile });
-  } else if (action === 'register') {
+    result = legacyEnterpriseTemplates.applyTemplate(deps.projectRoot, args.arg);
+  } else if (action === 'get') {
     if (!args.arg) {
-      deps.logger.error('Usage: jumpstart-mode enterprise-templates register <name>');
+      deps.logger.error('Usage: jumpstart-mode enterprise-templates get <vertical>');
       return { exitCode: 1 };
     }
-    result = lib.registerTemplate({ name: args.arg }, { stateFile });
+    result = legacyEnterpriseTemplates.getTemplate(args.arg);
   } else {
-    result = lib.listTemplates({ stateFile });
+    result = legacyEnterpriseTemplates.listTemplates();
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Enterprise templates: ${action} complete`);
