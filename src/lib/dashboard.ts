@@ -179,18 +179,33 @@ interface SpecTesterModule {
   runAllChecks(content: string): { score: number };
 }
 
-function loadHandoffSibling(): HandoffModule | null {
+// Pit Crew M9 BLOCKER B1 fix: handoff and next-phase legacy modules ported
+// to ESM (`.mjs`) at the M9 cutover. CommonJS `require()` cannot
+// synchronously load `.mjs`; the previous code threw `ERR_REQUIRE_ESM`,
+// the bare `catch {}` swallowed it, and dashboard rendered with both
+// sections silently missing. The fix uses dynamic `import()` (async) and
+// `gatherDashboardData` (already async) awaits both. Errors are still
+// degraded to `null` to preserve the "best-effort sibling" semantics, but
+// the catch now rebinds via a debug-only logger so a regression surfaces
+// when DEBUG=1.
+async function loadHandoffSibling(): Promise<HandoffModule | null> {
   try {
-    return require('../../bin/lib/handoff.mjs') as HandoffModule;
-  } catch {
+    // @ts-expect-error legacy ESM module without .d.mts companion (M11 cleanup)
+    const mod = (await import('../../bin/lib/handoff.mjs')) as HandoffModule;
+    return mod;
+  } catch (err) {
+    if (process.env.DEBUG) console.error('[dashboard] handoff sibling unavailable:', err);
     return null;
   }
 }
 
-function loadNextPhaseSibling(): NextPhaseModule | null {
+async function loadNextPhaseSibling(): Promise<NextPhaseModule | null> {
   try {
-    return require('../../bin/lib/next-phase.mjs') as NextPhaseModule;
-  } catch {
+    // @ts-expect-error legacy ESM module without .d.mts companion (M11 cleanup)
+    const mod = (await import('../../bin/lib/next-phase.mjs')) as NextPhaseModule;
+    return mod;
+  } catch (err) {
+    if (process.env.DEBUG) console.error('[dashboard] next-phase sibling unavailable:', err);
     return null;
   }
 }
@@ -339,8 +354,7 @@ export async function gatherDashboardData(
     }
   }
 
-  const handoff = loadHandoffSibling();
-  const nextPhase = loadNextPhaseSibling();
+  const [handoff, nextPhase] = await Promise.all([loadHandoffSibling(), loadNextPhaseSibling()]);
 
   // Build phase status list
   const phases: PhaseStatusEntry[] = [];

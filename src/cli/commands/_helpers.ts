@@ -27,6 +27,7 @@
 
 import { createRequire } from 'node:module';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { assertInsideRoot } from '../../lib/path-safety.js';
 import type { Deps } from '../deps.js';
 
@@ -44,13 +45,20 @@ const require = createRequire(import.meta.url);
  * `require()` argument is BARE (no `/` or `..`); supplying an
  * absolute path bypasses the NODE_PATH lookup entirely.
  *
- * The anchor is the `bin/lib/` directory under PACKAGE_ROOT, where
- * PACKAGE_ROOT is computed from `process.cwd()` (the project root
- * the CLI is invoked from) — same as the legacy `bin/cli.js`. At M9
- * ESM cutover this becomes `createRequire(import.meta.url)` rooted
- * at the dist artifact.
+ * Pit Crew M9 BLOCKER B3 fix (Adversary): the anchor was previously
+ * `process.cwd()`, which an attacker controls — `npx
+ * @scombey/jumpstart-mode <cmd>` from a malicious cwd containing
+ * `bin/lib/io.js` would load and execute that file. Post-fix anchors
+ * at `fileURLToPath(import.meta.url)` so legacy lib resolution always
+ * walks from the installed package's directory regardless of cwd.
+ * Both `legacyRequire` and `legacyImport` share this anchor.
+ *
+ * Path arithmetic: this file lives at `src/cli/commands/_helpers.ts`
+ * (dev) or `dist/cli/commands/_helpers.mjs` (post-build). Walking up
+ * three segments lands at the package root in both layouts.
  */
-const PACKAGE_ROOT = path.resolve(process.cwd());
+const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const PACKAGE_ROOT = path.resolve(MODULE_DIR, '..', '..', '..');
 const LEGACY_LIB_DIR = path.join(PACKAGE_ROOT, 'bin', 'lib');
 
 // biome-ignore lint/suspicious/noExplicitAny: <legacy-lib loader returns runtime-shaped exports — we narrow via per-call casts in the callers>
@@ -74,8 +82,18 @@ export function legacyRequire<T = any>(libName: string): T {
  *
  * Same path-safety contract as `legacyRequire`: name must be a simple
  * module identifier; absolute path resolution is anchored under
- * `LEGACY_LIB_DIR`. Tries `.mjs` first (the post-M9 ESM shape), falls
- * back to `.js` (CJS shape, in case a renamed module was missed).
+ * `LEGACY_LIB_DIR` (which itself is anchored at `import.meta.url`,
+ * not cwd — see B3 above). Tries `.mjs` first (the post-M9 ESM shape),
+ * falls back to `.js` (CJS shape, in case a renamed module was missed).
+ *
+ * Pit Crew M9 MED M6 fix: the .mjs→.js fallback used to detect "module
+ * not found" by string-matching `mjsErr.message` against
+ * `/Cannot find module|ERR_MODULE_NOT_FOUND/i`. Node's English error
+ * wording shifts between minors, and matching the wording rather than
+ * the structured `code` would silently swallow a real ESM syntax error
+ * by retrying it as a `.js` import. Post-fix uses
+ * `(err as NodeJS.ErrnoException).code === 'ERR_MODULE_NOT_FOUND'`,
+ * which is the structured contract Node guarantees.
  */
 // biome-ignore lint/suspicious/noExplicitAny: same rationale as legacyRequire
 export async function legacyImport<T = any>(libName: string): Promise<T> {
@@ -87,12 +105,7 @@ export async function legacyImport<T = any>(libName: string): Promise<T> {
   try {
     return (await import(mjsPath)) as T;
   } catch (mjsErr) {
-    // Fall back to .js shape only if the .mjs path didn't exist; rethrow
-    // any other ESM error to keep root causes visible.
-    if (
-      !(mjsErr instanceof Error) ||
-      !/Cannot find module|ERR_MODULE_NOT_FOUND/i.test(mjsErr.message)
-    ) {
+    if ((mjsErr as NodeJS.ErrnoException)?.code !== 'ERR_MODULE_NOT_FOUND') {
       throw mjsErr;
     }
     const jsPath = path.join(LEGACY_LIB_DIR, `${libName}.js`);

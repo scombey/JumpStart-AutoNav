@@ -48,7 +48,13 @@
   "files": [
     ".jumpstart",
     ".github",
-    "bin",
+    "bin/bootstrap.js",
+    "bin/holodeck.mjs",
+    "bin/headless-runner.js",
+    "bin/context7-setup.js",
+    "bin/verify-diagrams.js",
+    "bin/package.json",
+    "bin/lib/**/*.{js,mjs}",
     "dist/**/*.mjs",
     "dist/**/*.d.mts",
     "AGENTS.md",
@@ -84,7 +90,7 @@
     "check:dist-exports": "node scripts/check-dist-exports.mjs",
     "check:return-shapes": "node scripts/check-return-shapes.mjs",
     "verify-baseline": "node scripts/verify-baseline.mjs",
-    "prepublishOnly": "npm run build && node dist/cli/bin.mjs --help"
+    "prepublishOnly": "git diff --quiet HEAD || (echo 'Refusing to publish: working tree is dirty. Commit or stash changes first.' && exit 1) && npm run build && node dist/cli/bin.mjs --help"
   },
   "dependencies": {
     "chalk": "^4.1.2",

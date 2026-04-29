@@ -32,7 +32,9 @@
  */
 
 import { defineCommand } from 'citty';
-import { buildIndex, searchIndex } from '../../lib/adr-index.js';
+// `adrImpl`/`adrCommand` lived here in the strangler phase; the live
+// implementation now lives in `cleanup.ts` and is the only one wired
+// into `src/cli/main.ts`. Pit Crew M9 Reviewer H1: dead code removed.
 import {
   evaluate as aiEvaluate,
   generateReport as aiEvaluationReport,
@@ -87,63 +89,6 @@ import {
 } from '../../lib/workstream-ownership.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { asRest, parseFlag, safeJoin } from './_helpers.js';
-
-// ─────────────────────────────────────────────────────────────────────────
-// adr
-// ─────────────────────────────────────────────────────────────────────────
-
-export interface AdrArgs {
-  action?: string;
-  query?: string;
-  tag?: string;
-  json?: boolean;
-}
-
-export function adrImpl(deps: Deps, args: AdrArgs): CommandResult {
-  const action = args.action ?? 'build';
-  if (action === 'search') {
-    const result = searchIndex(deps.projectRoot, {
-      query: args.query ?? '',
-      tag: args.tag,
-    });
-    if (args.json) {
-      writeResult(result as unknown as Record<string, unknown>);
-    } else {
-      deps.logger.info(`ADR Search: "${args.query ?? ''}" — ${result.total} results`);
-      for (const r of result.results) {
-        deps.logger.info(`  ${r.id}: ${r.title} [${r.status}]`);
-      }
-    }
-    return { exitCode: 0 };
-  }
-  const result = buildIndex(deps.projectRoot);
-  if (args.json) {
-    writeResult(result as unknown as Record<string, unknown>);
-  } else {
-    deps.logger.info(`ADR Index: ${result.indexed} records indexed`);
-    deps.logger.info(`  Index path: ${result.index_path}`);
-  }
-  return { exitCode: 0 };
-}
-
-export const adrCommand = defineCommand({
-  meta: { name: 'adr', description: 'ADR index — build/search architectural decision records' },
-  args: {
-    action: { type: 'positional', description: 'build | search', required: false },
-    query: { type: 'positional', description: 'Search query (for search)', required: false },
-    tag: { type: 'string', description: 'Tag filter (for search)', required: false },
-    json: { type: 'boolean', description: 'JSON output mode', required: false },
-  },
-  run({ args }) {
-    const r = adrImpl(createRealDeps(), {
-      action: args.action,
-      query: args.query,
-      tag: args.tag,
-      json: Boolean(args.json),
-    });
-    if (r.exitCode !== 0) throw new Error(r.message ?? 'adr failed');
-  },
-});
 
 // ─────────────────────────────────────────────────────────────────────────
 // policy

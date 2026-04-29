@@ -17,7 +17,8 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-  adrCommand,
+  // `adrCommand` removed from governance.ts at M9 Pit Crew remediation
+  // — the live impl is in cleanup.ts and that's the one main.ts wires.
   aiEvaluationCommand,
   compliancePacksCommand,
   compliancePacksImpl,
@@ -58,7 +59,7 @@ async function metaName(cmd: { meta?: unknown }): Promise<string | undefined> {
 
 describe('governance cluster — defineCommand meta.name', () => {
   const cases: [string, { meta?: unknown }][] = [
-    ['adr', adrCommand],
+    // `adr` lives in cleanup.ts, not governance.ts (post-M9 Pit Crew H1).
     ['policy', policyCommand],
     ['role-approval', roleApprovalCommand],
     ['raci-matrix', raciMatrixCommand],

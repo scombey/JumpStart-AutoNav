@@ -34,7 +34,21 @@
  */
 
 import { JumpstartError } from '../lib/errors.js';
+import { redactSecrets } from '../lib/secret-scanner.js';
 import { runMain } from './main.js';
+
+/**
+ * Pit Crew M9 BLOCKER B2 fix (Adversary 2): every error message + stack
+ * goes through `redactSecrets` before stderr emit. ADR-012 forbids
+ * leaking secrets through any log channel, and a JumpstartError raised
+ * by the LLM layer can carry env-var-shaped payloads (`ANTHROPIC_API_KEY=…`)
+ * in `.message`. Stacks include absolute filesystem paths that expose
+ * the user's home layout to log scrapers, so the stack is also
+ * DEBUG-gated — `DEBUG=1 jumpstart-mode <cmd>` opts in.
+ */
+function emitErrorLine(line: string): void {
+  console.error(redactSecrets(line));
+}
 
 try {
   await runMain();
@@ -44,19 +58,17 @@ try {
   // is only reached for direct `npx @scombey/jumpstart-mode` invocations
   // where citty's own runMain didn't catch the throw.
   if (err instanceof JumpstartError) {
-    if (err.message) console.error(`${err.name}: ${err.message}`);
+    if (err.message) emitErrorLine(`${err.name}: ${err.message}`);
     process.exit(err.exitCode);
   }
   // Last-resort handler for anything that bubbled out of citty
-  // without going through the typed-error layer. We deliberately
-  // don't pretty-print the stack here — Node's default uncaught-
-  // exception handler does that already if we re-throw, but exit
-  // code 1 + message keeps the contract consistent for shell
-  // pipelines.
+  // without going through the typed-error layer. Stacks are gated
+  // behind DEBUG so the default UX is "exit code 1 + redacted
+  // message" — no absolute-path leakage in CI logs.
   if (err instanceof Error) {
-    console.error(err.stack ?? err.message);
+    emitErrorLine(process.env.DEBUG ? (err.stack ?? err.message) : err.message);
   } else {
-    console.error('Unknown CLI error:', err);
+    emitErrorLine(`Unknown CLI error: ${String(err)}`);
   }
   process.exit(1);
 }
