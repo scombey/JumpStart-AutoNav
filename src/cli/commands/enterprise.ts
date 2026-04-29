@@ -36,6 +36,7 @@
 import { defineCommand } from 'citty';
 import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
 import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
+import * as legacyEnvironmentPromotion from '../../lib/environment-promotion.js';
 import * as legacyLegacyModernizer from '../../lib/legacy-modernizer.js';
 import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
@@ -183,7 +184,10 @@ export interface EnvPromotionArgs {
 }
 
 export function envPromotionImpl(deps: Deps, args: EnvPromotionArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('environment-promotion');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('environment-promotion')`
+  // to a static import of the TS port at `src/lib/environment-promotion.ts`.
+  // Existing wiring already invoked the real exports (`promote`/`checkGates`/
+  // `getStatus`); no latent bugs to fix.
   const action = args.action ?? 'status';
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'environment-promotion.json');
   let result: unknown;
@@ -192,15 +196,15 @@ export function envPromotionImpl(deps: Deps, args: EnvPromotionArgs): CommandRes
       deps.logger.error('Usage: jumpstart-mode env-promotion promote <environment>');
       return { exitCode: 1 };
     }
-    result = lib.promote(args.arg, { stateFile });
+    result = legacyEnvironmentPromotion.promote(args.arg, { stateFile });
   } else if (action === 'gate') {
     if (!args.arg) {
       deps.logger.error('Usage: jumpstart-mode env-promotion gate <environment>');
       return { exitCode: 1 };
     }
-    result = lib.checkGates(args.arg, { stateFile });
+    result = legacyEnvironmentPromotion.checkGates(args.arg, { stateFile });
   } else {
-    result = lib.getStatus({ stateFile });
+    result = legacyEnvironmentPromotion.getStatus({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Env promotion: ${action}`);
