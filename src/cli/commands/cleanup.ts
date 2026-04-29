@@ -29,6 +29,7 @@
  */
 
 import { defineCommand } from 'citty';
+import * as legacyRevert from '../../lib/revert.js';
 import * as legacyTimestamps from '../../lib/timestamps.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
@@ -977,13 +978,17 @@ export interface RevertArgs {
   json?: boolean | undefined;
 }
 
-export async function revertImpl(deps: Deps, args: RevertArgs): Promise<CommandResult> {
+export function revertImpl(deps: Deps, args: RevertArgs): CommandResult {
   if (!args.artifact) {
     deps.logger.error('Usage: jumpstart-mode revert <artifact-path> [--reason "..."]');
     return { exitCode: 1 };
   }
-  // M9 ESM cutover: revert is an ESM legacy module (.mjs) — use legacyImport.
-  const lib = await legacyImport<LegacyLib>('revert');
+  // M11 strangler-tail cleanup: switched from `legacyImport('revert')`
+  // (the ESM .mjs legacy file) to a static import of the TS port at
+  // `src/lib/revert.ts`. The impl flips back to sync because the new
+  // module is plain ESM that imports cleanly. Public surface preserved
+  // verbatim — see refs in tests/test-revert.test.ts.
+  const lib = legacyRevert as LegacyLib;
   const safePath = assertUserPath(deps, args.artifact, 'revert:artifact');
   const result = lib.revertArtifact({ artifact: safePath, reason: args.reason });
   maybeJson(deps, args.json, result);
@@ -1005,8 +1010,8 @@ export const revertCommand = defineCommand({
     reason: { type: 'string', required: false, description: 'reason for revert' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
-  async run({ args }) {
-    const r = await revertImpl(createRealDeps(), {
+  run({ args }) {
+    const r = revertImpl(createRealDeps(), {
       artifact: args.artifact,
       reason: args.reason,
       json: Boolean(args.json),
