@@ -17,8 +17,8 @@ import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   defaultState,
-  generateReport,
   GOLDEN_PATH_STAGES,
+  generateReport,
   instantiateTemplate,
   listTemplates,
   loadState,
