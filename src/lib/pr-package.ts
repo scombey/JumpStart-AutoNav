@@ -166,7 +166,7 @@ export function createPRPackage(
   root: string,
   options: CreatePRPackageOptions = {}
 ): CreatePRPackageResult {
-  if (!pkg || !pkg.title || !pkg.summary) {
+  if (!pkg?.title || !pkg.summary) {
     return { success: false, error: 'pkg.title and pkg.summary are required' };
   }
 

@@ -39,6 +39,7 @@ import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
 import * as legacyEnvironmentPromotion from '../../lib/environment-promotion.js';
 import * as legacyLegacyModernizer from '../../lib/legacy-modernizer.js';
 import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
+import * as legacyMultiRepo from '../../lib/multi-repo.js';
 import * as legacyParallelAgents from '../../lib/parallel-agents.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
@@ -568,7 +569,10 @@ export interface MultiRepoArgs {
 }
 
 export function multiRepoImpl(deps: Deps, args: MultiRepoArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('multi-repo');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('multi-repo')`
+  // to a static import of the TS port at `src/lib/multi-repo.ts`. Existing
+  // wiring already invoked the real exports (`initProgram`/`linkRepo`/
+  // `getProgramStatus`); no latent bugs to fix.
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'multi-repo.json');
   const action = args.action ?? 'status';
   let result: unknown;
@@ -577,15 +581,15 @@ export function multiRepoImpl(deps: Deps, args: MultiRepoArgs): CommandResult {
       deps.logger.error('Usage: jumpstart-mode multi-repo init <program-name>');
       return { exitCode: 1 };
     }
-    result = lib.initProgram(args.arg, { stateFile });
+    result = legacyMultiRepo.initProgram(args.arg, { stateFile });
   } else if (action === 'link') {
     if (!args.arg) {
       deps.logger.error('Usage: jumpstart-mode multi-repo link <repo-url> [role]');
       return { exitCode: 1 };
     }
-    result = lib.linkRepo(args.arg, args.role ?? 'other', { stateFile });
+    result = legacyMultiRepo.linkRepo(args.arg, args.role ?? 'other', { stateFile });
   } else {
-    result = lib.getProgramStatus({ stateFile });
+    result = legacyMultiRepo.getProgramStatus({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Multi-repo: ${action}`);
