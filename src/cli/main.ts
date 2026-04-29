@@ -47,13 +47,25 @@ import { createRealDeps, type Deps } from './deps.js';
 // ─────────────────────────────────────────────────────────────────────────
 
 /**
- * Static framework version — kept in lockstep with `package.json`
- * (the contract harness flags drift). Replaces the legacy runtime
- * `import.meta.url` → `package.json` read which TS1470 rejects under
- * the strangler-phase CJS classification. At M9 ESM cutover this
- * becomes a `createRequire`-driven runtime read.
+ * Framework version — read at runtime from `package.json` so it
+ * cannot drift from the canonical source.
+ *
+ * Pit Crew M8 MED (QA 4) fix: pre-fix used a hardcoded `'1.1.14'`
+ * constant + matching test assertion. A version bump in package.json
+ * would NOT have caused either to fail; the version contract was
+ * silent-drift-prone. Post-fix: `require('../../../package.json')`
+ * reads the canonical value at module-load time. The `version`
+ * field is the spec's source of truth.
+ *
+ * Strangler-phase note: bare `require()` is allowed under the CJS
+ * tsconfig. M9 cutover swaps to `import { createRequire } from
+ * 'node:module'; const require = createRequire(import.meta.url)`.
  */
-const FRAMEWORK_VERSION = '1.1.14';
+function readPackageVersion(): string {
+  const pkg = require('../../package.json') as { version?: string };
+  return pkg.version ?? '0.0.0';
+}
+const FRAMEWORK_VERSION = readPackageVersion();
 
 // ─────────────────────────────────────────────────────────────────────────
 // SubCommands map

@@ -19,11 +19,10 @@
  */
 
 import { existsSync } from 'node:fs';
-import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import { writeResult } from '../../../bin/lib-ts/io.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { hasFlag, legacyRequire, parseFlag, safeJoin } from './_helpers.js';
+import { assertUserPath, hasFlag, legacyRequire, parseFlag, safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // handoff-check
@@ -35,9 +34,15 @@ export interface HandoffCheckArgs {
 }
 
 export function handoffCheckImpl(deps: Deps, args: HandoffCheckArgs): CommandResult {
-  if (!args.path || !existsSync(args.path)) {
+  if (!args.path) {
     deps.logger.error('Usage: jumpstart-mode handoff-check <artifact-path> [target-phase]');
     deps.logger.error('  target-phase: architect | dev | qa');
+    return { exitCode: 1 };
+  }
+  // Pit Crew M8 BLOCKER (Adversary 2): containment on user path.
+  const safePath = assertUserPath(deps, args.path, 'handoff-check');
+  if (!existsSync(safePath)) {
+    deps.logger.error(`File not found: ${args.path}`);
     return { exitCode: 1 };
   }
   const handoff = legacyRequire<{
@@ -48,7 +53,7 @@ export function handoffCheckImpl(deps: Deps, args: HandoffCheckArgs): CommandRes
     ) => { valid: boolean; errors: string[] };
   }>('handoff-validator');
   const toPhase = args.toPhase ?? 'architect';
-  const report = handoff.generateHandoffReport(args.path, 'upstream', toPhase);
+  const report = handoff.generateHandoffReport(safePath, 'upstream', toPhase);
   if (report.valid) {
     deps.logger.success(`Handoff contract valid for transition to ${toPhase}.`);
     return { exitCode: 0 };
@@ -84,10 +89,13 @@ export function coverageImpl(deps: Deps, args: CoverageArgs): CommandResult {
     deps.logger.error('Usage: jumpstart-mode coverage <prd-path> <plan-path>');
     return { exitCode: 1 };
   }
+  // Pit Crew M8 BLOCKER (Adversary 2): containment on both user paths.
+  const safePrd = assertUserPath(deps, args.prdPath, 'coverage:prd');
+  const safePlan = assertUserPath(deps, args.planPath, 'coverage:plan');
   const coverageMod = legacyRequire<{
     generateCoverageReport: (prdPath: string, planPath: string) => string;
   }>('coverage');
-  deps.logger.info(coverageMod.generateCoverageReport(args.prdPath, args.planPath));
+  deps.logger.info(coverageMod.generateCoverageReport(safePrd, safePlan));
   return { exitCode: 0 };
 }
 
@@ -143,11 +151,19 @@ export interface LintArgs {
 
 export async function lintImpl(deps: Deps, args: LintArgs): Promise<CommandResult> {
   const { runLint } = legacyRequire<{
-    runLint: (dir: string) => Promise<Record<string, unknown>>;
+    runLint: (dir: string) => Promise<Record<string, unknown> & { ok?: boolean; pass?: boolean }>;
   }>('lint-runner');
-  const result = await runLint(args.targetDir ?? deps.projectRoot);
+  // Pit Crew M8 HIGH (Adversary 5 + Reviewer 2): containment on
+  // user-supplied targetDir.
+  const safeDir = args.targetDir
+    ? assertUserPath(deps, args.targetDir, 'lint:targetDir')
+    : deps.projectRoot;
+  const result = await runLint(safeDir);
   writeResult(result);
-  return { exitCode: 0 };
+  // Pit Crew M8 MED (Reviewer 5): pre-fix discarded result; lint
+  // failures invisible to CI exit code. Post-fix: respect ok/pass.
+  const passed = result.ok !== false && result.pass !== false;
+  return { exitCode: passed ? 0 : 1 };
 }
 
 export const lintCommand = defineCommand({
@@ -156,7 +172,8 @@ export const lintCommand = defineCommand({
     targetDir: { type: 'positional', description: 'Target directory', required: false },
   },
   async run({ args }) {
-    await lintImpl(createRealDeps(), { targetDir: args.targetDir });
+    const r = await lintImpl(createRealDeps(), { targetDir: args.targetDir });
+    if (r.exitCode !== 0) throw new Error(r.message ?? 'lint failed');
   },
 });
 
@@ -268,14 +285,13 @@ export interface DiffArgs {
 }
 
 export function diffImpl(deps: Deps, args: DiffArgs): CommandResult {
-  // Legacy bin/lib/diff.js consumed a path string and walked the file
-  // tree. The TS port wants a structured GenerateDiffInput. Use the
-  // legacy lib path here so the CLI stays a one-liner; structured-input
-  // callers go directly to the TS module.
   const lib = legacyRequire<{
     generateDiff: (target: string) => Record<string, unknown>;
   }>('diff');
-  const target = args.path ?? deps.projectRoot;
+  // Pit Crew M8 HIGH (Adversary 5): pre-fix `target = args.path ?? root`
+  // forwarded raw user input to generateDiff which then walked the
+  // attacker-chosen directory. Post-fix: gate via assertUserPath.
+  const target = args.path ? assertUserPath(deps, args.path, 'diff:path') : deps.projectRoot;
   const result = lib.generateDiff(target);
   writeResult(result);
   return { exitCode: 0 };
@@ -326,9 +342,14 @@ export function validateModuleImpl(deps: Deps, args: ValidateModuleArgs): Comman
     deps.logger.error('Usage: jumpstart-mode validate-module <module-dir>');
     return { exitCode: 1 };
   }
+  // Pit Crew M8 BLOCKER (Reviewer 2 + Adversary 4, confirmed exploit):
+  // pre-fix `path.resolve(args.moduleDir)` forwarded an absolute
+  // attacker-supplied path (e.g. "/etc") directly to validateForPublishing
+  // which walked the host filesystem. Post-fix: gate via assertUserPath.
+  const safeDir = assertUserPath(deps, args.moduleDir, 'validate-module:moduleDir');
   const { validateForPublishing } =
     require('../../../bin/lib-ts/registry.js') as typeof import('../../../bin/lib-ts/registry.js');
-  const result = validateForPublishing(path.resolve(args.moduleDir));
+  const result = validateForPublishing(safeDir);
   writeResult(result as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }

@@ -27,7 +27,7 @@ import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import { writeResult } from '../../../bin/lib-ts/io.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { legacyRequire, safeJoin } from './_helpers.js';
+import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // validate
@@ -42,17 +42,24 @@ export function validateImpl(deps: Deps, args: ValidateArgs): CommandResult {
     deps.logger.error('Usage: jumpstart-mode validate <artifact-path>');
     return { exitCode: 1 };
   }
+  // Pit Crew M8 BLOCKER (Adversary 2): pre-fix passed `args.path`
+  // verbatim to validator.validateArtifact. AI agents with prompt-
+  // injected arguments could exfiltrate any project-readable file.
+  // Post-fix: gate via assertUserPath so the path is provably inside
+  // the project root.
+  const safePath = assertUserPath(deps, args.path, 'validate');
   const validator = legacyRequire<{
     validateArtifact: (
       filePath: string,
       schemasDir: string
     ) => { valid: boolean; errors: string[] };
   }>('validator');
-  // schemas dir is rooted at the package, not the project; legacy path:
-  // bin/cli.js used PACKAGE_ROOT/.jumpstart/schemas. We mirror that.
-  const packageRoot = path.resolve(__dirname, '..', '..', '..');
-  const schemasDir = path.join(packageRoot, '.jumpstart', 'schemas');
-  const result = validator.validateArtifact(args.path, schemasDir);
+  // Pit Crew M8 BLOCKER (Reviewer 1): pre-fix used `__dirname` to
+  // compute packageRoot. `__dirname` is undefined under ESM and
+  // resolves to dist/ paths under build, both wrong. Post-fix: anchor
+  // schemas dir at deps.projectRoot — the documented invariant.
+  const schemasDir = path.join(deps.projectRoot, '.jumpstart', 'schemas');
+  const result = validator.validateArtifact(safePath, schemasDir);
   if (result.valid) {
     deps.logger.success('Artifact is valid.');
     return { exitCode: 0 };
@@ -431,18 +438,31 @@ export interface ChecklistArgs {
 }
 
 export function checklistImpl(deps: Deps, args: ChecklistArgs): CommandResult {
-  if (!args.path || !existsSync(args.path)) {
+  if (!args.path) {
     deps.logger.error('Usage: jumpstart-mode checklist <spec-file>');
     return { exitCode: 1 };
   }
+  // Pit Crew M8 BLOCKER (Adversary 2): user path needs containment.
+  const safePath = assertUserPath(deps, args.path, 'checklist');
+  if (!existsSync(safePath)) {
+    deps.logger.error(`File not found: ${args.path}`);
+    return { exitCode: 1 };
+  }
   const specTester = legacyRequire<{
-    runAllChecks: (content: string, opts: { specsDir: string }) => unknown;
+    runAllChecks: (content: string, opts: { specsDir: string }) => { pass?: boolean } | unknown;
     generateReport: (filePath: string) => string;
   }>('spec-tester');
-  const content = readFileSync(args.path, 'utf8');
-  void specTester.runAllChecks(content, { specsDir: safeJoin(deps, 'specs') });
-  deps.logger.info(specTester.generateReport(args.path));
-  return { exitCode: 0 };
+  const content = readFileSync(safePath, 'utf8');
+  // Pit Crew M8 HIGH (Reviewer 4): pre-fix `void specTester.runAllChecks(...)`
+  // discarded the result — exit code was always 0 even when checks failed.
+  // Post-fix: capture result, exit non-zero on `pass === false`.
+  const result = specTester.runAllChecks(content, { specsDir: safeJoin(deps, 'specs') });
+  deps.logger.info(specTester.generateReport(safePath));
+  const passed =
+    typeof result === 'object' && result !== null && 'pass' in result
+      ? (result as { pass: boolean }).pass !== false
+      : true;
+  return { exitCode: passed ? 0 : 1 };
 }
 
 export const checklistCommand = defineCommand({
@@ -465,14 +485,20 @@ export interface SmellsArgs {
 }
 
 export function smellsImpl(deps: Deps, args: SmellsArgs): CommandResult {
-  if (!args.path || !existsSync(args.path)) {
+  if (!args.path) {
     deps.logger.error('Usage: jumpstart-mode smells <spec-file>');
+    return { exitCode: 1 };
+  }
+  // Pit Crew M8 BLOCKER (Adversary 2): user path needs containment.
+  const safePath = assertUserPath(deps, args.path, 'smells');
+  if (!existsSync(safePath)) {
+    deps.logger.error(`File not found: ${args.path}`);
     return { exitCode: 1 };
   }
   const smellDetector = legacyRequire<{
     generateSmellReport: (filePath: string) => string;
   }>('smell-detector');
-  deps.logger.info(smellDetector.generateSmellReport(args.path));
+  deps.logger.info(smellDetector.generateSmellReport(safePath));
   return { exitCode: 0 };
 }
 

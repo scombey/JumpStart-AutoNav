@@ -143,15 +143,24 @@ function runDiff() {
     process.exit(0);
   }
 
-  // Currently only the LEGACY CLI exposes every subcommand. The new
-  // src/cli/main.ts is being grown by T4.7.2; until it covers the full
-  // tree, we run the diff against the LEGACY CLI itself (a no-op
-  // sanity check) so the script's plumbing is exercised by CI without
-  // gating on T4.7.2 completion.
-  //
-  // When T4.7.2 lands, swap LEGACY_CLI for the new dist/cli.js path
-  // and the diff becomes the load-bearing gate it's meant to be.
-  const newCli = LEGACY_CLI; // T4.7.2 swap-point
+  // Pit Crew M8 MED (Reviewer 6) fix: pre-fix hardcoded
+  // `newCli = LEGACY_CLI`, making the diff a permanent self-vs-self
+  // no-op even after goldens were captured. Post-fix: accept the
+  // new-CLI path via `--new-cli <path>` flag (or
+  // `JUMPSTART_NEW_CLI=<path>` env var). Falls back to LEGACY_CLI
+  // (dormant self-diff) if neither is set, with a clear log line.
+  const newCliFlagIdx = args.indexOf('--new-cli');
+  const newCli =
+    newCliFlagIdx >= 0 && args[newCliFlagIdx + 1]
+      ? args[newCliFlagIdx + 1]
+      : process.env.JUMPSTART_NEW_CLI || LEGACY_CLI;
+  if (newCli === LEGACY_CLI) {
+    console.log(
+      '[diff-cli-help] dormant: --new-cli not supplied; running legacy-vs-legacy self-diff (always passes).'
+    );
+  } else {
+    console.log(`[diff-cli-help] diffing new CLI at ${newCli} against goldens.`);
+  }
 
   const drifts = [];
   let compared = 0;

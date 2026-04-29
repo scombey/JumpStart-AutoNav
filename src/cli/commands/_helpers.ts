@@ -29,34 +29,93 @@ import type { Deps } from '../deps.js';
 
 /**
  * Load a legacy CommonJS lib module from `bin/lib/<name>.js`.
- * Mirrors how `bin/cli.js` does `require('./lib/<name>')`.
  *
- * Marked `any` because each lib module exports a runtime-shaped surface
- * we narrow at the call site. Cataloged in ADR-006's "DEFERRED M9 ESM
- * shape-narrowing" punch list.
+ * Pit Crew M8 Adversary 3 (HIGH) fix: pre-fix used a bare relative
+ * `require('../../../bin/lib/<name>')` which Node could satisfy via
+ * a `NODE_PATH=/tmp/evil/bin/lib/<name>.js` environment override —
+ * RCE at command-dispatch time. Post-fix: resolve through the
+ * package root deterministically by joining from a known anchor and
+ * passing the absolute path. NODE_PATH is consulted only when a
+ * `require()` argument is BARE (no `/` or `..`); supplying an
+ * absolute path bypasses the NODE_PATH lookup entirely.
+ *
+ * The anchor is the `bin/lib/` directory under PACKAGE_ROOT, where
+ * PACKAGE_ROOT is computed from `process.cwd()` (the project root
+ * the CLI is invoked from) — same as the legacy `bin/cli.js`. At M9
+ * ESM cutover this becomes `createRequire(import.meta.url)` rooted
+ * at the dist artifact.
  */
+const PACKAGE_ROOT = path.resolve(process.cwd());
+const LEGACY_LIB_DIR = path.join(PACKAGE_ROOT, 'bin', 'lib');
+
 // biome-ignore lint/suspicious/noExplicitAny: <legacy-lib loader returns runtime-shaped exports — we narrow via per-call casts in the callers>
 export function legacyRequire<T = any>(libName: string): T {
-  // bin/lib/* is the legacy CJS path. Resolved relative to this file
-  // (src/cli/commands/_helpers.ts → ../../../bin/lib/<name>.js).
-  // Bare require() per the strangler-phase convention; M9 cutover
-  // switches to createRequire(import.meta.url).
-  return require(`../../../bin/lib/${libName}`) as T;
+  // Reject any lib name that could escape via path traversal, absolute
+  // paths, or null bytes. Library names are expected to be simple
+  // module identifiers (alphanumeric + hyphens).
+  if (!/^[a-z0-9][a-z0-9-]*$/i.test(libName)) {
+    throw new Error(`Invalid legacy lib name: ${libName}`);
+  }
+  const absolutePath = path.join(LEGACY_LIB_DIR, libName);
+  // Defense-in-depth: confirm resolution stays under LEGACY_LIB_DIR.
+  assertInsideRoot(libName, LEGACY_LIB_DIR, { schemaId: 'cli.legacyRequire' });
+  return require(absolutePath) as T;
 }
 
 /**
  * Path-safety wrapper for path.join. Every constructed path in a
  * `runImpl` MUST go through this so `assertInsideRoot` rejects
  * traversal-shaped inputs at the trust boundary.
+ *
+ * Pit Crew M8 Adversary 1 (HIGH) fix: pre-fix returned the joined
+ * path WITHOUT calling `assertInsideRoot` when `relative === ''`
+ * (the input was the project root itself). The early-return skipped
+ * the only guard and could hand the project root to consumers that
+ * then walked it as a file. Post-fix: the guard fires unconditionally
+ * — the empty-string case is handled inside `assertInsideRoot` (which
+ * accepts the root itself; only escapes throw).
  */
 export function safeJoin(deps: Deps, ...segments: string[]): string {
-  const joined = path.join(deps.projectRoot, ...segments);
-  // The relative form is what assertInsideRoot expects. Convert back.
+  const joined = path.resolve(deps.projectRoot, ...segments);
   const relative = path.relative(deps.projectRoot, joined);
-  if (relative !== '') {
-    assertInsideRoot(relative, deps.projectRoot, { schemaId: 'cli.safeJoin' });
-  }
+  // assertInsideRoot accepts an empty relative (= project root itself);
+  // only ascending paths (`../...`) and absolute paths throw. Removing
+  // the `relative !== ''` early-return closes the bypass.
+  assertInsideRoot(relative === '' ? '.' : relative, deps.projectRoot, {
+    schemaId: 'cli.safeJoin',
+  });
   return joined;
+}
+
+/**
+ * Path-safety wrapper for user-supplied file path arguments. Used by
+ * commands that accept a positional file path (e.g. `validate <path>`).
+ *
+ * Pit Crew M8 Adversary 2 + 4 (BLOCKER, confirmed exploit) fix: pre-
+ * fix paths like `/etc/passwd` were passed verbatim to legacy lib
+ * functions like `validateArtifact(filePath, ...)`. AI agents that
+ * receive prompt-injected arguments could exfiltrate any
+ * project-readable file on disk via the various validate / hash /
+ * smells / handoff-check paths.
+ *
+ * Post-fix: every command that takes a file path arg routes it through
+ * `assertUserPath` which rejects absolute paths, traversal-shaped
+ * paths, and null bytes — and resolves to a path GUARANTEED inside
+ * the project root.
+ *
+ * Returns the resolved absolute path on success; throws ValidationError
+ * on any escape attempt.
+ */
+export function assertUserPath(deps: Deps, userPath: string, schemaId: string): string {
+  if (typeof userPath !== 'string' || userPath.length === 0) {
+    throw new Error(`${schemaId}: empty path`);
+  }
+  if (userPath.includes('\0')) {
+    throw new Error(`${schemaId}: null byte in path`);
+  }
+  // safeJoin already calls assertInsideRoot under the hood; passing
+  // a user path through it both validates and resolves.
+  return safeJoin(deps, userPath);
 }
 
 /**
