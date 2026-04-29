@@ -45,7 +45,7 @@ export interface RiskSummary {
 }
 
 export interface RoleViewSections {
-  available_specs?: string[];
+  available_specs?: string[] | undefined;
   phase_status?: PhaseStatus;
   risks?: RiskSummary;
   [key: string]: unknown;
@@ -63,7 +63,7 @@ export interface RoleView {
 export interface GenerateViewResult {
   success: boolean;
   view?: RoleView;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ListRolesEntry {
@@ -89,7 +89,7 @@ export interface RoleSummary {
 export interface GenerateRoleSummaryResult {
   success: boolean;
   summary?: RoleSummary;
-  error?: string;
+  error?: string | undefined;
 }
 
 // Constants (verbatim from legacy)

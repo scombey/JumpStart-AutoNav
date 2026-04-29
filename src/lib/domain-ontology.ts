@@ -59,33 +59,33 @@ export interface OntologyState {
 }
 
 export interface DefineOptions {
-  stateFile?: string;
-  description?: string;
+  stateFile?: string | undefined;
+  description?: string | undefined;
   properties?: unknown[];
   constraints?: unknown[];
   [key: string]: unknown;
 }
 
 export interface QueryOptions {
-  stateFile?: string;
-  type?: string;
+  stateFile?: string | undefined;
+  type?: string | undefined;
   [key: string]: unknown;
 }
 
 export interface ValidateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
   [key: string]: unknown;
 }
 
 export interface ReportOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
   [key: string]: unknown;
 }
 
 export interface DefineResult {
   success: boolean;
   element?: OntologyElement;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface QueryResult {
@@ -103,10 +103,10 @@ export interface ValidationIssue {
 
 export interface ValidateResult {
   success: boolean;
-  domain?: string;
+  domain?: string | undefined;
   issues?: ValidationIssue[];
-  canonical_terms?: number;
-  error?: string;
+  canonical_terms?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface DomainReport {

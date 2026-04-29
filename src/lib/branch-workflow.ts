@@ -47,8 +47,8 @@ export interface BranchApproval {
 export interface BranchEntry {
   branch: string;
   created_at: string;
-  last_commit?: string;
-  last_seen?: string;
+  last_commit?: string | undefined;
+  last_seen?: string | undefined;
   phase_snapshots: PhaseSnapshot[];
   approved_artifacts: BranchApproval[];
   pr_number: number | null;
@@ -63,10 +63,10 @@ export interface BranchStore {
 }
 
 export interface TrackBranchOptions {
-  branch?: string;
-  pr_number?: number;
-  pr_url?: string;
-  stateFile?: string;
+  branch?: string | undefined;
+  pr_number?: number | undefined;
+  pr_url?: string | undefined;
+  stateFile?: string | undefined;
 }
 
 export interface TrackResult {
@@ -90,10 +90,10 @@ export interface StatusResult {
   success: boolean;
   branch: string;
   tracked: boolean;
-  message?: string;
+  message?: string | undefined;
   data?: BranchEntry;
-  phase_count?: number;
-  approved_count?: number;
+  phase_count?: number | undefined;
+  approved_count?: number | undefined;
 }
 
 export interface ListResult {
@@ -103,8 +103,8 @@ export interface ListResult {
 }
 
 export interface StateOptions {
-  branch?: string;
-  stateFile?: string;
+  branch?: string | undefined;
+  stateFile?: string | undefined;
 }
 
 const DEFAULT_BRANCH_STATE_FILE = join('.jumpstart', 'state', 'branch-workflows.json');

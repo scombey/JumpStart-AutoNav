@@ -37,8 +37,8 @@ export type AccessibilityLevel = 'A' | 'AA' | 'AAA';
 
 export interface ComponentSpec {
   props?: unknown[];
-  accessibility?: string[];
-  tokens_used?: string[];
+  accessibility?: string[] | undefined;
+  tokens_used?: string[] | undefined;
 }
 
 export interface RegisteredComponent {
@@ -60,22 +60,22 @@ export interface DesignSystemState {
 
 export interface ComplianceIssue {
   type: string;
-  category?: string;
-  component?: string;
+  category?: string | undefined;
+  component?: string | undefined;
   severity: string;
 }
 
 export interface RegisterTokensResult {
   success: boolean;
-  category?: string;
-  token_count?: number;
-  error?: string;
+  category?: string | undefined;
+  token_count?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface RegisterComponentResult {
   success: boolean;
   component?: RegisteredComponent;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ComplianceResult {
@@ -96,7 +96,7 @@ export interface ReportResult {
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 const DEFAULT_STATE_FILE = join('.jumpstart', 'state', 'design-system.json');

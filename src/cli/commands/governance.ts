@@ -95,9 +95,9 @@ import { asRest, parseFlag, safeJoin } from './_helpers.js';
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface PolicyArgs {
-  action?: string;
+  action?: string | undefined;
   rest: string[];
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function policyImpl(deps: Deps, args: PolicyArgs): CommandResult {
@@ -184,11 +184,11 @@ export const policyCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface RoleApprovalArgs {
-  action?: string;
-  artifact?: string;
-  rolesOrRole?: string;
+  action?: string | undefined;
+  artifact?: string | undefined;
+  rolesOrRole?: string | undefined;
   rest: string[];
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function roleApprovalImpl(deps: Deps, args: RoleApprovalArgs): CommandResult {
@@ -292,10 +292,10 @@ export const roleApprovalCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface RaciArgs {
-  action?: string;
-  artifact?: string;
-  arg2?: string;
-  json?: boolean;
+  action?: string | undefined;
+  artifact?: string | undefined;
+  arg2?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function raciMatrixImpl(deps: Deps, args: RaciArgs): CommandResult {
@@ -369,9 +369,9 @@ export const raciMatrixCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface CompliancePacksArgs {
-  action?: string;
-  framework?: string;
-  json?: boolean;
+  action?: string | undefined;
+  framework?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function compliancePacksImpl(deps: Deps, args: CompliancePacksArgs): CommandResult {
@@ -441,8 +441,8 @@ export const compliancePacksCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface EvidenceCollectorArgs {
-  action?: string;
-  json?: boolean;
+  action?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function evidenceCollectorImpl(deps: Deps, args: EvidenceCollectorArgs): CommandResult {
@@ -501,10 +501,10 @@ export const evidenceCollectorCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface WaiverWorkflowArgs {
-  action?: string;
-  arg1?: string;
-  arg2?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg1?: string | undefined;
+  arg2?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function waiverWorkflowImpl(deps: Deps, args: WaiverWorkflowArgs): CommandResult {
@@ -599,9 +599,9 @@ export const waiverWorkflowCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface RiskRegisterArgs {
-  action?: string;
-  title?: string;
-  json?: boolean;
+  action?: string | undefined;
+  title?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function riskRegisterImpl(deps: Deps, args: RiskRegisterArgs): CommandResult {
@@ -671,9 +671,9 @@ export const riskRegisterCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DataClassificationArgs {
-  action?: string;
-  name?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function dataClassificationImpl(deps: Deps, args: DataClassificationArgs): CommandResult {
@@ -742,7 +742,7 @@ export const dataClassificationCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface CredentialBoundaryArgs {
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function credentialBoundaryImpl(deps: Deps, args: CredentialBoundaryArgs): CommandResult {
@@ -780,8 +780,8 @@ export const credentialBoundaryCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface VendorRiskArgs {
-  action?: string;
-  json?: boolean;
+  action?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function vendorRiskImpl(deps: Deps, args: VendorRiskArgs): CommandResult {
@@ -828,10 +828,10 @@ export const vendorRiskCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface OpsOwnershipArgs {
-  action?: string;
-  service?: string;
-  owner?: string;
-  json?: boolean;
+  action?: string | undefined;
+  service?: string | undefined;
+  owner?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function opsOwnershipImpl(deps: Deps, args: OpsOwnershipArgs): CommandResult {
@@ -900,7 +900,7 @@ export const opsOwnershipCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface GovernanceDashboardArgs {
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function governanceDashboardImpl(deps: Deps, args: GovernanceDashboardArgs): CommandResult {
@@ -932,10 +932,10 @@ export const governanceDashboardCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface IncidentFeedbackArgs {
-  action?: string;
-  title?: string;
-  severity?: string;
-  json?: boolean;
+  action?: string | undefined;
+  title?: string | undefined;
+  severity?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function incidentFeedbackImpl(deps: Deps, args: IncidentFeedbackArgs): CommandResult {
@@ -997,10 +997,10 @@ export const incidentFeedbackCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface WorkstreamOwnershipArgs {
-  action?: string;
-  name?: string;
-  team?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  team?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function workstreamOwnershipImpl(deps: Deps, args: WorkstreamOwnershipArgs): CommandResult {
@@ -1061,9 +1061,9 @@ export const workstreamOwnershipCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface AiEvaluationArgs {
-  action?: string;
-  name?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function aiEvaluationImpl(deps: Deps, args: AiEvaluationArgs): CommandResult {

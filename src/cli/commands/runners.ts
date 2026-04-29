@@ -74,11 +74,11 @@ export const verifyCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface HolodeckArgs {
-  scenario?: string;
-  all?: boolean;
-  output?: string;
-  verbose?: boolean;
-  verifySubagents?: boolean;
+  scenario?: string | undefined;
+  all?: boolean | undefined;
+  output?: string | undefined;
+  verbose?: boolean | undefined;
+  verifySubagents?: boolean | undefined;
 }
 
 export async function holodeckImpl(deps: Deps, args: HolodeckArgs): Promise<CommandResult> {
@@ -149,16 +149,16 @@ export const holodeckCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface HeadlessArgs {
-  agent?: string;
-  persona?: string;
-  model?: string;
-  proxyModel?: string;
-  scenario?: string;
-  output?: string;
-  mock?: boolean;
-  dryRun?: boolean;
-  verbose?: boolean;
-  maxTurns?: string;
+  agent?: string | undefined;
+  persona?: string | undefined;
+  model?: string | undefined;
+  proxyModel?: string | undefined;
+  scenario?: string | undefined;
+  output?: string | undefined;
+  mock?: boolean | undefined;
+  dryRun?: boolean | undefined;
+  verbose?: boolean | undefined;
+  maxTurns?: string | undefined;
 }
 
 export async function headlessImpl(deps: Deps, args: HeadlessArgs): Promise<CommandResult> {
@@ -249,13 +249,13 @@ export const headlessCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface SmokeArgs {
-  root?: string;
-  buildCommand?: string;
-  startCommand?: string;
-  healthUrl?: string;
-  healthTimeout?: string;
-  skipHealthCheck?: boolean;
-  json?: boolean;
+  root?: string | undefined;
+  buildCommand?: string | undefined;
+  startCommand?: string | undefined;
+  healthUrl?: string | undefined;
+  healthTimeout?: string | undefined;
+  skipHealthCheck?: boolean | undefined;
+  json?: boolean | undefined;
 }
 
 export async function smokeImpl(deps: Deps, args: SmokeArgs): Promise<CommandResult> {
@@ -335,9 +335,9 @@ export const smokeCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface RegressionArgs {
-  mastersDir?: string;
-  threshold?: string;
-  json?: boolean;
+  mastersDir?: string | undefined;
+  threshold?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export async function regressionImpl(deps: Deps, args: RegressionArgs): Promise<CommandResult> {
@@ -427,7 +427,7 @@ const TEST_FLAG_TARGETS: Record<string, string[]> = {
 };
 
 export interface TestArgs {
-  flag?: string;
+  flag?: string | undefined;
 }
 
 export function testImpl(deps: Deps, args: TestArgs): CommandResult {

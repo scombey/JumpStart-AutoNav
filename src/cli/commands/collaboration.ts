@@ -70,9 +70,9 @@ import { assertUserPath } from './_helpers.js';
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface AiIntakeArgs {
-  action?: string;
-  name?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function aiIntakeImpl(deps: Deps, args: AiIntakeArgs): CommandResult {
@@ -132,9 +132,9 @@ export const aiIntakeCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface BacklogSyncArgs {
-  action?: string;
-  target?: string;
-  json?: boolean;
+  action?: string | undefined;
+  target?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function backlogSyncImpl(deps: Deps, args: BacklogSyncArgs): CommandResult {
@@ -207,10 +207,10 @@ export const backlogSyncCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface BcdrPlanningArgs {
-  action?: string;
-  name?: string;
-  tier?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  tier?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function bcdrPlanningImpl(deps: Deps, args: BcdrPlanningArgs): CommandResult {
@@ -283,10 +283,10 @@ export const bcdrPlanningCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface BranchWorkflowArgs {
-  action?: string;
-  branch?: string;
-  pr?: string;
-  json?: boolean;
+  action?: string | undefined;
+  branch?: string | undefined;
+  pr?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function branchWorkflowImpl(deps: Deps, args: BranchWorkflowArgs): CommandResult {
@@ -363,7 +363,7 @@ export const branchWorkflowCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface CabOutputArgs {
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function cabOutputImpl(deps: Deps, args: CabOutputArgs): CommandResult {
@@ -394,10 +394,10 @@ export const cabOutputCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ChatIntegrationArgs {
-  action?: string;
-  arg1?: string;
-  arg2?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg1?: string | undefined;
+  arg2?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function chatIntegrationImpl(deps: Deps, args: ChatIntegrationArgs): CommandResult {
@@ -472,9 +472,9 @@ export const chatIntegrationCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface CiCdIntegrationArgs {
-  action?: string;
-  platform?: string;
-  json?: boolean;
+  action?: string | undefined;
+  platform?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function ciCdIntegrationImpl(deps: Deps, args: CiCdIntegrationArgs): CommandResult {
@@ -542,9 +542,9 @@ export const ciCdIntegrationCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface CollaborationArgs {
-  action?: string;
-  name?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function collaborationImpl(deps: Deps, args: CollaborationArgs): CommandResult {
@@ -600,8 +600,8 @@ export const collaborationCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ContextOnboardingArgs {
-  role?: string;
-  json?: boolean;
+  role?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function contextOnboardingImpl(deps: Deps, args: ContextOnboardingArgs): CommandResult {
@@ -648,9 +648,9 @@ export const contextOnboardingCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DataContractsArgs {
-  action?: string;
-  name?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function dataContractsImpl(deps: Deps, args: DataContractsArgs): CommandResult {
@@ -708,7 +708,7 @@ export const dataContractsCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DbEvolutionArgs {
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function dbEvolutionImpl(deps: Deps, args: DbEvolutionArgs): CommandResult {
@@ -738,7 +738,7 @@ export const dbEvolutionCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DecisionConflictsArgs {
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function decisionConflictsImpl(deps: Deps, args: DecisionConflictsArgs): CommandResult {
@@ -779,9 +779,9 @@ export const decisionConflictsCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DeliveryConfidenceArgs {
-  action?: string;
-  file?: string;
-  json?: boolean;
+  action?: string | undefined;
+  file?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function deliveryConfidenceImpl(deps: Deps, args: DeliveryConfidenceArgs): CommandResult {
@@ -854,8 +854,8 @@ export const deliveryConfidenceCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DependencyUpgradeArgs {
-  action?: string;
-  json?: boolean;
+  action?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function dependencyUpgradeImpl(deps: Deps, args: DependencyUpgradeArgs): CommandResult {
@@ -901,8 +901,8 @@ export const dependencyUpgradeCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DesignSystemArgs {
-  action?: string;
-  json?: boolean;
+  action?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function designSystemImpl(deps: Deps, args: DesignSystemArgs): CommandResult {
@@ -954,9 +954,9 @@ export const designSystemCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DiagramStudioArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function diagramStudioImpl(deps: Deps, args: DiagramStudioArgs): CommandResult {
@@ -1031,9 +1031,9 @@ export const diagramStudioCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ElicitationArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function elicitationImpl(deps: Deps, args: ElicitationArgs): CommandResult {
@@ -1103,10 +1103,10 @@ export const elicitationCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface EstimationStudioArgs {
-  action?: string;
-  name?: string;
-  size?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  size?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function estimationStudioImpl(deps: Deps, args: EstimationStudioArgs): CommandResult {
@@ -1171,9 +1171,9 @@ export const estimationStudioCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface PlaybackSummariesArgs {
-  action?: string;
-  audience?: string;
-  json?: boolean;
+  action?: string | undefined;
+  audience?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function playbackSummariesImpl(deps: Deps, args: PlaybackSummariesArgs): CommandResult {

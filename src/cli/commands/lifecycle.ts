@@ -57,9 +57,9 @@ import { asRest, assertUserPath, legacyRequire, parseFlag, safeJoin } from './_h
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ApproveArgs {
-  path?: string;
-  approver?: string;
-  json?: boolean;
+  path?: string | undefined;
+  approver?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function approveImpl(deps: Deps, args: ApproveArgs): CommandResult {
@@ -114,9 +114,9 @@ export const approveCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface RejectArgs {
-  path?: string;
-  reason?: string;
-  json?: boolean;
+  path?: string | undefined;
+  reason?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function rejectImpl(deps: Deps, args: RejectArgs): CommandResult {
@@ -171,8 +171,8 @@ export const rejectCommand = defineCommand({
 
 export interface CheckpointArgs {
   action: string;
-  arg?: string;
-  json?: boolean;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function checkpointImpl(deps: Deps, args: CheckpointArgs): CommandResult {
@@ -260,9 +260,9 @@ export const checkpointCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface AgentCheckpointArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 interface AgentCheckpointLib {
@@ -363,10 +363,10 @@ export const agentCheckpointCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface FocusArgs {
-  action?: string;
-  preset?: string;
-  start?: string;
-  end?: string;
+  action?: string | undefined;
+  preset?: string | undefined;
+  start?: string | undefined;
+  end?: string | undefined;
 }
 
 export function focusImpl(deps: Deps, args: FocusArgs): CommandResult {
@@ -461,9 +461,9 @@ export const focusCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface InitArgs {
-  skillLevel?: string;
-  type?: string;
-  json?: boolean;
+  skillLevel?: string | undefined;
+  type?: string | undefined;
+  json?: boolean | undefined;
 }
 
 interface InitLib {
@@ -523,10 +523,10 @@ export const initCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface LockArgs {
-  action?: string;
-  file?: string;
-  agent?: string;
-  json?: boolean;
+  action?: string | undefined;
+  file?: string | undefined;
+  agent?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function lockImpl(deps: Deps, args: LockArgs): CommandResult {
@@ -628,10 +628,10 @@ export const lockCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface MemoryArgs {
-  action?: string;
-  arg?: string;
+  action?: string | undefined;
+  arg?: string | undefined;
   rest: string[];
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 interface MemoryLib {
@@ -649,7 +649,7 @@ interface MemoryLib {
   ) => {
     success: boolean;
     entry?: { id: string; title: string; type: string; created_at: string; content: string };
-    error?: string;
+    error?: string | undefined;
   };
   listMemories: (
     filter: Record<string, unknown>,
@@ -753,9 +753,9 @@ export const memoryCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface RewindArgs {
-  phase?: string;
-  reason?: string;
-  json?: boolean;
+  phase?: string | undefined;
+  reason?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function rewindImpl(deps: Deps, args: RewindArgs): CommandResult {
@@ -819,10 +819,10 @@ export const nextCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface PlanExecutorArgs {
-  action?: string;
-  arg?: string;
-  status?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  status?: string | undefined;
+  json?: boolean | undefined;
 }
 
 interface PlanExecutorLib {
@@ -831,9 +831,9 @@ interface PlanExecutorLib {
     opts: { stateFile: string }
   ) => {
     success: boolean;
-    total_jobs?: number;
-    milestones?: string[];
-    error?: string;
+    total_jobs?: number | undefined;
+    milestones?: string[] | undefined;
+    error?: string | undefined;
   };
   updateJobStatus: (
     jobId: string,
@@ -848,8 +848,8 @@ interface PlanExecutorLib {
   resetExecution: (opts: { stateFile: string }) => { jobs_reset: number };
   getExecutionStatus: (opts: { stateFile: string }) => {
     initialized: boolean;
-    progress?: number;
-    total_jobs?: number;
+    progress?: number | undefined;
+    total_jobs?: number | undefined;
     status_counts?: { completed: number; in_progress: number; pending: number };
     next_tasks?: { id: string; title: string }[];
   };

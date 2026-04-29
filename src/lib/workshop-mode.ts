@@ -62,45 +62,45 @@ export interface WorkshopState {
 }
 
 export interface StartSessionOptions {
-  stateFile?: string;
-  type?: string;
+  stateFile?: string | undefined;
+  type?: string | undefined;
   facilitator?: string | null;
-  participants?: string[];
+  participants?: string[] | undefined;
 }
 
 export interface StartSessionResult {
   success: boolean;
   session?: WorkshopSession;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface CaptureOptions {
-  stateFile?: string;
-  category?: string;
-  author?: string;
+  stateFile?: string | undefined;
+  category?: string | undefined;
+  author?: string | undefined;
 }
 
 export interface CaptureResult {
   success: boolean;
   capture?: WorkshopCapture;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ConvertArtifactOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface ConvertArtifactResult {
   success: boolean;
-  artifact_type?: string;
-  session_name?: string;
+  artifact_type?: string | undefined;
+  session_name?: string | undefined;
   sections?: Record<string, string[]>;
-  captures_used?: number;
-  error?: string;
+  captures_used?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface SessionStatusOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface SessionStatusEntry {

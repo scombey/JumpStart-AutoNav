@@ -48,10 +48,10 @@ function maybeJson(_deps: Deps, json: boolean | undefined, result: unknown): voi
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface AdrArgs {
-  action?: string;
-  query?: string;
-  tag?: string;
-  json?: boolean;
+  action?: string | undefined;
+  query?: string | undefined;
+  tag?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export async function adrImpl(deps: Deps, args: AdrArgs): Promise<CommandResult> {
@@ -96,9 +96,9 @@ export const adrCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface AiEvaluationArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function aiEvaluationImpl(deps: Deps, args: AiEvaluationArgs): CommandResult {
@@ -144,10 +144,10 @@ export const aiEvaluationCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ArtifactComparisonArgs {
-  action?: string;
-  a?: string;
-  b?: string;
-  json?: boolean;
+  action?: string | undefined;
+  a?: string | undefined;
+  b?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function artifactComparisonImpl(deps: Deps, args: ArtifactComparisonArgs): CommandResult {
@@ -194,9 +194,9 @@ export const artifactComparisonCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface BacklogSyncArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function backlogSyncImpl(deps: Deps, args: BacklogSyncArgs): CommandResult {
@@ -236,10 +236,10 @@ export const backlogSyncCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface BranchWorkflowArgs {
-  action?: string;
-  branch?: string;
-  pr?: string;
-  json?: boolean;
+  action?: string | undefined;
+  branch?: string | undefined;
+  pr?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function branchWorkflowImpl(deps: Deps, args: BranchWorkflowArgs): CommandResult {
@@ -293,9 +293,9 @@ interface ThinWrapperConfig {
 }
 
 interface ThinWrapperArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 /** Build a (Impl, Command) pair for the typical `thin wrapper`-shaped command:
@@ -343,7 +343,11 @@ function thinWrapper(cfg: ThinWrapperConfig): {
       arg: { type: 'positional', required: false, description: 'optional argument' },
       json: { type: 'boolean', required: false, description: 'JSON output' },
     },
-    run({ args }: { args: { action?: string; arg?: string; json?: boolean } }) {
+    run({
+      args,
+    }: {
+      args: { action?: string | undefined; arg?: string | undefined; json?: boolean | undefined };
+    }) {
       const r = impl(createRealDeps(), {
         action: args.action,
         arg: args.arg,
@@ -905,9 +909,9 @@ export const workstreamOwnershipCommand = _workstream.command;
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface TimestampArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function timestampImpl(deps: Deps, args: TimestampArgs): CommandResult {
@@ -968,9 +972,9 @@ export const timestampCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface RevertArgs {
-  artifact?: string;
-  reason?: string;
-  json?: boolean;
+  artifact?: string | undefined;
+  reason?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export async function revertImpl(deps: Deps, args: RevertArgs): Promise<CommandResult> {

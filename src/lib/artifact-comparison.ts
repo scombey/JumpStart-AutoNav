@@ -35,14 +35,14 @@ export type CompareResult =
       lines_before: number;
       lines_after: number;
       line_diff: number;
-      file_a?: string;
-      file_b?: string;
+      file_a?: string | undefined;
+      file_b?: string | undefined;
     };
 
 export interface HistoryEntry {
   file: string;
   path: string;
-  current?: boolean;
+  current?: boolean | undefined;
 }
 
 export interface HistoryResult {

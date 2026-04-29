@@ -89,16 +89,16 @@ export type UserProxyCallback = (args: unknown) => Promise<unknown> | unknown;
 export interface ToolBridgeOptions {
   workspaceDir: string;
   tracer?: TracerLike | null;
-  dryRun?: boolean;
+  dryRun?: boolean | undefined;
   onUserProxyCall?: UserProxyCallback | null;
   timeline?: TimelineLike | null;
 }
 
 export interface ToolCall {
-  id?: string;
+  id?: string | undefined;
   function: {
     name: string;
-    arguments?: string;
+    arguments?: string | undefined;
   };
 }
 

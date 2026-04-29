@@ -59,13 +59,13 @@ export interface DependencyEntry {
 }
 
 export interface DepInput {
-  name?: string;
-  version?: string;
-  license?: string;
-  last_publish?: string;
-  weekly_downloads?: number;
-  known_vulnerabilities?: boolean;
-  has_lockfile?: boolean;
+  name?: string | undefined;
+  version?: string | undefined;
+  license?: string | undefined;
+  last_publish?: string | undefined;
+  weekly_downloads?: number | undefined;
+  known_vulnerabilities?: boolean | undefined;
+  has_lockfile?: boolean | undefined;
 }
 
 export interface VendorAssessment {
@@ -87,15 +87,15 @@ export interface VendorRiskState {
 }
 
 export interface ScanOptions {
-  includeDevDeps?: boolean;
+  includeDevDeps?: boolean | undefined;
 }
 
 export interface AssessOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface ReportOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface ScanResult {
@@ -107,7 +107,7 @@ export interface ScanResult {
 export interface AssessResult {
   success: boolean;
   assessment?: VendorAssessment;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface VendorReport {

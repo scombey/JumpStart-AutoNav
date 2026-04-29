@@ -52,11 +52,11 @@ export interface GenerateOptions {
 
 export interface GenerateResult {
   success: boolean;
-  platform?: string;
-  format?: string;
+  platform?: string | undefined;
+  format?: string | undefined;
   content?: Record<string, unknown>;
-  path?: string;
-  error?: string;
+  path?: string | undefined;
+  error?: string | undefined;
 }
 
 export interface ValidateResult {
@@ -82,7 +82,7 @@ export interface StatusResult {
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 const DEFAULT_STATE_FILE = join('.jumpstart', 'state', 'ci-cd-integration.json');

@@ -41,7 +41,7 @@ export type TaskType =
 export interface RouteEntry {
   model: string;
   reason: string;
-  configured_at?: string;
+  configured_at?: string | undefined;
 }
 
 export interface ModelRouterConfig {
@@ -49,25 +49,25 @@ export interface ModelRouterConfig {
 }
 
 export interface RouteOptions {
-  configFile?: string;
-  reason?: string;
+  configFile?: string | undefined;
+  reason?: string | undefined;
 }
 
 export interface RouteTaskResult {
   success: boolean;
   task_type?: TaskType;
-  model?: string;
-  reason?: string;
-  overridden?: boolean;
-  error?: string;
+  model?: string | undefined;
+  reason?: string | undefined;
+  overridden?: boolean | undefined;
+  error?: string | undefined;
 }
 
 export interface ConfigureRouteResult {
   success: boolean;
   task_type?: TaskType;
-  model?: string;
+  model?: string | undefined;
   routing?: Partial<Record<TaskType, RouteEntry>>;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ModelRouterReport {

@@ -35,11 +35,11 @@ export interface DiagramOptions {
 
 export interface GenerateResult {
   success: boolean;
-  type?: string;
-  content?: string;
-  editable?: boolean;
-  generated_at?: string;
-  error?: string;
+  type?: string | undefined;
+  content?: string | undefined;
+  editable?: boolean | undefined;
+  generated_at?: string | undefined;
+  error?: string | undefined;
 }
 
 export interface ValidationIssue {
@@ -49,19 +49,19 @@ export interface ValidationIssue {
 
 export interface ValidateResult {
   success: boolean;
-  valid?: boolean;
+  valid?: boolean | undefined;
   issues?: ValidationIssue[];
-  diagram_type?: string;
-  error?: string;
+  diagram_type?: string | undefined;
+  error?: string | undefined;
 }
 
 export interface CompareResult {
   success: boolean;
-  added?: string[];
-  removed?: string[];
-  unchanged?: string[];
-  has_changes?: boolean;
-  error?: string;
+  added?: string[] | undefined;
+  removed?: string[] | undefined;
+  unchanged?: string[] | undefined;
+  has_changes?: boolean | undefined;
+  error?: string | undefined;
 }
 
 export interface ListResult {

@@ -34,7 +34,7 @@ export interface WizardStepDefinition {
   id: string;
   prompt: string;
   type: 'text' | 'select';
-  options?: string[];
+  options?: string[] | undefined;
 }
 
 export interface WizardStep extends WizardStepDefinition {
@@ -57,30 +57,30 @@ export interface PromptlessState {
 }
 
 export interface StartWizardOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface StartWizardResult {
   success: boolean;
   session?: WizardSession;
   next_step?: WizardStep | null;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface AnswerStepOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface AnswerStepResult {
   success: boolean;
-  complete?: boolean;
+  complete?: boolean | undefined;
   next_step?: WizardStep | null;
   answers?: Record<string, string | null>;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface WizardStatusOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface WizardStatusEntry {

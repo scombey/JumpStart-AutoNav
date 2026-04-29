@@ -80,8 +80,8 @@ export interface SyncState {
 }
 
 export interface ExtractOptions {
-  prdPath?: string;
-  planPath?: string;
+  prdPath?: string | undefined;
+  planPath?: string | undefined;
 }
 
 export interface ExtractResult {
@@ -93,39 +93,39 @@ export interface ExtractResult {
 }
 
 export interface FormattedItem {
-  type?: string;
-  title?: string;
-  labels?: string[];
-  body?: string;
-  issueType?: string;
-  summary?: string;
-  epicLink?: string;
+  type?: string | undefined;
+  title?: string | undefined;
+  labels?: string[] | undefined;
+  body?: string | undefined;
+  issueType?: string | undefined;
+  summary?: string | undefined;
+  epicLink?: string | undefined;
   customFields?: Record<string, unknown>;
-  workItemType?: string;
-  tags?: string;
-  parentId?: string;
+  workItemType?: string | undefined;
+  tags?: string | undefined;
+  parentId?: string | undefined;
   fields?: Record<string, unknown>;
 }
 
 export interface FormatResult {
   success: boolean;
-  target?: string;
-  total_items?: number;
+  target?: string | undefined;
+  total_items?: number | undefined;
   items?: FormattedItem[];
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ExportOptions extends ExtractOptions {
-  output?: string;
-  syncFile?: string;
+  output?: string | undefined;
+  syncFile?: string | undefined;
 }
 
 export interface ExportResult {
   success: boolean;
-  target?: string;
-  items_exported?: number;
-  output?: string;
-  error?: string;
+  target?: string | undefined;
+  items_exported?: number | undefined;
+  output?: string | undefined;
+  error?: string | undefined;
 }
 
 const DEFAULT_SYNC_FILE = join('.jumpstart', 'state', 'backlog-sync.json');

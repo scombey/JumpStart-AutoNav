@@ -55,20 +55,20 @@ import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 export interface InstallArgs {
   /** Either a fully-qualified id like `skill.ignition`, OR the
    *  category half of a `<type> <name>` invocation. */
-  itemId?: string;
+  itemId?: string | undefined;
   /** Optional second positional — when present, combines with `itemId`
    *  to form `<itemId>.<name>` per `normalizeItemId`. */
-  name?: string;
+  name?: string | undefined;
   /** `--registry <url>` override. The lib-ts callee runs the URL
    *  through its internal `validateMarketplaceUrl`, so we don't have
    *  to gate it here. */
-  registry?: string;
+  registry?: string | undefined;
   /** `--search <query>` switches the command into search mode. */
-  search?: string;
+  search?: string | undefined;
   /** `--dry-run` — preview without writing. */
-  dryRun?: boolean;
+  dryRun?: boolean | undefined;
   /** `--force` — re-install even if already present. */
-  force?: boolean;
+  force?: boolean | undefined;
 }
 
 export async function installImpl(deps: Deps, args: InstallArgs): Promise<CommandResult> {
@@ -195,8 +195,8 @@ export const installCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface UninstallArgs {
-  itemId?: string;
-  name?: string;
+  itemId?: string | undefined;
+  name?: string | undefined;
 }
 
 export function uninstallImpl(deps: Deps, args: UninstallArgs): CommandResult {
@@ -279,8 +279,8 @@ export const statusCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface IntegrateArgs {
-  clean?: boolean;
-  status?: boolean;
+  clean?: boolean | undefined;
+  status?: boolean | undefined;
 }
 
 export function integrateImpl(deps: Deps, args: IntegrateArgs): CommandResult {
@@ -349,9 +349,9 @@ export const integrateCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface UpdateArgs {
-  itemId?: string;
-  name?: string;
-  registry?: string;
+  itemId?: string | undefined;
+  name?: string | undefined;
+  registry?: string | undefined;
 }
 
 export async function updateImpl(deps: Deps, args: UpdateArgs): Promise<CommandResult> {
@@ -420,9 +420,9 @@ export const updateCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface UpgradeArgs {
-  dryRun?: boolean;
-  yes?: boolean;
-  doRestore?: boolean;
+  dryRun?: boolean | undefined;
+  yes?: boolean | undefined;
+  doRestore?: boolean | undefined;
 }
 
 /** Confirmation hook — uses the legacy `prompts` package for parity
@@ -438,7 +438,7 @@ async function defaultConfirm(message: string): Promise<boolean> {
       type: string;
       name: string;
       message: string;
-      initial?: boolean;
+      initial?: boolean | undefined;
     }) => Promise<{ confirmed?: boolean }>;
     const { confirmed } = await prompts({
       type: 'confirm',

@@ -59,36 +59,36 @@ export interface WaiverState {
 }
 
 export interface WaiverRequest {
-  title?: string;
-  category?: string;
-  justification?: string;
-  owner?: string;
-  expires_in_days?: number;
-  conditions?: string[];
-  affected_artifacts?: string[];
+  title?: string | undefined;
+  category?: string | undefined;
+  justification?: string | undefined;
+  owner?: string | undefined;
+  expires_in_days?: number | undefined;
+  conditions?: string[] | undefined;
+  affected_artifacts?: string[] | undefined;
 }
 
 export interface WaiverFilter {
-  status?: string;
-  category?: string;
-  owner?: string;
+  status?: string | undefined;
+  category?: string | undefined;
+  owner?: string | undefined;
 }
 
 export interface StateOptions {
-  stateFile?: string;
-  approver?: string;
+  stateFile?: string | undefined;
+  approver?: string | undefined;
 }
 
 export interface RequestResult {
   success: boolean;
   waiver?: Waiver;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ResolveResult {
   success: boolean;
   waiver?: Waiver;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ExpireResult {

@@ -32,8 +32,8 @@ export interface AssetVersion {
   content: string;
   approved: boolean;
   created_at: string;
-  approved_at?: string;
-  approved_by?: string;
+  approved_at?: string | undefined;
+  approved_by?: string | undefined;
 }
 
 export interface Asset {
@@ -52,42 +52,42 @@ export interface PromptGovernanceState {
 }
 
 export interface RegisterOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface AddVersionOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface ApproveOptions {
-  stateFile?: string;
-  approver?: string;
+  stateFile?: string | undefined;
+  approver?: string | undefined;
 }
 
 export interface ListAssetsOptions {
-  stateFile?: string;
-  type?: string;
+  stateFile?: string | undefined;
+  type?: string | undefined;
 }
 
 export interface RegisterResult {
   success: boolean;
   asset?: { id: string; name: string; type: string; version: string };
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface AddVersionResult {
   success: boolean;
-  asset_id?: string;
-  version?: string;
-  error?: string;
+  asset_id?: string | undefined;
+  version?: string | undefined;
+  error?: string | undefined;
 }
 
 export interface ApproveResult {
   success: boolean;
-  asset_id?: string;
-  version?: string;
-  approved?: boolean;
-  error?: string;
+  asset_id?: string | undefined;
+  version?: string | undefined;
+  approved?: boolean | undefined;
+  error?: string | undefined;
 }
 
 export interface ListedAsset {

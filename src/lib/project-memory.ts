@@ -45,10 +45,10 @@ export interface MemoryEntry {
 }
 
 export interface MemoryEntryInput {
-  type?: string;
-  title?: string;
-  content?: string;
-  tags?: string[];
+  type?: string | undefined;
+  title?: string | undefined;
+  content?: string | undefined;
+  tags?: string[] | undefined;
   author?: string | null;
   phase?: number | string | null;
 }
@@ -61,19 +61,19 @@ export interface MemoryStore {
 }
 
 export interface MemoryFileOptions {
-  memoryFile?: string;
+  memoryFile?: string | undefined;
 }
 
 export interface AddMemoryResult {
   success: boolean;
   entry?: MemoryEntry;
-  total?: number;
-  error?: string;
+  total?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface ListMemoriesFilter {
-  type?: string;
-  tag?: string;
+  type?: string | undefined;
+  tag?: string | undefined;
   phase?: number | string | null;
 }
 
@@ -85,23 +85,23 @@ export interface ListMemoriesResult {
 
 export interface SearchMemoriesResult {
   success: boolean;
-  keyword?: string;
+  keyword?: string | undefined;
   entries?: MemoryEntry[];
-  total?: number;
-  error?: string;
+  total?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface RecallMemoryResult {
   success: boolean;
   entry?: MemoryEntry;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface DeleteMemoryResult {
   success: boolean;
   removed?: MemoryEntry;
-  total?: number;
-  error?: string;
+  total?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface MemoryStats {

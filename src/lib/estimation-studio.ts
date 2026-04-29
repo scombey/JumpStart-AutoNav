@@ -55,7 +55,7 @@ export interface Estimate {
 
 export interface EstimationCalibration {
   velocity: number | null;
-  updated_at?: string;
+  updated_at?: string | undefined;
 }
 
 export interface EstimationState {
@@ -66,19 +66,19 @@ export interface EstimationState {
 }
 
 export interface EstimateOptions {
-  stateFile?: string;
-  confidence?: string;
-  dailyRate?: number;
+  stateFile?: string | undefined;
+  confidence?: string | undefined;
+  dailyRate?: number | undefined;
 }
 
 export interface EstimateResult {
   success: boolean;
   estimate?: Estimate;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ReportOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface ReportResult {

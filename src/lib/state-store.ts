@@ -88,22 +88,22 @@ export interface StateUpdates {
   agent?: string | null;
   step?: string | null;
   last_completed_step?: string | null;
-  active_artifacts?: string[];
-  approved_artifact?: string;
+  active_artifacts?: string[] | undefined;
+  approved_artifact?: string | undefined;
   resume_context?: ResumeContext;
 }
 
 export interface SyncPhaseOptions {
-  root?: string;
-  statePath?: string;
-  configPath?: string;
+  root?: string | undefined;
+  statePath?: string | undefined;
+  configPath?: string | undefined;
   agent?: string | null;
 }
 
 export interface CheckpointOptions {
-  statePath?: string;
-  specsDir?: string;
-  maxCheckpoints?: number;
+  statePath?: string | undefined;
+  specsDir?: string | undefined;
+  maxCheckpoints?: number | undefined;
 }
 
 export interface TimelineHook {

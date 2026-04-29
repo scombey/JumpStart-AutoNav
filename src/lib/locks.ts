@@ -60,8 +60,8 @@ export type Lock =
 export interface LockResult {
   success: boolean;
   lock?: Lock;
-  error?: string;
-  message?: string;
+  error?: string | undefined;
+  message?: string | undefined;
 }
 
 /** Result of `lockStatus`. */
@@ -69,7 +69,7 @@ export interface LockStatusResult {
   locked: boolean;
   file: string;
   lock?: Lock;
-  error?: string;
+  error?: string | undefined;
 }
 
 /** Result of `listLocks`. */

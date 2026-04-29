@@ -44,7 +44,7 @@ export interface QuestionBankEntry {
 export interface ElicitationQuestion extends QuestionBankEntry {
   answered: boolean;
   answer: string | null;
-  answered_at?: string;
+  answered_at?: string | undefined;
 }
 
 export interface ElicitationSession {
@@ -62,39 +62,39 @@ export interface ElicitationState {
 }
 
 export interface StateFileOption {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface StartResult {
   success: boolean;
   session?: ElicitationSession;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface AnswerResult {
   success: boolean;
   question?: ElicitationQuestion;
-  remaining?: number;
-  error?: string;
+  remaining?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface NextResult {
   success: boolean;
-  complete?: boolean;
+  complete?: boolean | undefined;
   question?: ElicitationQuestion | null;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ReportResult {
   success: boolean;
-  domain?: string;
-  total_questions?: number;
-  answered?: number;
-  unanswered?: number;
-  completion_pct?: number;
+  domain?: string | undefined;
+  total_questions?: number | undefined;
+  answered?: number | undefined;
+  unanswered?: number | undefined;
+  completion_pct?: number | undefined;
   by_category?: Record<string, Array<{ question: string; answer: string | null }>>;
-  gaps?: string[];
-  error?: string;
+  gaps?: string[] | undefined;
+  error?: string | undefined;
 }
 
 const DEFAULT_STATE_FILE = join('.jumpstart', 'state', 'elicitation.json');

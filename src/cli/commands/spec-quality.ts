@@ -54,9 +54,9 @@ import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface AmbiguityHeatmapArgs {
-  action?: string;
-  file?: string;
-  json?: boolean;
+  action?: string | undefined;
+  file?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function ambiguityHeatmapImpl(deps: Deps, args: AmbiguityHeatmapArgs): CommandResult {
@@ -122,8 +122,8 @@ export const ambiguityHeatmapCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ComplexityArgs {
-  description?: string;
-  json?: boolean;
+  description?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function complexityImpl(deps: Deps, args: ComplexityArgs): CommandResult {
@@ -168,7 +168,7 @@ export const complexityCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ContextChunkerArgs {
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function contextChunkerImpl(deps: Deps, args: ContextChunkerArgs): CommandResult {
@@ -210,8 +210,8 @@ export const contextChunkerCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface CrossrefArgs {
-  specsDir?: string;
-  json?: boolean;
+  specsDir?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function crossrefImpl(deps: Deps, args: CrossrefArgs): CommandResult {
@@ -265,9 +265,9 @@ export const crossrefCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface AstEditArgs {
-  action?: string;
-  file?: string;
-  json?: boolean;
+  action?: string | undefined;
+  file?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function astEditImpl(deps: Deps, args: AstEditArgs): CommandResult {
@@ -314,7 +314,7 @@ export const astEditCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DashboardArgs {
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export async function dashboardImpl(deps: Deps, args: DashboardArgs): Promise<CommandResult> {
@@ -343,9 +343,9 @@ export const dashboardCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface CeremonyArgs {
-  action?: string;
-  arg?: string;
-  arg2?: string;
+  action?: string | undefined;
+  arg?: string | undefined;
+  arg2?: string | undefined;
 }
 
 export function ceremonyImpl(deps: Deps, args: CeremonyArgs): CommandResult {
@@ -411,7 +411,7 @@ export const ceremonyCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface RefactorPlannerArgs {
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function refactorPlannerImpl(deps: Deps, args: RefactorPlannerArgs): CommandResult {
@@ -446,7 +446,7 @@ export const refactorPlannerCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface QualityGraphArgs {
-  json?: boolean;
+  json?: boolean | undefined;
 }
 
 export function qualityGraphImpl(deps: Deps, args: QualityGraphArgs): CommandResult {
@@ -489,8 +489,8 @@ export const qualityGraphCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface BidirectionalTraceArgs {
-  action?: string;
-  json?: boolean;
+  action?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function bidirectionalTraceImpl(deps: Deps, args: BidirectionalTraceArgs): CommandResult {
@@ -550,11 +550,11 @@ export const bidirectionalTraceCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DomainOntologyArgs {
-  action?: string;
-  domain?: string;
-  name?: string;
-  type?: string;
-  json?: boolean;
+  action?: string | undefined;
+  domain?: string | undefined;
+  name?: string | undefined;
+  type?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function domainOntologyImpl(deps: Deps, args: DomainOntologyArgs): CommandResult {
@@ -632,10 +632,10 @@ export const domainOntologyCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface EventModelingArgs {
-  action?: string;
-  name?: string;
-  type?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  type?: string | undefined;
+  json?: boolean | undefined;
 }
 
 interface EventModelingLib {

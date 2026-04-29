@@ -238,12 +238,12 @@ export function parseSkillFrontmatter(content: string): SkillFrontmatter {
 // ─────────────────────────────────────────────────────────────────────────
 
 interface InstalledItemMetadata {
-  displayName?: string;
-  keywords?: string[];
-  version?: string;
-  type?: string;
-  remappedFiles?: string[];
-  installedAt?: string;
+  displayName?: string | undefined;
+  keywords?: string[] | undefined;
+  version?: string | undefined;
+  type?: string | undefined;
+  remappedFiles?: string[] | undefined;
+  installedAt?: string | undefined;
 }
 
 interface InstalledManifest {

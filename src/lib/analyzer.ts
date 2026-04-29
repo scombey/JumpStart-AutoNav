@@ -39,8 +39,8 @@ import * as path from 'node:path';
 // Public types
 
 export interface AnalyzeInput {
-  specs_dir?: string;
-  root?: string;
+  specs_dir?: string | undefined;
+  root?: string | undefined;
 }
 
 export interface MissingCoverageEntry {

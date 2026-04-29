@@ -47,8 +47,8 @@ export type RefactorType =
   | 'upgrade';
 
 export interface PlanStepInput {
-  description?: string;
-  dependencies?: number[];
+  description?: string | undefined;
+  dependencies?: number[] | undefined;
   risk?: RiskLevel;
   rollback?: string | null;
 }
@@ -65,9 +65,9 @@ export interface PlanStep {
 export interface PlanInput {
   name: string;
   type: RefactorType;
-  description?: string;
+  description?: string | undefined;
   steps?: Array<PlanStepInput | string>;
-  affected_files?: string[];
+  affected_files?: string[] | undefined;
 }
 
 export interface RefactorPlan {
@@ -91,29 +91,29 @@ export interface RefactorPlanStore {
 }
 
 export interface PlannerFileOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface CreatePlanResult {
   success: boolean;
   plan?: RefactorPlan;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ValidationIssue {
   type: 'circular-dependency' | 'invalid-order';
-  steps?: number[];
-  step?: number;
-  depends_on?: number;
+  steps?: number[] | undefined;
+  step?: number | undefined;
+  depends_on?: number | undefined;
 }
 
 export interface ValidatePlanResult {
   success: boolean;
-  error?: string;
-  plan_id?: string;
-  valid?: boolean;
+  error?: string | undefined;
+  plan_id?: string | undefined;
+  valid?: boolean | undefined;
   issues?: ValidationIssue[];
-  total_steps?: number;
+  total_steps?: number | undefined;
   risk_level?: RiskLevel;
 }
 

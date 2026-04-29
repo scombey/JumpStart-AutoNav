@@ -26,7 +26,7 @@ import { join } from 'node:path';
 // Public types
 
 export interface Preset {
-  name?: string;
+  name?: string | undefined;
   description: string;
   start_phase: number;
   end_phase: number;
@@ -60,29 +60,29 @@ export interface FocusConfig {
 }
 
 export interface FocusBuildOptions {
-  preset?: string;
-  start_phase?: number;
-  end_phase?: number;
+  preset?: string | undefined;
+  start_phase?: number | undefined;
+  end_phase?: number | undefined;
 }
 
 export interface ValidationResult {
   valid: boolean;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface WriteResult {
   success: boolean;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface FocusStatus {
   active: boolean;
   message: string;
-  preset?: string;
-  start_phase?: number;
-  end_phase?: number;
-  description?: string;
-  role?: string;
+  preset?: string | undefined;
+  start_phase?: number | undefined;
+  end_phase?: number | undefined;
+  description?: string | undefined;
+  role?: string | undefined;
   phases?: PhaseEntry[];
 }
 

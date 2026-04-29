@@ -135,40 +135,40 @@ export interface IDEPaths {
 }
 
 export interface ItemDownload {
-  zip?: string;
-  checksumSha256?: string;
+  zip?: string | undefined;
+  checksumSha256?: string | undefined;
 }
 
 export interface ItemContains {
-  agents?: string[];
-  prompts?: string[];
+  agents?: string[] | undefined;
+  prompts?: string[] | undefined;
 }
 
 export interface ItemInstallSpec {
-  targetPaths?: string[];
+  targetPaths?: string[] | undefined;
 }
 
 export interface ItemCompatibility {
-  jumpstartMode?: string;
-  tools?: string[];
+  jumpstartMode?: string | undefined;
+  tools?: string[] | undefined;
 }
 
 export interface Item {
   id: string;
   type: string;
   version: string;
-  displayName?: string;
-  description?: string;
-  category?: string;
-  searchText?: string;
-  tags?: string[];
-  keywords?: string[];
+  displayName?: string | undefined;
+  description?: string | undefined;
+  category?: string | undefined;
+  searchText?: string | undefined;
+  tags?: string[] | undefined;
+  keywords?: string[] | undefined;
   download?: ItemDownload;
   install?: ItemInstallSpec;
   contains?: ItemContains;
   compatibility?: ItemCompatibility;
-  dependencies?: string[];
-  includes?: string[];
+  dependencies?: string[] | undefined;
+  includes?: string[] | undefined;
   // Allow registry items to carry forward-compatible fields.
   [key: string]: unknown;
 }
@@ -180,12 +180,12 @@ export interface RegistryIndex {
 
 export interface InstalledEntry {
   version: string;
-  displayName?: string;
-  type?: string;
+  displayName?: string | undefined;
+  type?: string | undefined;
   installedAt: string;
   targetPaths: string[];
   remappedFiles: string[];
-  keywords?: string[];
+  keywords?: string[] | undefined;
 }
 
 export interface InstalledData {
@@ -195,12 +195,12 @@ export interface InstalledData {
 export type ProgressFn = (msg: string) => void;
 
 export interface InstallOptions {
-  registryUrl?: string;
-  projectRoot?: string;
+  registryUrl?: string | undefined;
+  projectRoot?: string | undefined;
   index?: RegistryIndex;
-  force?: boolean;
-  dryRun?: boolean;
-  skipDeps?: boolean;
+  force?: boolean | undefined;
+  dryRun?: boolean | undefined;
+  skipDeps?: boolean | undefined;
   onProgress?: ProgressFn;
 }
 
@@ -209,10 +209,10 @@ export interface InstallResult {
   fileCount: number;
   item: Item;
   remappedFiles: string[];
-  ide?: string;
-  skipped?: boolean;
-  dryRun?: boolean;
-  dependenciesInstalled?: string[];
+  ide?: string | undefined;
+  skipped?: boolean | undefined;
+  dryRun?: boolean | undefined;
+  dependenciesInstalled?: string[] | undefined;
 }
 
 export interface BundleResult {
@@ -1283,7 +1283,7 @@ export function resolveTargetPaths(item: Item): string[] {
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ResolveDependenciesOptions {
-  force?: boolean;
+  force?: boolean | undefined;
 }
 
 /**

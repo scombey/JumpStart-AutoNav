@@ -84,13 +84,13 @@ export interface StartupOutcome {
 export interface SmokeConfig {
   build_command?: string | null;
   start_command?: string | null;
-  health_url?: string;
-  health_timeout?: number;
-  skip_health_check?: boolean;
+  health_url?: string | undefined;
+  health_timeout?: number | undefined;
+  skip_health_check?: boolean | undefined;
 }
 
 export interface SmokeInput {
-  root?: string;
+  root?: string | undefined;
   config?: SmokeConfig;
 }
 
@@ -106,7 +106,7 @@ export interface SmokeResult {
 interface ExecError extends Error {
   stdout?: Buffer | string;
   stderr?: Buffer | string;
-  status?: number;
+  status?: number | undefined;
 }
 
 interface PackageJsonShape {

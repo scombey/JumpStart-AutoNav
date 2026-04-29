@@ -122,11 +122,11 @@ export interface Manifest {
 /** Options for `generateManifest`. */
 export interface GenerateManifestOptions {
   /** Framework version to stamp on the manifest. Defaults to `'0.0.0'`. */
-  version?: string;
+  version?: string | undefined;
   /** Include all files under .jumpstart/, .github/, and top-level rather
    *  than filtering to framework-owned. Useful for snapshotting test
    *  fixtures. */
-  allFiles?: boolean;
+  allFiles?: boolean | undefined;
 }
 
 /** Result of `diffManifest`. */

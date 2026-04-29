@@ -34,7 +34,7 @@ export interface Decision {
   source: string;
   type: 'adr' | 'architecture' | 'prd';
   title: string;
-  status?: string;
+  status?: string | undefined;
   decision_text: string;
   technologies: string[];
   patterns: string[];
@@ -42,10 +42,10 @@ export interface Decision {
 
 export interface Conflict {
   type: ConflictType;
-  category?: string;
+  category?: string | undefined;
   description: string;
-  technologies?: string[];
-  patterns?: string[];
+  technologies?: string[] | undefined;
+  patterns?: string[] | undefined;
   sources: string[];
   severity: string;
 }
@@ -57,8 +57,8 @@ export interface DetectOptions {
 export interface DetectResult {
   success: boolean;
   conflicts: Conflict[];
-  message?: string;
-  total_decisions?: number;
+  message?: string | undefined;
+  total_decisions?: number | undefined;
   decisions_by_source?: {
     adr: number;
     architecture: number;

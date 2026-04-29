@@ -91,16 +91,16 @@ export interface ConfidenceLevel {
 
 export interface ScoreOptions {
   weights?: Partial<Record<Dimension, number>>;
-  root?: string;
-  artifactType?: string;
+  root?: string | undefined;
+  artifactType?: string | undefined;
   [key: string]: unknown;
 }
 
 export interface ScoreResult {
   success: boolean;
-  overall_score?: number;
-  confidence_level?: string;
-  confidence_emoji?: string;
+  overall_score?: number | undefined;
+  confidence_level?: string | undefined;
+  confidence_emoji?: string | undefined;
   dimensions?: {
     completeness: CompletenessResult;
     risk: RiskResult;
@@ -108,10 +108,10 @@ export interface ScoreResult {
     quality: QualityResult;
     enterprise_readiness: EnterpriseReadinessResult;
   };
-  top_gaps?: string[];
+  top_gaps?: string[] | undefined;
   weights_used?: Record<Dimension, number>;
-  file?: string;
-  error?: string;
+  file?: string | undefined;
+  error?: string | undefined;
 }
 
 export interface ProjectArtifactResult extends ScoreResult {
@@ -120,9 +120,9 @@ export interface ProjectArtifactResult extends ScoreResult {
 
 export interface ProjectScoreResult {
   success: boolean;
-  project_score?: number;
-  project_confidence?: string;
-  project_emoji?: string;
+  project_score?: number | undefined;
+  project_confidence?: string | undefined;
+  project_emoji?: string | undefined;
   artifacts?: ProjectArtifactResult[];
   summary?: {
     artifacts_scored: number;
@@ -130,7 +130,7 @@ export interface ProjectScoreResult {
     highest: string | null;
     lowest: string | null;
   };
-  error?: string;
+  error?: string | undefined;
 }
 
 export const DIMENSIONS: Dimension[] = [

@@ -35,7 +35,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 export interface CreateTagResult {
   success: boolean;
   tag: string;
-  error?: string;
+  error?: string | undefined;
 }
 
 /** A single entry returned by `listVersions`. */

@@ -50,16 +50,16 @@ export interface ModelConfig {
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant' | 'tool';
   content: string | null;
-  name?: string;
+  name?: string | undefined;
   tool_calls?: unknown[];
-  tool_call_id?: string;
+  tool_call_id?: string | undefined;
 }
 
 export interface ToolDefinition {
   type: 'function';
   function: {
     name: string;
-    description?: string;
+    description?: string | undefined;
     parameters?: Record<string, unknown>;
   };
 }
@@ -97,12 +97,12 @@ export interface UsageStats {
 }
 
 export interface ProviderOptions {
-  model?: string;
+  model?: string | undefined;
   mode?: 'live' | 'mock';
   mockResponses?: { getCompletionResponse?: (messages: ChatMessage[]) => string | null } | null;
-  reasoningEffort?: string;
-  baseURL?: string;
-  apiKey?: string;
+  reasoningEffort?: string | undefined;
+  baseURL?: string | undefined;
+  apiKey?: string | undefined;
 }
 
 export interface Provider {

@@ -45,9 +45,9 @@ import { legacyRequire, safeJoin } from './_helpers.js';
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface CostRouterArgs {
-  action?: string;
-  taskType?: string;
-  json?: boolean;
+  action?: string | undefined;
+  taskType?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function costRouterImpl(deps: Deps, args: CostRouterArgs): CommandResult {
@@ -95,9 +95,9 @@ export const costRouterCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ModelRouterArgs {
-  action?: string;
-  taskType?: string;
-  json?: boolean;
+  action?: string | undefined;
+  taskType?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function modelRouterImpl(deps: Deps, args: ModelRouterArgs): CommandResult {
@@ -158,10 +158,10 @@ export const modelRouterCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ModelGovernanceArgs {
-  action?: string;
-  name?: string;
-  provider?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  provider?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function modelGovernanceImpl(deps: Deps, args: ModelGovernanceArgs): CommandResult {
@@ -231,10 +231,10 @@ export const modelGovernanceCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface PromptGovernanceArgs {
-  action?: string;
-  arg1?: string;
-  arg2?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg1?: string | undefined;
+  arg2?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function promptGovernanceImpl(deps: Deps, args: PromptGovernanceArgs): CommandResult {
@@ -331,8 +331,8 @@ export const promptGovernanceCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface UsageArgs {
-  action?: string;
-  json?: boolean;
+  action?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function usageImpl(deps: Deps, args: UsageArgs): CommandResult {
@@ -371,9 +371,9 @@ export const usageCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface AiIntakeArgs {
-  action?: string;
-  name?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function aiIntakeImpl(deps: Deps, args: AiIntakeArgs): CommandResult {
@@ -434,8 +434,8 @@ export const aiIntakeCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface FinopsPlannerArgs {
-  action?: string;
-  json?: boolean;
+  action?: string | undefined;
+  json?: boolean | undefined;
 }
 
 interface FinopsPlannerLib {

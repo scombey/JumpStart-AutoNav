@@ -69,34 +69,34 @@ export interface UpgradeState {
 }
 
 export interface StateFileOption {
-  stateFile?: string;
+  stateFile?: string | undefined;
   [key: string]: unknown;
 }
 
 export interface ScanResult {
   success: boolean;
   dependencies?: DependencyCandidate[];
-  total?: number;
-  error?: string;
+  total?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface PlanInput {
-  name?: string;
+  name?: string | undefined;
   upgrades?: Array<{
-    package?: string;
-    name?: string;
-    from?: string;
-    current_version?: string;
-    to?: string;
-    target_version?: string;
-    type?: string;
+    package?: string | undefined;
+    name?: string | undefined;
+    from?: string | undefined;
+    current_version?: string | undefined;
+    to?: string | undefined;
+    target_version?: string | undefined;
+    type?: string | undefined;
   }>;
 }
 
 export interface CreatePlanResult {
   success: boolean;
   plan?: UpgradePlan;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ReportResult {

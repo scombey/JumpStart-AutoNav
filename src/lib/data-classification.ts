@@ -36,8 +36,8 @@ export interface HandlingRequirements {
   encryption_in_transit: boolean;
   access_logging: boolean;
   retention_policy: boolean;
-  mfa_required?: boolean;
-  data_masking?: boolean;
+  mfa_required?: boolean | undefined;
+  data_masking?: boolean | undefined;
 }
 
 export const HANDLING_REQUIREMENTS: Record<string, HandlingRequirements> = {
@@ -88,8 +88,8 @@ export interface DataAsset {
   handling: HandlingRequirements;
   description: string;
   classified_at: string;
-  encryption_at_rest_verified?: boolean;
-  encryption_in_transit_verified?: boolean;
+  encryption_at_rest_verified?: boolean | undefined;
+  encryption_in_transit_verified?: boolean | undefined;
 }
 
 export interface DataClassificationState {
@@ -101,21 +101,21 @@ export interface DataClassificationState {
 }
 
 export interface AssetInput {
-  name?: string;
-  type?: string;
-  data_types?: string[];
-  classification?: string;
-  description?: string;
+  name?: string | undefined;
+  type?: string | undefined;
+  data_types?: string[] | undefined;
+  classification?: string | undefined;
+  description?: string | undefined;
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface ClassifyResult {
   success: boolean;
   asset?: DataAsset;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ComplianceFinding {

@@ -58,7 +58,7 @@ export interface PhaseDef {
   phase: number;
   name: string;
   artifact: string | null;
-  brownfieldOnly?: boolean;
+  brownfieldOnly?: boolean | undefined;
 }
 
 export interface PhaseStatusEntry {
@@ -141,7 +141,7 @@ export interface DashboardData {
 }
 
 export interface GatherDashboardOptions {
-  root?: string;
+  root?: string | undefined;
 }
 
 // Constants (verbatim from legacy)

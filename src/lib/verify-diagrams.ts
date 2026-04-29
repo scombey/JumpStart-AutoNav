@@ -53,14 +53,14 @@ export type IssueLevel = 'error' | 'warning';
 export interface Issue {
   level: IssueLevel;
   message: string;
-  line?: number;
+  line?: number | undefined;
 }
 
 export interface MermaidBlock {
   startLine: number;
   endLine: number;
   body: string;
-  unclosed?: boolean;
+  unclosed?: boolean | undefined;
 }
 
 export interface DiagramReport {
@@ -73,14 +73,14 @@ export interface DiagramReport {
 export interface FileReport {
   file: string;
   diagrams: DiagramReport[];
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface RunOptions {
-  dirs?: string[];
-  files?: string[];
-  strict?: boolean;
-  json?: boolean;
+  dirs?: string[] | undefined;
+  files?: string[] | undefined;
+  strict?: boolean | undefined;
+  json?: boolean | undefined;
 }
 
 export interface RunOutcome {

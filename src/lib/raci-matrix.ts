@@ -62,21 +62,21 @@ export interface RaciState {
 }
 
 export interface AssignmentInput {
-  responsible?: string;
-  accountable?: string;
-  consulted?: string[];
-  informed?: string[];
+  responsible?: string | undefined;
+  accountable?: string | undefined;
+  consulted?: string[] | undefined;
+  informed?: string[] | undefined;
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface DefineResult {
   success: boolean;
-  artifact?: string;
+  artifact?: string | undefined;
   assignment?: RaciAssignment;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface CheckResult {

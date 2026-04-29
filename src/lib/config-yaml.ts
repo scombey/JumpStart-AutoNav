@@ -45,9 +45,9 @@ export interface BootstrapUpdateResult {
 
 /** Bootstrap-answer fields that can be applied via `updateBootstrapAnswers`. */
 export interface BootstrapUpdates {
-  projectName?: string | null;
-  projectType?: string | null;
-  approverName?: string | null;
+  projectName?: string | null | undefined;
+  projectType?: string | null | undefined;
+  approverName?: string | null | undefined;
 }
 
 /** Result of `setWorkflowCurrentPhase`. */

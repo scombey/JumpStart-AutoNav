@@ -47,9 +47,9 @@ function rejectForbiddenKey(key: unknown, fnName: string): void {
 export interface RepoGraphNode {
   id: string;
   type: string;
-  name?: string;
-  path?: string;
-  updated_at?: string;
+  name?: string | undefined;
+  path?: string | undefined;
+  updated_at?: string | undefined;
   [extra: string]: unknown;
 }
 
@@ -68,8 +68,8 @@ export interface RepoGraph {
 }
 
 export interface BuildRepoGraphOptions {
-  srcDir?: string;
-  graphFile?: string;
+  srcDir?: string | undefined;
+  graphFile?: string | undefined;
 }
 
 export interface BuildRepoGraphResult {
@@ -80,9 +80,9 @@ export interface BuildRepoGraphResult {
 }
 
 export interface RepoGraphQuery {
-  type?: string;
-  nameContains?: string;
-  id?: string;
+  type?: string | undefined;
+  nameContains?: string | undefined;
+  id?: string | undefined;
 }
 
 export interface NeighbourEntry {

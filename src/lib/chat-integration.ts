@@ -68,31 +68,31 @@ export interface ChatIntegrationState {
 }
 
 export interface ConfigureOptions {
-  stateFile?: string;
-  channel?: string;
-  webhook_url?: string;
-  events?: string[];
+  stateFile?: string | undefined;
+  channel?: string | undefined;
+  webhook_url?: string | undefined;
+  events?: string[] | undefined;
 }
 
 export interface ConfigureResult {
   success: boolean;
   configuration?: ChatConfiguration;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface QueueOptions {
-  stateFile?: string;
-  platform?: string;
+  stateFile?: string | undefined;
+  platform?: string | undefined;
 }
 
 export interface QueueResult {
   success: boolean;
   notification?: ChatNotification;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface StatusOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface StatusResult {

@@ -24,9 +24,9 @@ import { loadState } from './state-store.js';
 // Public types
 
 export interface NextActionOptions {
-  root?: string;
-  state_path?: string;
-  config_path?: string;
+  root?: string | undefined;
+  state_path?: string | undefined;
+  config_path?: string | undefined;
 }
 
 export interface FocusOutput {
@@ -41,11 +41,11 @@ export interface NextAction {
   next_phase: number | string | null;
   next_agent: string | null;
   command: string;
-  artifact?: string;
+  artifact?: string | undefined;
   message: string;
   context_files: string[];
-  suggestions?: string[];
-  focus?: FocusOutput;
+  suggestions?: string[] | undefined;
+  focus?: FocusOutput | undefined;
 }
 
 // Catalogs (verbatim from legacy)
@@ -163,12 +163,12 @@ function isArtifactApproved(content: string): boolean {
 interface HandoffResult {
   ready: boolean;
   current_phase?: number | string;
-  current_name?: string;
+  current_name?: string | undefined;
   next_phase?: number | null;
   next_agent?: string | null;
-  context_files?: string[];
-  message?: string;
-  error?: string;
+  context_files?: string[] | undefined;
+  message?: string | undefined;
+  error?: string | undefined;
 }
 
 function getHandoff(currentPhase: number | string): HandoffResult {

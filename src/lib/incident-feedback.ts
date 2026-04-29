@@ -61,12 +61,12 @@ export interface IncidentState {
 }
 
 export interface IncidentInput {
-  title?: string;
-  severity?: string;
-  category?: string;
-  description?: string;
-  root_cause?: string;
-  impact?: string;
+  title?: string | undefined;
+  severity?: string | undefined;
+  category?: string | undefined;
+  description?: string | undefined;
+  root_cause?: string | undefined;
+  impact?: string | undefined;
 }
 
 export interface Recommendation {
@@ -77,21 +77,21 @@ export interface Recommendation {
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface LogResult {
   success: boolean;
   incident?: Incident;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface AnalysisResult {
   success: boolean;
-  incident_id?: string;
+  incident_id?: string | undefined;
   recommendations?: Recommendation[];
-  total?: number;
-  error?: string;
+  total?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface IncidentReport {

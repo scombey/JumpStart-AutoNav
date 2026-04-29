@@ -30,21 +30,21 @@ import { getWorkflowSettings, setWorkflowCurrentPhase } from './config-yaml.js';
 // Public types
 
 export interface ApproveOptions {
-  approver?: string;
-  root?: string;
-  statePath?: string;
-  configPath?: string;
+  approver?: string | undefined;
+  root?: string | undefined;
+  statePath?: string | undefined;
+  configPath?: string | undefined;
 }
 
 export interface RejectOptions {
-  reason?: string;
-  root?: string;
-  statePath?: string;
+  reason?: string | undefined;
+  root?: string | undefined;
+  statePath?: string | undefined;
 }
 
 export interface DetectArtifactOptions {
-  root?: string;
-  statePath?: string;
+  root?: string | undefined;
+  statePath?: string | undefined;
 }
 
 export interface DetectArtifactResult {
@@ -55,14 +55,14 @@ export interface DetectArtifactResult {
 
 export interface HandoffInfo {
   current_phase?: number | string;
-  current_name?: string;
+  current_name?: string | undefined;
   next_phase?: number | string | null;
   next_agent?: string | null;
-  artifacts_to_create?: string[];
-  context_files?: string[];
-  message?: string;
+  artifacts_to_create?: string[] | undefined;
+  context_files?: string[] | undefined;
+  message?: string | undefined;
   ready: boolean;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface AutoHandoff {
@@ -74,20 +74,20 @@ export interface AutoHandoff {
 
 export interface ApprovalResult {
   success: boolean;
-  artifact?: string;
-  approver?: string;
-  date?: string;
+  artifact?: string | undefined;
+  approver?: string | undefined;
+  date?: string | undefined;
   handoff_info?: HandoffInfo | null;
   auto_handoff?: AutoHandoff;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface RejectionResult {
   success: boolean;
-  artifact?: string;
-  reason?: string;
+  artifact?: string | undefined;
+  reason?: string | undefined;
   logged_to?: string | null;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ApproveTimelineHook {
@@ -120,8 +120,8 @@ interface StateUpdates {
   agent?: string | null;
   step?: string | null;
   last_completed_step?: string | null;
-  active_artifacts?: string[];
-  approved_artifact?: string;
+  active_artifacts?: string[] | undefined;
+  approved_artifact?: string | undefined;
   resume_context?: Record<string, unknown>;
 }
 

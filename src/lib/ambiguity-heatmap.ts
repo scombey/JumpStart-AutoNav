@@ -63,8 +63,8 @@ export interface AmbiguityFinding {
   line: number;
   severity: 'medium' | 'high';
   context: string;
-  term?: string;
-  suggestion?: string;
+  term?: string | undefined;
+  suggestion?: string | undefined;
 }
 
 export interface AmbiguityMetrics {
@@ -76,11 +76,11 @@ export interface AmbiguityMetrics {
 
 export interface ScanResult {
   success: boolean;
-  error?: string;
-  total_findings?: number;
+  error?: string | undefined;
+  total_findings?: number | undefined;
   findings?: AmbiguityFinding[];
   metrics?: AmbiguityMetrics;
-  file?: string;
+  file?: string | undefined;
 }
 
 export interface HeatmapEntry extends AmbiguityMetrics {
@@ -99,7 +99,7 @@ export interface HeatmapResult {
 }
 
 export interface ScanOptions {
-  limit?: number;
+  limit?: number | undefined;
 }
 
 /**

@@ -60,29 +60,29 @@ export interface AIEvalState {
 }
 
 export interface EvaluateOptions {
-  stateFile?: string;
-  model?: string;
-  use_case?: string;
+  stateFile?: string | undefined;
+  model?: string | undefined;
+  use_case?: string | undefined;
 }
 
 export interface BenchmarkOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface ReportOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface EvaluateResult {
   success: boolean;
   evaluation?: AIEvaluation;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface BenchmarkResult {
   success: boolean;
   benchmark?: AIBenchmark;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface EvalReport {

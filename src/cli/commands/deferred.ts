@@ -59,7 +59,7 @@ import { asRest, hasFlag, legacyRequire, parseFlag, safeJoin } from './_helpers.
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface SelfEvolveArgs {
-  artifact?: boolean;
+  artifact?: boolean | undefined;
 }
 
 interface SelfEvolveLib {
@@ -107,8 +107,8 @@ export const selfEvolveCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface SummarizeArgs {
-  phase?: string;
-  markdown?: boolean;
+  phase?: string | undefined;
+  markdown?: boolean | undefined;
 }
 
 export function summarizeImpl(deps: Deps, args: SummarizeArgs): CommandResult {
@@ -158,7 +158,7 @@ export const summarizeCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface TimelineArgs {
-  action?: string;
+  action?: string | undefined;
   rest: string[];
 }
 
@@ -272,23 +272,23 @@ export const timelineCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ValidateAllArgs {
-  file?: string;
-  json?: boolean;
-  strict?: boolean;
+  file?: string | undefined;
+  json?: boolean | undefined;
+  strict?: boolean | undefined;
 }
 
 interface ProactiveValidatorLib {
   validateArtifactProactive: (
     filePath: string,
-    options: { strict?: boolean }
+    options: { strict?: boolean | undefined }
   ) => {
     pass: boolean;
     score: number;
-    diagnostics: { code: string; message: string; line?: number }[];
+    diagnostics: { code: string; message: string; line?: number | undefined }[];
   };
   validateAllArtifacts: (
     specsDir: string,
-    options: { root?: string; strict?: boolean }
+    options: { root?: string | undefined; strict?: boolean | undefined }
   ) => Promise<{
     files: { pass: boolean; score: number; diagnostics: unknown[] }[];
     cross_file: Record<string, unknown>;
@@ -371,22 +371,22 @@ export const validateAllCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface QuickstartArgs {
-  name?: string;
-  type?: string;
-  domain?: string;
-  ceremony?: string;
+  name?: string | undefined;
+  type?: string | undefined;
+  domain?: string | undefined;
+  ceremony?: string | undefined;
 }
 
 interface QuickstartLib {
   DOMAIN_OPTIONS: { value: string; title: string; description: string }[];
   CEREMONY_OPTIONS: { value: string; title: string; description: string }[];
   buildQuickstartConfig: (answers: {
-    projectName?: string | null;
-    projectType?: string;
-    domain?: string;
-    customDomain?: string | null;
-    ceremony?: string;
-    targetDir?: string;
+    projectName?: string | null | undefined;
+    projectType?: string | undefined;
+    domain?: string | undefined;
+    customDomain?: string | null | undefined;
+    ceremony?: string | undefined;
+    targetDir?: string | undefined;
   }) => {
     targetDir: string;
     projectName: string | null;

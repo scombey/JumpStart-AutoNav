@@ -25,14 +25,14 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 export interface OnboardingSection {
-  config_exists?: boolean;
-  total?: number;
+  config_exists?: boolean | undefined;
+  total?: number | undefined;
   files?: Array<{ file: string; name: string } | string>;
-  high?: number;
-  current_phase?: number;
+  high?: number | undefined;
+  current_phase?: number | undefined;
   current_agent?: string | null;
-  has_readme?: boolean;
-  has_package_json?: boolean;
+  has_readme?: boolean | undefined;
+  has_package_json?: boolean | undefined;
 }
 
 export interface OnboardingPackage {
@@ -42,7 +42,7 @@ export interface OnboardingPackage {
 }
 
 export interface GenerateOptions {
-  role?: string;
+  role?: string | undefined;
   [key: string]: unknown;
 }
 
@@ -53,10 +53,10 @@ export interface GenerateResult {
 
 export interface CustomizeResult {
   success: boolean;
-  role?: string;
-  focus_areas?: string[];
+  role?: string | undefined;
+  focus_areas?: string[] | undefined;
   relevant_sections?: Record<string, OnboardingSection>;
-  error?: string;
+  error?: string | undefined;
 }
 
 interface RiskEntry {

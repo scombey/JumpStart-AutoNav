@@ -34,8 +34,8 @@ export interface IntakeInput {
   name: string;
   description: string;
   sponsor?: string | null;
-  business_value?: string;
-  data_types?: string[];
+  business_value?: string | undefined;
+  data_types?: string[] | undefined;
   model_type?: string | null;
 }
 
@@ -62,18 +62,18 @@ export interface AIIntakeState {
 }
 
 export interface IntakeFilter {
-  status?: string;
-  risk_tier?: number;
+  status?: string | undefined;
+  risk_tier?: number | undefined;
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface CreateResult {
   success: boolean;
   intake?: AIIntake;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ListResult {
@@ -84,13 +84,13 @@ export interface ListResult {
 
 export interface AssessResult {
   success: boolean;
-  intake_id?: string;
-  completeness?: number;
-  completed_sections?: string[];
-  missing_sections?: string[];
-  risk_tier?: number;
-  ready_for_review?: boolean;
-  error?: string;
+  intake_id?: string | undefined;
+  completeness?: number | undefined;
+  completed_sections?: string[] | undefined;
+  missing_sections?: string[] | undefined;
+  risk_tier?: number | undefined;
+  ready_for_review?: boolean | undefined;
+  error?: string | undefined;
 }
 
 const DEFAULT_STATE_FILE = join('.jumpstart', 'state', 'ai-intake.json');

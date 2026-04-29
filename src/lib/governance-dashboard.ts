@@ -73,12 +73,12 @@ export interface ComplianceSection {
 export interface ReadinessSection {
   score: number | null;
   level: string;
-  recommendation?: string;
+  recommendation?: string | undefined;
 }
 
 export interface EnvironmentSection {
   current: string;
-  promotions?: number;
+  promotions?: number | undefined;
 }
 
 export interface GovernanceSections {
@@ -100,7 +100,7 @@ export interface GovernanceData {
 }
 
 export interface GatherOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
@@ -184,7 +184,7 @@ export function gatherGovernanceData(root: string, _options: GatherOptions = {})
   const complianceFile = join(root, '.jumpstart', 'state', 'compliance.json');
   if (existsSync(complianceFile)) {
     const parsed = safeParse(readFileSync(complianceFile, 'utf8')) as {
-      applied_frameworks?: string[];
+      applied_frameworks?: string[] | undefined;
     } | null;
     if (parsed) {
       const list = Array.isArray(parsed.applied_frameworks) ? parsed.applied_frameworks : [];
@@ -197,9 +197,9 @@ export function gatherGovernanceData(root: string, _options: GatherOptions = {})
   if (existsSync(readinessFile)) {
     const parsed = safeParse(readFileSync(readinessFile, 'utf8')) as {
       current_readiness?: {
-        total_score?: number;
-        level?: string;
-        recommendation?: string;
+        total_score?: number | undefined;
+        level?: string | undefined;
+        recommendation?: string | undefined;
       };
     } | null;
     if (parsed?.current_readiness) {
@@ -217,7 +217,7 @@ export function gatherGovernanceData(root: string, _options: GatherOptions = {})
   const envFile = join(root, '.jumpstart', 'state', 'environment-promotion.json');
   if (existsSync(envFile)) {
     const parsed = safeParse(readFileSync(envFile, 'utf8')) as {
-      current_environment?: string;
+      current_environment?: string | undefined;
       promotion_history?: unknown[];
     } | null;
     if (parsed) {

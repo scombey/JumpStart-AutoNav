@@ -57,9 +57,9 @@ function maybeJson(_deps: Deps, json: boolean | undefined, result: unknown): voi
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface EnterpriseSearchArgs {
-  action?: string;
-  query?: string;
-  json?: boolean;
+  action?: string | undefined;
+  query?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function enterpriseSearchImpl(deps: Deps, args: EnterpriseSearchArgs): CommandResult {
@@ -104,9 +104,9 @@ export const enterpriseSearchCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface EnterpriseTemplatesArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function enterpriseTemplatesImpl(deps: Deps, args: EnterpriseTemplatesArgs): CommandResult {
@@ -158,9 +158,9 @@ export const enterpriseTemplatesCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface EnvPromotionArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function envPromotionImpl(deps: Deps, args: EnvPromotionArgs): CommandResult {
@@ -210,10 +210,10 @@ export const envPromotionCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface FitnessFunctionsArgs {
-  action?: string;
-  name?: string;
-  category?: string;
-  json?: boolean;
+  action?: string | undefined;
+  name?: string | undefined;
+  category?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function fitnessFunctionsImpl(deps: Deps, args: FitnessFunctionsArgs): CommandResult {
@@ -270,10 +270,10 @@ export const fitnessFunctionsCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ImpactArgs {
-  file?: string;
-  symbol?: string;
-  spec?: string;
-  json?: boolean;
+  file?: string | undefined;
+  symbol?: string | undefined;
+  spec?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function impactImpl(deps: Deps, args: ImpactArgs): CommandResult {
@@ -316,9 +316,9 @@ export const impactCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface KnowledgeGraphArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function knowledgeGraphImpl(deps: Deps, args: KnowledgeGraphArgs): CommandResult {
@@ -363,9 +363,9 @@ export const knowledgeGraphCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface LegacyModernizerArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function legacyModernizerImpl(deps: Deps, args: LegacyModernizerArgs): CommandResult {
@@ -404,8 +404,8 @@ export const legacyModernizerCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface MergeTemplatesArgs {
-  basePath?: string;
-  projectPath?: string;
+  basePath?: string | undefined;
+  projectPath?: string | undefined;
 }
 
 export async function mergeTemplatesImpl(
@@ -449,9 +449,9 @@ export const mergeTemplatesCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface MigrationPlannerArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function migrationPlannerImpl(deps: Deps, args: MigrationPlannerArgs): CommandResult {
@@ -487,10 +487,10 @@ export const migrationPlannerCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface MultiRepoArgs {
-  action?: string;
-  arg?: string;
-  role?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  role?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function multiRepoImpl(deps: Deps, args: MultiRepoArgs): CommandResult {
@@ -542,9 +542,9 @@ export const multiRepoCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ParallelAgentsArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function parallelAgentsImpl(deps: Deps, args: ParallelAgentsArgs): CommandResult {
@@ -586,9 +586,9 @@ export const parallelAgentsCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface PatternLibraryArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function patternLibraryImpl(deps: Deps, args: PatternLibraryArgs): CommandResult {
@@ -631,9 +631,9 @@ export const patternLibraryCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface PersonaPacksArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function personaPacksImpl(deps: Deps, args: PersonaPacksArgs): CommandResult {
@@ -676,9 +676,9 @@ export const personaPacksCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface PlatformEngineeringArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function platformEngineeringImpl(deps: Deps, args: PlatformEngineeringArgs): CommandResult {
@@ -717,9 +717,9 @@ export const platformEngineeringCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface PrPackageArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function prPackageImpl(deps: Deps, args: PrPackageArgs): CommandResult {
@@ -758,8 +758,8 @@ export const prPackageCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface PromptlessModeArgs {
-  action?: string;
-  json?: boolean;
+  action?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function promptlessModeImpl(deps: Deps, args: PromptlessModeArgs): CommandResult {
@@ -798,10 +798,10 @@ export const promptlessModeCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ReferenceArchArgs {
-  action?: string;
-  arg?: string;
-  category?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  category?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function referenceArchImpl(deps: Deps, args: ReferenceArchArgs): CommandResult {
@@ -866,9 +866,9 @@ export const referenceArchCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ReleaseReadinessArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function releaseReadinessImpl(deps: Deps, args: ReleaseReadinessArgs): CommandResult {
@@ -909,9 +909,9 @@ export const releaseReadinessCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface CodebaseRetrievalArgs {
-  action?: string;
-  query?: string;
-  json?: boolean;
+  action?: string | undefined;
+  query?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function codebaseRetrievalImpl(deps: Deps, args: CodebaseRetrievalArgs): CommandResult {
@@ -956,9 +956,9 @@ export const codebaseRetrievalCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ContractFirstArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function contractFirstImpl(deps: Deps, args: ContractFirstArgs): CommandResult {
@@ -997,9 +997,9 @@ export const contractFirstCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DeterministicArgs {
-  action?: string;
-  arg?: string;
-  json?: boolean;
+  action?: string | undefined;
+  arg?: string | undefined;
+  json?: boolean | undefined;
 }
 
 export function deterministicImpl(deps: Deps, args: DeterministicArgs): CommandResult {

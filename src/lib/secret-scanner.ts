@@ -50,7 +50,7 @@ export interface SecretPattern {
 }
 
 export interface CustomPatternInput {
-  name?: string;
+  name?: string | undefined;
   pattern: string;
   severity?: SecretSeverity;
 }
@@ -72,11 +72,11 @@ export interface SecretMatch {
 }
 
 export interface SecretScanInput {
-  files?: string[];
-  root?: string;
+  files?: string[] | undefined;
+  root?: string | undefined;
   config?: {
     custom_patterns?: CustomPatternInput[];
-    allowlist?: string[];
+    allowlist?: string[] | undefined;
   };
 }
 

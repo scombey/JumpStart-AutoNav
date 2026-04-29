@@ -48,33 +48,33 @@ export interface WorkstreamState {
 }
 
 export interface DefineWorkstreamOptions {
-  stateFile?: string;
-  team?: string;
-  owner?: string;
-  status?: string;
-  components?: string[];
+  stateFile?: string | undefined;
+  team?: string | undefined;
+  owner?: string | undefined;
+  status?: string | undefined;
+  components?: string[] | undefined;
 }
 
 export interface AddDependencyOptions {
-  stateFile?: string;
-  type?: string;
-  description?: string;
+  stateFile?: string | undefined;
+  type?: string | undefined;
+  description?: string | undefined;
 }
 
 export interface ReportOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface DefineResult {
   success: boolean;
   workstream?: Workstream;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface AddDepResult {
   success: boolean;
   dependency?: WorkstreamDependency;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface WorkstreamReport {

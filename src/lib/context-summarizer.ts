@@ -123,14 +123,14 @@ export interface ContextPacket {
   summaries: ArtifactSummary[];
   open_items: ClarificationItem[];
   full_artifact_links: ArtifactLink[];
-  error?: string;
+  error?: string | undefined;
   sections?: SectionSummary[];
 }
 
 export interface GenerateContextOptions {
   target_phase: number;
-  root?: string;
-  specs_dir?: string;
+  root?: string | undefined;
+  specs_dir?: string | undefined;
 }
 
 // Constants (verbatim from legacy)

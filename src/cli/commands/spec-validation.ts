@@ -85,8 +85,8 @@ export const validateCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface SpecDriftArgs {
-  specsDir?: string;
-  srcDir?: string;
+  specsDir?: string | undefined;
+  srcDir?: string | undefined;
 }
 
 export function specDriftImpl(_deps: Deps, args: SpecDriftArgs): CommandResult {
@@ -115,7 +115,7 @@ export const specDriftCommand = defineCommand({
 
 export interface HashArgs {
   action: string;
-  filePath?: string;
+  filePath?: string | undefined;
 }
 
 export function hashImpl(deps: Deps, args: HashArgs): CommandResult {
@@ -213,7 +213,7 @@ export const graphCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface SimplicityArgs {
-  targetDir?: string;
+  targetDir?: string | undefined;
 }
 
 export function simplicityImpl(deps: Deps, args: SimplicityArgs): CommandResult {
@@ -253,7 +253,7 @@ export const simplicityCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ScanWrappersArgs {
-  targetDir?: string;
+  targetDir?: string | undefined;
 }
 
 export function scanWrappersImpl(deps: Deps, args: ScanWrappersArgs): CommandResult {
@@ -374,7 +374,7 @@ export const freshnessAuditCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ShardArgs {
-  prdPath?: string;
+  prdPath?: string | undefined;
 }
 
 export function shardImpl(deps: Deps, args: ShardArgs): CommandResult {

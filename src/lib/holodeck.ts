@@ -98,43 +98,43 @@ export interface PhaseDefinition {
   dir: string;
   artifacts: string[];
   hasSubagents: boolean;
-  expectedSubagents?: string[];
+  expectedSubagents?: string[] | undefined;
 }
 
 export interface HolodeckOptions {
   /** Run subagent trace verification (strict mode). */
-  verifySubagents?: boolean;
+  verifySubagents?: boolean | undefined;
   /** Verbose console logging. */
-  verbose?: boolean;
+  verbose?: boolean | undefined;
   /** Output directory for the run report. Defaults to `<projectRoot>/tests/e2e/reports`. */
-  output?: string;
+  output?: string | undefined;
   /** Project root for default path resolution. Defaults to `process.cwd()`. */
-  projectRoot?: string;
+  projectRoot?: string | undefined;
   /** Scenarios directory. Defaults to `<projectRoot>/tests/e2e/scenarios`. */
-  scenariosDir?: string;
+  scenariosDir?: string | undefined;
   /** Reports directory. Defaults to `<projectRoot>/tests/e2e/reports`. */
-  reportsDir?: string;
+  reportsDir?: string | undefined;
   /** Handoffs directory (handoff schemas). Defaults to `<projectRoot>/.jumpstart/handoffs`. */
-  handoffsDir?: string;
+  handoffsDir?: string | undefined;
 }
 
 export interface PhaseReport {
   name: string;
   status: string;
-  startTime?: number;
+  startTime?: number | undefined;
   endTime?: number | null;
-  artifacts?: string[];
-  toolCalls?: number;
-  llmCalls?: number;
-  errors?: string[];
-  promptTokens?: number;
-  completionTokens?: number;
+  artifacts?: string[] | undefined;
+  toolCalls?: number | undefined;
+  llmCalls?: number | undefined;
+  errors?: string[] | undefined;
+  promptTokens?: number | undefined;
+  completionTokens?: number | undefined;
 }
 
 export interface HolodeckReport {
-  scenario?: string;
-  timestamp?: string;
-  success?: boolean;
+  scenario?: string | undefined;
+  timestamp?: string | undefined;
+  success?: boolean | undefined;
   phases?: PhaseReport[];
   errors?: Array<{ message: string; phase?: string }>;
   warnings?: Array<{ message: string }>;
@@ -151,7 +151,7 @@ export interface ScenarioRunResult {
   scenario: string;
   success: boolean;
   report?: HolodeckReport;
-  error?: string;
+  error?: string | undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -616,7 +616,7 @@ export async function runHolodeck(
         if (existsSync(upstreamPath) && existsSync(handoffsDir)) {
           const report = generateHandoffReport(upstreamPath, upstream, phase.name, handoffsDir) as {
             valid: boolean;
-            errors?: string[];
+            errors?: string[] | undefined;
           };
           if (report.valid) {
             tracer.logHandoffValidation('PASS', report);
