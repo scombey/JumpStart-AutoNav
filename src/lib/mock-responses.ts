@@ -116,8 +116,12 @@ export function createMockRegistry(): MockRegistry {
         // 3. Fallback: pick recommended option, else first option
         if (q.options && q.options.length > 0) {
           const recommended = q.options.find((o) => o.recommended);
-          const selected = recommended ? recommended.label : q.options[0].label;
-          answers[header] = { selected: [selected], freeText: null, skipped: false };
+          const selected = recommended ? recommended.label : q.options[0]?.label;
+          if (selected !== undefined) {
+            answers[header] = { selected: [selected], freeText: null, skipped: false };
+          } else {
+            answers[header] = { selected: [], freeText: 'Approved', skipped: false };
+          }
         } else {
           answers[header] = { selected: [], freeText: 'Approved', skipped: false };
         }

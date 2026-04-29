@@ -510,7 +510,7 @@ export function checkCompatibility(item: Item): CompatibilityResult {
   if (compat.jumpstartMode) {
     const range = compat.jumpstartMode;
     const match = range.match(/^>=\s*(\d+\.\d+\.\d+)$/);
-    if (match) {
+    if (match?.[1] !== undefined) {
       const minVersion = match[1];
       if (compareSemver(FRAMEWORK_VERSION, minVersion) < 0) {
         warnings.push(`Requires jumpstart-mode ${range} but found ${FRAMEWORK_VERSION}.`);
@@ -1185,7 +1185,7 @@ function installFromStaging(
 
   let contentRoot = stagingDir;
   const stagingEntries = readdirSync(stagingDir, { withFileTypes: true });
-  if (stagingEntries.length === 1 && stagingEntries[0].isDirectory()) {
+  if (stagingEntries.length === 1 && stagingEntries[0]?.isDirectory()) {
     contentRoot = path.join(stagingDir, stagingEntries[0].name);
   }
 
@@ -1535,8 +1535,11 @@ export async function install(
     }
 
     const primaryResult =
-      allResults.find((r) => r.item?.id === item.id) || allResults[allResults.length - 1];
-    if (primaryResult && allResults.length > 1) {
+      allResults.find((r) => r.item?.id === item.id) ?? allResults[allResults.length - 1];
+    if (primaryResult === undefined) {
+      throw new Error('Bundle install produced no results');
+    }
+    if (allResults.length > 1) {
       primaryResult.dependenciesInstalled = allResults
         .filter((r) => r.item?.id !== item.id)
         .map((r) => r.item?.id)

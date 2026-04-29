@@ -150,7 +150,10 @@ export function saveConfig(config: CostRouterConfig, configFile?: string): void 
 export function routeByCost(task: RouteTask, options: RouteOptions = {}): RouteResult {
   const configFile = options.configFile || DEFAULT_CONFIG_FILE;
   const config = loadConfig(configFile);
-  const profile = BUDGET_PROFILES[config.budget_profile] || BUDGET_PROFILES.balanced;
+  const profile = BUDGET_PROFILES[config.budget_profile] ?? BUDGET_PROFILES.balanced;
+  if (profile === undefined) {
+    throw new Error('BUDGET_PROFILES.balanced missing — catalog out of sync');
+  }
   // Pit Crew M4 Reviewer M1: legacy used `||` not `??`. For a caller
   // who passes `min_quality: 0` (i.e. "no minimum"), `??` keeps the 0
   // and accepts any quality; `||` falls through to profile default.

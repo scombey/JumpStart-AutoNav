@@ -197,10 +197,10 @@ export function parseSkillFrontmatter(content: string): SkillFrontmatter {
   const skillFenceMatch = content.match(/^```skill\s*\n---\n([\s\S]*?)\n---\s*\n/m);
   const standardFenceMatch = content.match(/^---\n([\s\S]*?)\n---\s*\n/m);
 
-  if (skillFenceMatch) {
+  if (skillFenceMatch?.[1] !== undefined) {
     yamlBlock = skillFenceMatch[1];
     result.body = content.slice(skillFenceMatch[0].length);
-  } else if (standardFenceMatch) {
+  } else if (standardFenceMatch?.[1] !== undefined) {
     yamlBlock = standardFenceMatch[1];
     result.body = content.slice(standardFenceMatch[0].length);
   }
@@ -208,13 +208,13 @@ export function parseSkillFrontmatter(content: string): SkillFrontmatter {
   for (const line of yamlBlock.split('\n')) {
     const nameMatch = line.match(/^name:\s*(.+)/);
     const descMatch = line.match(/^description:\s*['"]?([\s\S]+?)['"]?\s*$/);
-    if (nameMatch) result.name = nameMatch[1].trim();
-    if (descMatch) result.description = descMatch[1].trim();
+    if (nameMatch?.[1] !== undefined) result.name = nameMatch[1].trim();
+    if (descMatch?.[1] !== undefined) result.description = descMatch[1].trim();
   }
 
   // Discovery Keywords section (single line, comma-separated)
   const kwMatch = result.body.match(/## Discovery Keywords\s*\n([^\n#]+)/i);
-  if (kwMatch) {
+  if (kwMatch?.[1] !== undefined) {
     result.discoveryKeywords = kwMatch[1]
       .split(',')
       .map((k) => k.trim())
@@ -223,7 +223,7 @@ export function parseSkillFrontmatter(content: string): SkillFrontmatter {
 
   // Triggers section (bulleted list, terminates at next H2 or H1)
   const triggerMatch = result.body.match(/## Triggers\s*\n([\s\S]*?)(?=\n##|\n#[^#]|$)/i);
-  if (triggerMatch) {
+  if (triggerMatch?.[1] !== undefined) {
     result.triggers = triggerMatch[1]
       .split('\n')
       .map((l) => l.replace(/^[-*]\s*/, '').trim())
@@ -383,8 +383,7 @@ export function generateIDEInstructions(
         .filter((f) => f.endsWith('.agent.md'))
         .map(
           (f) =>
-            `@${basename(f, '.agent.md')
-              .split('.')[0]
+            `@${(basename(f, '.agent.md').split('.')[0] ?? '')
               .replace(/-/g, ' ')
               .replace(/\b\w/g, (c) => c.toUpperCase())}`
         )

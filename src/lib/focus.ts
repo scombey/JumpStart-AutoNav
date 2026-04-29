@@ -174,14 +174,20 @@ export function getPreset(presetName: string): Preset {
 }
 
 export function listPresets(): PresetSummary[] {
-  return VALID_PRESETS.map((name) => ({
-    name,
-    description: PRESETS[name].description,
-    start_phase: PRESETS[name].start_phase,
-    end_phase: PRESETS[name].end_phase,
-    role: PRESETS[name].role,
-    phases: PRESETS[name].phases,
-  }));
+  return VALID_PRESETS.map((name) => {
+    const preset = PRESETS[name];
+    if (preset === undefined) {
+      throw new Error(`PRESETS catalog out of sync — missing entry for ${name}`);
+    }
+    return {
+      name,
+      description: preset.description,
+      start_phase: preset.start_phase,
+      end_phase: preset.end_phase,
+      role: preset.role,
+      phases: preset.phases,
+    };
+  });
 }
 
 export function validatePhaseRange(startPhase: number, endPhase: number): ValidationResult {
@@ -227,8 +233,8 @@ export function getPhasesInRange(startPhase: number, endPhase: number): PhaseEnt
     if (p >= startPhase && p <= endPhase) {
       phases.push({
         phase: p,
-        name: PHASE_NAMES[String(p)],
-        command: AGENT_COMMANDS[String(p)],
+        name: PHASE_NAMES[String(p)] ?? '',
+        command: AGENT_COMMANDS[String(p)] ?? '',
       });
     }
   }
@@ -262,7 +268,7 @@ export function buildFocusConfig(options: FocusBuildOptions): FocusConfig {
     preset: null,
     start_phase: start,
     end_phase: end,
-    description: `Custom focus: Phase ${start} (${PHASE_NAMES[String(start)]}) through Phase ${end} (${PHASE_NAMES[String(end)]})`,
+    description: `Custom focus: Phase ${start} (${PHASE_NAMES[String(start)] ?? ''}) through Phase ${end} (${PHASE_NAMES[String(end)] ?? ''})`,
     role: 'Custom',
     phases,
   };
@@ -299,9 +305,9 @@ export function readFocusFromConfig(configPath: string): FocusConfig | null {
     const startMatch = section.match(/^\s+start_phase:\s*(-?\d+)/m);
     const endMatch = section.match(/^\s+end_phase:\s*(-?\d+)/m);
 
-    const preset = presetMatch ? presetMatch[1] : null;
-    const startPhase = startMatch ? Number.parseInt(startMatch[1], 10) : null;
-    const endPhase = endMatch ? Number.parseInt(endMatch[1], 10) : null;
+    const preset = presetMatch?.[1] ?? null;
+    const startPhase = startMatch?.[1] !== undefined ? Number.parseInt(startMatch[1], 10) : null;
+    const endPhase = endMatch?.[1] !== undefined ? Number.parseInt(endMatch[1], 10) : null;
 
     if (preset && preset !== 'null') {
       try {

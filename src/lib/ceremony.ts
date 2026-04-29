@@ -208,12 +208,16 @@ export function expandDotNotation(flat: Record<string, unknown>): Record<string,
     let current = result;
     for (let i = 0; i < keys.length - 1; i++) {
       const k = keys[i];
+      if (k === undefined) continue;
       if (!(k in current) || typeof current[k] !== 'object') {
         current[k] = {};
       }
       current = current[k] as Record<string, unknown>;
     }
-    current[keys[keys.length - 1]] = value;
+    const lastKey = keys[keys.length - 1];
+    if (lastKey !== undefined) {
+      current[lastKey] = value;
+    }
   }
   return result;
 }
@@ -289,11 +293,17 @@ export function compareProfiles(profileA: string, profileB: string): ProfileDiff
 /** Summary of all profiles and their light↔rigorous diffs. */
 export function getProfileSummary(): ProfileSummary {
   return {
-    profiles: VALID_PROFILES.map((name) => ({
-      name,
-      description: PROFILES[name].description,
-      setting_count: Object.keys(PROFILES[name].settings).length,
-    })),
+    profiles: VALID_PROFILES.map((name) => {
+      const profile = PROFILES[name];
+      if (profile === undefined) {
+        throw new Error(`PROFILES catalog out of sync — missing entry for ${name}`);
+      }
+      return {
+        name,
+        description: profile.description,
+        setting_count: Object.keys(profile.settings).length,
+      };
+    }),
     key_differences: compareProfiles('light', 'rigorous'),
   };
 }
