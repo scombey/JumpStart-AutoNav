@@ -114,6 +114,7 @@ export function scanAmbiguity(text: string, options: ScanOptions = {}): ScanResu
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (line === undefined) continue;
     const lineNum = i + 1;
 
     for (const term of VAGUE_TERMS) {
@@ -203,7 +204,7 @@ export function generateHeatmap(root: string, options: ScanOptions = {}): Heatma
     results,
     overall: {
       total_findings: results.reduce((s, r) => s + r.total_findings, 0),
-      highest_density_file: results.length > 0 ? results[0].file : null,
+      highest_density_file: results[0]?.file ?? null,
     },
   };
 }

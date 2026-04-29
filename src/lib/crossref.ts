@@ -76,11 +76,15 @@ export function extractLinks(content: string): MarkdownLink[] {
     const matches = line.matchAll(linkPattern);
     for (const m of matches) {
       const raw = m[2];
+      const text = m[1];
+      if (raw === undefined || text === undefined) continue;
       if (/^https?:|^mailto:|^#/.test(raw)) continue;
       const parts = raw.split('#');
+      const target = parts[0];
+      if (target === undefined) continue;
       links.push({
-        text: m[1],
-        target: parts[0],
+        text,
+        target,
         anchor: parts[1] || null,
         line: idx + 1,
       });
@@ -102,6 +106,7 @@ export function extractAnchors(content: string): string[] {
   const anchors: string[] = [];
   const headings = content.matchAll(/^#+\s+(.+)$/gm);
   for (const m of headings) {
+    if (m[1] === undefined) continue;
     const slug = m[1]
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
@@ -163,6 +168,7 @@ export function validateCrossRefs(specsDir: string, root: string): CrossRefRepor
   for (const file of specFiles) {
     const rel = path.relative(root, file).replace(/\\/g, '/');
     const content = contentMap[rel];
+    if (content === undefined) continue;
     const links = extractLinks(content);
     linkGraph[rel] = links;
 

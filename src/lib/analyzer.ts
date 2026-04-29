@@ -91,6 +91,7 @@ export function extractTerms(content: string): Map<string, string> {
   const terms = new Map<string, string>();
 
   for (const m of content.matchAll(/\*\*([A-Z][a-zA-Z\s]+)\*\*/g)) {
+    if (m[1] === undefined) continue;
     const term = m[1].trim();
     if (term.length > 2 && term.length < 50) {
       terms.set(term.toLowerCase(), term);
@@ -98,6 +99,7 @@ export function extractTerms(content: string): Map<string, string> {
   }
 
   for (const m of content.matchAll(/^#{1,4}\s+(?:.*?:\s*)?(.+)$/gm)) {
+    if (m[1] === undefined) continue;
     const term = m[1].trim();
     if (term.length > 2 && term.length < 60) {
       terms.set(term.toLowerCase(), term);
@@ -260,11 +262,15 @@ export function analyze(input: AnalyzeInput): AnalysisResult {
   if (sourceNames.length >= 2) {
     for (let i = 0; i < sourceNames.length; i++) {
       const srcA = sourceNames[i];
+      if (srcA === undefined) continue;
       const termsA = allTermsBySource[srcA];
+      if (termsA === undefined) continue;
       for (const [keyA, termA] of termsA) {
         for (let j = i + 1; j < sourceNames.length; j++) {
           const srcB = sourceNames[j];
+          if (srcB === undefined) continue;
           const termsB = allTermsBySource[srcB];
+          if (termsB === undefined) continue;
           for (const [keyB, termB] of termsB) {
             if (
               keyA !== keyB &&
@@ -290,7 +296,7 @@ export function analyze(input: AnalyzeInput): AnalysisResult {
   if (artifacts.contracts && artifacts.dataModel) {
     const entities: string[] = [];
     for (const m of artifacts.dataModel.matchAll(/###\s+Entity:\s+(\w+)/g)) {
-      entities.push(m[1]);
+      if (m[1] !== undefined) entities.push(m[1]);
     }
     for (const entity of entities) {
       if (!artifacts.contracts.toLowerCase().includes(entity.toLowerCase())) {

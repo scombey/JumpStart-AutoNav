@@ -122,7 +122,7 @@ function buildIdToZodMap(): Map<string, ZodMapEntry> {
     const stem = filename.replace(/\.schema\.json$/, '');
     const pascal = stem
       .split(/[-_]/)
-      .map((p) => (p.length === 0 ? '' : p[0].toUpperCase() + p.slice(1)))
+      .map((p) => (p.length === 0 ? '' : (p[0] ?? '').toUpperCase() + p.slice(1)))
       .join('');
     const exportName = `${pascal}Schema`;
     const zodSchema = (generated as Record<string, unknown>)[exportName];
@@ -206,7 +206,8 @@ export function extractFrontmatter(content: string): Record<string, unknown> | n
   if (!match) return null;
 
   const frontmatter: Record<string, unknown> = {};
-  const lines = match[1].split(/\r?\n/);
+  const fmBody = match[1] ?? '';
+  const lines = fmBody.split(/\r?\n/);
   let currentKey: string | null = null;
   let currentList: string[] | null = null;
 
@@ -227,18 +228,21 @@ export function extractFrontmatter(content: string): Record<string, unknown> | n
     // Key-value pair
     const kvMatch = trimmed.match(/^(\w[\w_-]*)\s*:\s*(.*)/);
     if (kvMatch) {
+      const matchedKey = kvMatch[1];
+      const matchedValue = kvMatch[2];
+      if (matchedKey === undefined || matchedValue === undefined) continue;
       // Pit Crew M3 Adversary F9: skip __proto__/constructor/prototype.
       // These are not legal frontmatter keys for jumpstart artifacts;
       // accepting them creates a prototype-pollution vector for any
       // downstream consumer that does `Object.entries(frontmatter)` or
       // shape-based lookups.
-      if (FORBIDDEN_FRONTMATTER_KEYS.has(kvMatch[1])) {
+      if (FORBIDDEN_FRONTMATTER_KEYS.has(matchedKey)) {
         currentKey = null;
         currentList = null;
         continue;
       }
-      currentKey = kvMatch[1];
-      const value = kvMatch[2].trim();
+      currentKey = matchedKey;
+      const value = matchedValue.trim();
       currentList = null;
 
       if (value === '' || value === '[]') {
@@ -641,11 +645,11 @@ export function checkApproval(filePath: string): ApprovalCheckOutcome {
 
   // Approver
   const approverMatch = gateSection.match(/\*\*Approved by:\*\*\s*(.+)/);
-  const approver = approverMatch ? approverMatch[1].trim() : null;
+  const approver = approverMatch?.[1] !== undefined ? approverMatch[1].trim() : null;
 
   // Date
   const dateMatch = gateSection.match(/\*\*Approval date:\*\*\s*(.+)/);
-  const date = dateMatch ? dateMatch[1].trim() : null;
+  const date = dateMatch?.[1] !== undefined ? dateMatch[1].trim() : null;
 
   const approved = Boolean(
     !unchecked &&

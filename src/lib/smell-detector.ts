@@ -201,6 +201,7 @@ export function detectSmells(content: string): SmellDetectionResult {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (line === undefined) continue;
 
     if (line.startsWith('```')) {
       inCodeBlock = !inCodeBlock;
@@ -220,6 +221,7 @@ export function detectSmells(content: string): SmellDetectionResult {
     if (line.startsWith('#') || line.match(/^\|[-\s|]+\|$/)) continue;
 
     for (const [type, config] of Object.entries(SMELL_PATTERNS)) {
+      if (config === undefined) continue;
       for (const pattern of config.patterns) {
         // matchAll is stateless across invocations (unlike legacy's
         // stateful regex iteration which had to reset lastIndex
@@ -259,7 +261,9 @@ export function scoreSmellDensity(content: string): SmellDensityResult {
   let inFrontmatter = false;
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+    const rawLine = lines[i];
+    if (rawLine === undefined) continue;
+    const line = rawLine.trim();
     if (line.startsWith('```')) {
       inCodeBlock = !inCodeBlock;
       continue;
@@ -338,12 +342,14 @@ export function generateSmellReport(filePath: string): string {
 
   const grouped: Record<string, SmellEntry[]> = {};
   for (const smell of result.smells) {
-    if (!grouped[smell.type]) grouped[smell.type] = [];
-    grouped[smell.type].push(smell);
+    const bucket = grouped[smell.type] ?? [];
+    bucket.push(smell);
+    grouped[smell.type] = bucket;
   }
 
   for (const [type, smells] of Object.entries(grouped)) {
     const config = SMELL_PATTERNS[type];
+    if (config === undefined) continue;
     report += `## ${type} (${smells.length}) — ${config.severity}\n\n`;
     report += `*${config.description}*\n\n`;
     report += '| Line | Text |\n|------|------|\n';

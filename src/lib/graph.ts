@@ -241,13 +241,19 @@ export function buildFromSpecs(specsDir: string): SpecGraph {
     const prdContent = readFileSync(prdPath, 'utf8');
 
     for (const m of prdContent.matchAll(/### Epic (E\d+):\s*(.+)/g)) {
-      addNode(graph, m[1], 'epic', { name: m[2].trim() });
+      const epicId = m[1];
+      const epicName = m[2];
+      if (epicId === undefined || epicName === undefined) continue;
+      addNode(graph, epicId, 'epic', { name: epicName.trim() });
     }
 
     for (const m of prdContent.matchAll(/#### Story (E\d+-S\d+):\s*(.+)/g)) {
       const storyId = m[1];
+      const storyName = m[2];
+      if (storyId === undefined || storyName === undefined) continue;
       const epicId = storyId.split('-')[0];
-      addNode(graph, storyId, 'story', { name: m[2].trim() });
+      if (epicId === undefined) continue;
+      addNode(graph, storyId, 'story', { name: storyName.trim() });
       addEdge(graph, epicId, storyId, 'contains');
     }
   }
@@ -259,7 +265,9 @@ export function buildFromSpecs(specsDir: string): SpecGraph {
     const taskMatches = Array.from(planContent.matchAll(/### Task (M\d+-T\d+):\s*(.+)/g));
     for (const taskMatch of taskMatches) {
       const taskId = taskMatch[1];
-      const cleanedName = taskMatch[2].replace(/\s*`\[.*?\]`\s*/, '').trim();
+      const taskName = taskMatch[2];
+      if (taskId === undefined || taskName === undefined) continue;
+      const cleanedName = taskName.replace(/\s*`\[.*?\]`\s*/, '').trim();
       addNode(graph, taskId, 'task', { name: cleanedName });
 
       const blockStart = taskMatch.index ?? 0;
@@ -267,12 +275,12 @@ export function buildFromSpecs(specsDir: string): SpecGraph {
       const block = planContent.substring(blockStart, blockEnd === -1 ? undefined : blockEnd);
 
       const storyRefMatch = block.match(/\*\*Story Reference\*\*\s*\|\s*(E\d+-S\d+)/);
-      if (storyRefMatch) {
+      if (storyRefMatch?.[1] !== undefined) {
         addEdge(graph, taskId, storyRefMatch[1], 'implements');
       }
 
       const filesMatch = block.match(/\*\*Files\*\*\s*\|\s*(.+)/);
-      if (filesMatch) {
+      if (filesMatch?.[1] !== undefined) {
         const files = filesMatch[1].split(',').map((f) => f.trim().replace(/`/g, ''));
         for (const file of files) {
           if (file && file !== '-' && file !== 'None') {
@@ -332,8 +340,9 @@ export function auditTaskDependencies(graph: {
     inDeg[t.id] = 0;
   }
   for (const e of taskEdges) {
-    if (adj[e.from]) adj[e.from].push(e.to);
-    if (inDeg[e.to] !== undefined) inDeg[e.to]++;
+    const fromAdj = adj[e.from];
+    if (fromAdj) fromAdj.push(e.to);
+    if (inDeg[e.to] !== undefined) inDeg[e.to] = (inDeg[e.to] ?? 0) + 1;
   }
 
   // Detect cycles via DFS
@@ -380,8 +389,9 @@ export function auditTaskDependencies(graph: {
     remaining = [];
     for (const node of currentLevel) {
       for (const neighbor of adj[node] || []) {
-        inDeg[neighbor]--;
-        if (inDeg[neighbor] === 0) remaining.push(neighbor);
+        const remaining_count = (inDeg[neighbor] ?? 0) - 1;
+        inDeg[neighbor] = remaining_count;
+        if (remaining_count === 0) remaining.push(neighbor);
       }
     }
     level++;
@@ -396,7 +406,7 @@ export function auditTaskDependencies(graph: {
   for (const e of taskEdges) {
     const fromMatch = e.from.match(/M(\d+)-T/);
     const toMatch = e.to.match(/M(\d+)-T/);
-    if (fromMatch && toMatch) {
+    if (fromMatch?.[1] !== undefined && toMatch?.[1] !== undefined) {
       const fromMilestone = Number.parseInt(fromMatch[1], 10);
       const toMilestone = Number.parseInt(toMatch[1], 10);
       if (toMilestone > fromMilestone) {

@@ -112,7 +112,8 @@ export function estimateTokens(text: string): number {
  */
 export function chunkContent(content: string, options: ChunkOptions = {}): ChunkResult {
   const model = options.model || 'default';
-  const limits = MODEL_CONTEXT_LIMITS[model] || MODEL_CONTEXT_LIMITS.default;
+  const limits = MODEL_CONTEXT_LIMITS[model] ?? MODEL_CONTEXT_LIMITS.default;
+  if (limits === undefined) throw new Error('MODEL_CONTEXT_LIMITS.default is missing');
   const maxTokens = options.max_tokens || Math.floor(limits.tokens * 0.8);
   const overlapTokens = options.overlap || Math.floor(maxTokens * 0.05);
 
@@ -184,7 +185,7 @@ export function chunkImplementationPlan(root: string, _options: ChunkOptions = {
 
   const packets: PlanPacket[] = sections.map((section, i) => ({
     index: i,
-    title: section.split('\n')[0].trim(),
+    title: (section.split('\n')[0] ?? '').trim(),
     estimated_tokens: estimateTokens(section),
     lines: section.split('\n').length,
   }));

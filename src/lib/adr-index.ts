@@ -75,30 +75,32 @@ export function parseADR(filePath: string): ADREntry | null {
     const name = path.basename(filePath, '.md');
 
     const titleMatch = content.match(/^#{1,2}\s+(.+)$/m);
-    const title = titleMatch ? titleMatch[1].trim() : name;
+    const title = titleMatch?.[1] !== undefined ? titleMatch[1].trim() : name;
 
     const statusMatch =
       content.match(/\*\*Status:\*\*\s*(.+)/i) || content.match(/Status:\s*(.+)/i);
-    const status = statusMatch ? statusMatch[1].trim() : 'unknown';
+    const status = statusMatch?.[1] !== undefined ? statusMatch[1].trim() : 'unknown';
 
     const dateMatch =
       content.match(/\*\*Date:\*\*\s*(.+)/i) ||
       content.match(/Date:\s*(.+)/i) ||
       content.match(/(\d{4}-\d{2}-\d{2})/);
-    const date = dateMatch ? dateMatch[1].trim() : null;
+    const date = dateMatch?.[1] !== undefined ? dateMatch[1].trim() : null;
 
     const tagMatch = content.match(/\*\*Tags:\*\*\s*(.+)/i) || content.match(/Tags:\s*(.+)/i);
-    const tags = tagMatch ? tagMatch[1].split(',').map((t) => t.trim().toLowerCase()) : [];
+    const tags =
+      tagMatch?.[1] !== undefined ? tagMatch[1].split(',').map((t) => t.trim().toLowerCase()) : [];
 
     const componentMatch =
       content.match(/\*\*Components?:\*\*\s*(.+)/i) || content.match(/Components?:\s*(.+)/i);
-    const components = componentMatch ? componentMatch[1].split(',').map((c) => c.trim()) : [];
+    const components =
+      componentMatch?.[1] !== undefined ? componentMatch[1].split(',').map((c) => c.trim()) : [];
 
     const decisionMatch = content.match(/##\s+Decision\s*\n+([\s\S]*?)(?=\n##|\n---|$)/i);
-    const decision = decisionMatch ? decisionMatch[1].trim().slice(0, 500) : '';
+    const decision = decisionMatch?.[1] !== undefined ? decisionMatch[1].trim().slice(0, 500) : '';
 
     const contextMatch = content.match(/##\s+Context\s*\n+([\s\S]*?)(?=\n##|\n---|$)/i);
-    const context = contextMatch ? contextMatch[1].trim().slice(0, 500) : '';
+    const context = contextMatch?.[1] !== undefined ? contextMatch[1].trim().slice(0, 500) : '';
 
     return {
       id: name,
