@@ -42,8 +42,9 @@ import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
 import * as legacyReleaseReadiness from '../../lib/release-readiness.js';
+import * as legacyTemplateMerge from '../../lib/template-merge.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
+import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
 // Permissive shape for legacy lib modules — every callsite immediately narrows
 // via property access. Documenting once here so individual commands stay terse.
@@ -454,10 +455,13 @@ export interface MergeTemplatesArgs {
   projectPath?: string | undefined;
 }
 
-export async function mergeTemplatesImpl(
-  deps: Deps,
-  args: MergeTemplatesArgs
-): Promise<CommandResult> {
+// M11 strangler-tail cleanup: switched from async `legacyImport('template-merge')`
+// (M9 ESM-cutover shim) to a static import of the TS port at
+// `src/lib/template-merge.ts`. Now sync — `await` at call sites is a no-op.
+// The M8 + M9 regression tests in tests/test-m9-pitcrew-regressions.test.ts
+// + tests/test-cli-enterprise.test.ts continue to use `await mergeTemplatesImpl(...)`
+// for back-compat; both still pass.
+export function mergeTemplatesImpl(deps: Deps, args: MergeTemplatesArgs): CommandResult {
   if (!args.basePath || !args.projectPath) {
     deps.logger.error('Usage: jumpstart-mode merge-templates <base-path> <project-path>');
     return { exitCode: 1 };
@@ -467,9 +471,7 @@ export async function mergeTemplatesImpl(
   // which keeps both inside projectRoot per ADR-009.
   const safeBase = assertUserPath(deps, args.basePath, 'merge-templates:base');
   const safeProject = assertUserPath(deps, args.projectPath, 'merge-templates:project');
-  // M9 ESM cutover: template-merge is an ESM legacy module (.mjs).
-  const lib = await legacyImport<LegacyLib>('template-merge');
-  const result = lib.mergeTemplateFiles(safeBase, safeProject);
+  const result = legacyTemplateMerge.mergeTemplateFiles(safeBase, safeProject);
   deps.logger.info(JSON.stringify({ stats: result.stats }, null, 2));
   if (result.merged) deps.logger.info(result.merged);
   return { exitCode: 0 };
@@ -481,8 +483,8 @@ export const mergeTemplatesCommand = defineCommand({
     basePath: { type: 'positional', required: false, description: 'base template path' },
     projectPath: { type: 'positional', required: false, description: 'project path' },
   },
-  async run({ args }) {
-    const r = await mergeTemplatesImpl(createRealDeps(), {
+  run({ args }) {
+    const r = mergeTemplatesImpl(createRealDeps(), {
       basePath: args.basePath,
       projectPath: args.projectPath,
     });
