@@ -374,9 +374,9 @@ export function scoreConfidence(content: string, options: ScoreOptions = {}): Sc
       dimensions.enterprise_readiness.score * weights.enterprise_readiness
   );
 
-  const level =
-    CONFIDENCE_LEVELS.find((l) => weightedScore >= l.min) ||
-    CONFIDENCE_LEVELS[CONFIDENCE_LEVELS.length - 1];
+  const level = CONFIDENCE_LEVELS.find((l) => weightedScore >= l.min) ??
+    CONFIDENCE_LEVELS[CONFIDENCE_LEVELS.length - 1] ??
+    CONFIDENCE_LEVELS[0] ?? { label: 'Unknown', emoji: '?', min: 0 };
 
   const allGaps = [
     ...(dimensions.completeness.gaps || []),
@@ -440,9 +440,9 @@ export function scoreProject(root: string, options: ScoreOptions = {}): ProjectS
       ? Math.round(results.reduce((sum, r) => sum + (r.overall_score || 0), 0) / results.length)
       : 0;
 
-  const level =
-    CONFIDENCE_LEVELS.find((l) => avgScore >= l.min) ||
-    CONFIDENCE_LEVELS[CONFIDENCE_LEVELS.length - 1];
+  const level = CONFIDENCE_LEVELS.find((l) => avgScore >= l.min) ??
+    CONFIDENCE_LEVELS[CONFIDENCE_LEVELS.length - 1] ??
+    CONFIDENCE_LEVELS[0] ?? { label: 'Unknown', emoji: '?', min: 0 };
 
   return {
     success: true,

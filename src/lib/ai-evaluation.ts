@@ -174,8 +174,8 @@ export function generateReport(options: ReportOptions = {}): EvalReport {
   const avgScores: Record<string, number | null> = {};
   for (const dim of EVAL_DIMENSIONS) {
     const vals = state.evaluations
-      .filter((e) => e.scores[dim] !== undefined)
-      .map((e) => e.scores[dim]);
+      .map((e) => e.scores[dim])
+      .filter((v): v is number => v !== undefined);
     avgScores[dim] =
       vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
   }

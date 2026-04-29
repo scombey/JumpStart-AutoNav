@@ -216,11 +216,12 @@ export function collectEvidence(root: string, options: StateOptions = {}): Colle
 
   saveState(state, stateFile);
 
+  const lastCollection = state.collections[state.collections.length - 1];
   return {
     success: true,
     items_collected: items.length,
     types: [...new Set(items.map((i) => i.type))],
-    collection_id: state.collections[state.collections.length - 1].id,
+    collection_id: lastCollection?.id ?? '',
   };
 }
 
@@ -264,7 +265,6 @@ export function getStatus(options: StateOptions = {}): StatusResult {
     total_items: state.evidence_items.length,
     collections: state.collections.length,
     types: [...new Set(state.evidence_items.map((i) => i.type))],
-    last_collection:
-      state.collections.length > 0 ? state.collections[state.collections.length - 1] : null,
+    last_collection: state.collections[state.collections.length - 1] ?? null,
   };
 }

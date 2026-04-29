@@ -166,9 +166,9 @@ export function extractADRDecisions(decisionsDir: string): Decision[] {
     decisions.push({
       source: `specs/decisions/${file}`,
       type: 'adr',
-      title: titleMatch ? titleMatch[1].trim() : file,
-      status: statusMatch ? statusMatch[1].trim().toLowerCase() : 'unknown',
-      decision_text: decisionMatch ? decisionMatch[1].trim() : '',
+      title: titleMatch?.[1] !== undefined ? titleMatch[1].trim() : file,
+      status: statusMatch?.[1] !== undefined ? statusMatch[1].trim().toLowerCase() : 'unknown',
+      decision_text: decisionMatch?.[1] !== undefined ? decisionMatch[1].trim() : '',
       technologies: extractTechReferences(content),
       patterns: extractPatternReferences(content),
     });
@@ -189,7 +189,7 @@ export function extractArchDecisions(archPath: string): Decision[] {
 
   for (const section of sections) {
     if (section.trim().length === 0) continue;
-    const titleLine = section.split('\n')[0].trim();
+    const titleLine = (section.split('\n')[0] ?? '').trim();
     const sectionContent = section.split('\n').slice(1).join('\n');
 
     decisions.push({
@@ -217,7 +217,7 @@ export function extractPRDDecisions(prdPath: string): Decision[] {
   const nfrSection = content.match(
     /##\s+(?:Non-Functional|NFR|Constraints).*?\n([\s\S]*?)(?=\n##|\n$|$)/i
   );
-  if (nfrSection) {
+  if (nfrSection?.[1] !== undefined) {
     decisions.push({
       source: 'specs/prd.md',
       type: 'prd',
@@ -231,7 +231,7 @@ export function extractPRDDecisions(prdPath: string): Decision[] {
   const techSection = content.match(
     /##\s+(?:Tech|Technology|Stack|Technical).*?\n([\s\S]*?)(?=\n##|\n$|$)/i
   );
-  if (techSection) {
+  if (techSection?.[1] !== undefined) {
     decisions.push({
       source: 'specs/prd.md',
       type: 'prd',
@@ -298,7 +298,7 @@ export function findConflicts(decisions: Decision[]): Conflict[] {
   for (const [category, techs] of Object.entries(competing)) {
     const usedTechs = techs.filter((t) => techBySource[t]);
     if (usedTechs.length > 1) {
-      const sources = usedTechs.flatMap((t) => techBySource[t].map((d) => d.source));
+      const sources = usedTechs.flatMap((t) => (techBySource[t] ?? []).map((d) => d.source));
       conflicts.push({
         type: 'technology',
         category,
