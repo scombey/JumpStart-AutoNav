@@ -148,6 +148,14 @@ const subCommands: Record<string, () => Promise<CommandDef>> = {
   rewind: lazy(() => import('./commands/lifecycle.js').then((m) => m.rewindCommand)),
   next: lazy(() => import('./commands/lifecycle.js').then((m) => m.nextCommand)),
   'plan-executor': lazy(() => import('./commands/lifecycle.js').then((m) => m.planExecutorCommand)),
+
+  // Marketplace cluster (T4.7.2 batch 3 — bin/cli.js lines 1350-1732)
+  install: lazy(() => import('./commands/marketplace.js').then((m) => m.installCommand)),
+  uninstall: lazy(() => import('./commands/marketplace.js').then((m) => m.uninstallCommand)),
+  status: lazy(() => import('./commands/marketplace.js').then((m) => m.statusCommand)),
+  integrate: lazy(() => import('./commands/marketplace.js').then((m) => m.integrateCommand)),
+  update: lazy(() => import('./commands/marketplace.js').then((m) => m.updateCommand)),
+  upgrade: lazy(() => import('./commands/marketplace.js').then((m) => m.upgradeCommand)),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
