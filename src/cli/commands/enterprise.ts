@@ -39,6 +39,7 @@ import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
 import * as legacyEnvironmentPromotion from '../../lib/environment-promotion.js';
 import * as legacyLegacyModernizer from '../../lib/legacy-modernizer.js';
 import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
+import * as legacyParallelAgents from '../../lib/parallel-agents.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
@@ -621,16 +622,34 @@ export interface ParallelAgentsArgs {
 }
 
 export function parallelAgentsImpl(deps: Deps, args: ParallelAgentsArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('parallel-agents');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('parallel-agents')`
+  // to a static import of the TS port at `src/lib/parallel-agents.ts`. The
+  // previous wiring called `lib.planParallelExecution` / `lib.getStatus` —
+  // neither was exported by the legacy module, so the command silently
+  // produced `undefined` results regardless of arg shape. Replaced with
+  // the actual legacy contract: `scheduleRun` / `listRuns` / `getRunStatus`
+  // / `reconcileRun`. The legacy CLI default was `status`; preserved as a
+  // call to `listRuns` since the legacy never had a single-run-status
+  // entry point that didn't require a run id.
   const action = args.action ?? 'status';
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'parallel-agents.json');
   let result: unknown;
-  if (action === 'plan') {
-    result = lib.planParallelExecution
-      ? lib.planParallelExecution(deps.projectRoot, { stateFile })
-      : lib.getStatus?.({ stateFile });
+  if (action === 'schedule' || action === 'plan') {
+    result = legacyParallelAgents.scheduleRun([], { root: deps.projectRoot }, { stateFile });
+  } else if (action === 'reconcile') {
+    if (!args.arg) {
+      deps.logger.error('Usage: jumpstart-mode parallel-agents reconcile <run-id>');
+      return { exitCode: 1 };
+    }
+    result = legacyParallelAgents.reconcileRun(args.arg, { stateFile });
+  } else if (action === 'run-status') {
+    if (!args.arg) {
+      deps.logger.error('Usage: jumpstart-mode parallel-agents run-status <run-id>');
+      return { exitCode: 1 };
+    }
+    result = legacyParallelAgents.getRunStatus(args.arg, { stateFile });
   } else {
-    result = lib.getStatus?.({ stateFile });
+    result = legacyParallelAgents.listRuns({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Parallel agents: ${action}`);
@@ -640,8 +659,12 @@ export function parallelAgentsImpl(deps: Deps, args: ParallelAgentsArgs): Comman
 export const parallelAgentsCommand = defineCommand({
   meta: { name: 'parallel-agents', description: 'Parallel agent orchestration' },
   args: {
-    action: { type: 'positional', required: false, description: 'status | plan' },
-    arg: { type: 'positional', required: false, description: 'optional argument' },
+    action: {
+      type: 'positional',
+      required: false,
+      description: 'status | schedule | plan | reconcile | run-status',
+    },
+    arg: { type: 'positional', required: false, description: 'run id (reconcile / run-status)' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
   run({ args }) {
