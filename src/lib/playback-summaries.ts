@@ -34,8 +34,8 @@ export interface AudienceConfigEntry {
 
 export interface SummarySectionEntry {
   available: boolean;
-  size?: number;
-  has_approval?: boolean;
+  size?: number | undefined;
+  has_approval?: boolean | undefined;
 }
 
 export interface ProjectStatus {
@@ -51,8 +51,8 @@ export interface PlaybackSummary {
   generated_at: string;
   sections: Record<string, SummarySectionEntry>;
   project_status?: ProjectStatus;
-  specs_available?: string[];
-  max_length?: number;
+  specs_available?: string[] | undefined;
+  max_length?: number | undefined;
 }
 
 export interface GenerateSummaryOptions {
@@ -62,7 +62,7 @@ export interface GenerateSummaryOptions {
 export interface GenerateSummaryResult {
   success: boolean;
   summary?: PlaybackSummary;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ListAudiencesEntry {

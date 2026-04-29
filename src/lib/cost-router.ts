@@ -55,13 +55,13 @@ export interface CostRouterConfig {
 }
 
 export interface RouteTask {
-  type?: string;
-  estimated_tokens?: number;
-  min_quality?: number;
+  type?: string | undefined;
+  estimated_tokens?: number | undefined;
+  min_quality?: number | undefined;
 }
 
 export interface RouteOptions {
-  configFile?: string;
+  configFile?: string | undefined;
 }
 
 export interface RouteCandidate {
@@ -82,10 +82,10 @@ export interface RouteResult {
 
 export interface RecordSpendingResult {
   success: boolean;
-  model?: string;
-  tokens?: number;
-  cost?: number;
-  error?: string;
+  model?: string | undefined;
+  tokens?: number | undefined;
+  cost?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface CostReport {

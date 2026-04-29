@@ -25,9 +25,9 @@ export type ContractType = 'rest-api' | 'graphql' | 'event' | 'grpc' | 'message-
 
 export interface Contract {
   type: string;
-  method?: string;
-  path?: string;
-  name?: string;
+  method?: string | undefined;
+  path?: string | undefined;
+  name?: string | undefined;
   line: number;
 }
 
@@ -37,20 +37,20 @@ export interface ExtractOptions {
 
 export interface ExtractResult {
   success: boolean;
-  total_contracts?: number;
+  total_contracts?: number | undefined;
   contracts?: Contract[];
   by_type?: Record<string, number>;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface VerifyResult {
   success: boolean;
-  total_contracts?: number;
-  implemented?: number;
-  violations?: number;
-  compliance?: number;
+  total_contracts?: number | undefined;
+  implemented?: number | undefined;
+  violations?: number | undefined;
+  compliance?: number | undefined;
   findings?: Array<Contract & { issue: string }>;
-  error?: string;
+  error?: string | undefined;
 }
 
 const ENDPOINT_REGEX = /(?:GET|POST|PUT|PATCH|DELETE)\s+\/[\w/{}:-]+/g;

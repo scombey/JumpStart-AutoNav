@@ -39,11 +39,11 @@ export interface UsageEntry {
 }
 
 export interface UsageEntryInput {
-  phase?: string;
-  agent?: string;
-  action?: string;
-  estimated_tokens?: number;
-  estimated_cost_usd?: number;
+  phase?: string | undefined;
+  agent?: string | undefined;
+  action?: string | undefined;
+  estimated_tokens?: number | undefined;
+  estimated_cost_usd?: number | undefined;
   model?: string | null;
   metadata?: Record<string, unknown> | null;
 }

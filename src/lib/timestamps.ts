@@ -68,7 +68,7 @@ export interface AuditInvalidEntry {
   value: string;
   error: string | null;
   /** Frontmatter field name when the failure is in YAML frontmatter; absent for body entries. */
-  field?: string;
+  field?: string | undefined;
 }
 
 /**
@@ -81,8 +81,8 @@ export interface AuditResult {
   entries: number;
   valid: number;
   invalid: AuditInvalidEntry[];
-  error?: string;
-  truncated?: boolean;
+  error?: string | undefined;
+  truncated?: boolean | undefined;
 }
 
 /**

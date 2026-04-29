@@ -26,14 +26,14 @@ import * as path from 'node:path';
 // Public types
 
 export interface ImpactTarget {
-  file?: string;
-  symbol?: string;
-  specId?: string;
+  file?: string | undefined;
+  symbol?: string | undefined;
+  specId?: string | undefined;
 }
 
 export interface ImpactOptions {
-  testsDir?: string;
-  srcDir?: string;
+  testsDir?: string | undefined;
+  srcDir?: string | undefined;
 }
 
 export interface ImpactHit {

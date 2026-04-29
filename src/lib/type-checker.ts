@@ -63,13 +63,13 @@ export interface TypeCheckFinding {
 }
 
 export interface TypeCheckConfig {
-  type_command?: string;
-  strict?: boolean;
+  type_command?: string | undefined;
+  strict?: boolean | undefined;
 }
 
 export interface RunTypeCheckInput {
-  files?: string[];
-  root?: string;
+  files?: string[] | undefined;
+  root?: string | undefined;
   config?: TypeCheckConfig;
 }
 
@@ -80,8 +80,8 @@ export interface RunTypeCheckResult {
   findings: TypeCheckFinding[];
   pass: boolean;
   checker: string | null;
-  message?: string;
-  exit_code?: number;
+  message?: string | undefined;
+  exit_code?: number | undefined;
 }
 
 interface DetectorEntry {
@@ -202,7 +202,7 @@ function tokenizeCommand(cmd: string): { argv0: string; args: string[] } {
 interface ProcessError extends Error {
   stdout?: Buffer | string;
   stderr?: Buffer | string;
-  status?: number;
+  status?: number | undefined;
 }
 
 /** Run the configured/detected type checker and parse its output. */

@@ -48,9 +48,9 @@ export const MODEL_CONTEXT_LIMITS: Record<string, ContextLimits> = {
 };
 
 export interface ChunkOptions {
-  model?: string;
-  max_tokens?: number;
-  overlap?: number;
+  model?: string | undefined;
+  max_tokens?: number | undefined;
+  overlap?: number | undefined;
 }
 
 export interface ChunkDetail {

@@ -38,21 +38,21 @@ export interface ContractEndpoint {
 }
 
 export interface ValidateInput {
-  contracts?: string;
-  data_model?: string;
-  root?: string;
+  contracts?: string | undefined;
+  data_model?: string | undefined;
+  root?: string | undefined;
 }
 
 export interface ValidationResult {
-  entities_in_model?: string[];
-  entities_in_contracts?: string[];
-  missing_in_contracts?: string[];
-  missing_in_model?: string[];
+  entities_in_model?: string[] | undefined;
+  entities_in_contracts?: string[] | undefined;
+  missing_in_contracts?: string[] | undefined;
+  missing_in_model?: string[] | undefined;
   field_mismatches?: unknown[];
-  endpoint_count?: number;
+  endpoint_count?: number | undefined;
   score: number;
   pass: boolean;
-  error?: string;
+  error?: string | undefined;
 }
 
 const FIELD_REGEX = /\|\s*`(\w+)`\s*\|\s*(\w+[\w\s[\]]*)\s*\|/g;

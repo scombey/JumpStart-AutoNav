@@ -57,7 +57,7 @@
 export interface ToolParameters {
   type: 'object';
   properties?: Record<string, unknown>;
-  required?: string[];
+  required?: string[] | undefined;
   // Allow forward-compat fields without surfacing `any`.
   [key: string]: unknown;
 }

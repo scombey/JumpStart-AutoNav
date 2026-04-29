@@ -57,17 +57,17 @@ import { redactSecrets } from './secret-scanner.js';
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ModuleManifest {
-  name?: string;
-  version?: string;
-  description?: string;
-  author?: string;
-  license?: string;
-  keywords?: string[];
-  agents?: string[];
-  templates?: string[];
-  commands?: string[];
-  checks?: string[];
-  skills?: string[];
+  name?: string | undefined;
+  version?: string | undefined;
+  description?: string | undefined;
+  author?: string | undefined;
+  license?: string | undefined;
+  keywords?: string[] | undefined;
+  agents?: string[] | undefined;
+  templates?: string[] | undefined;
+  commands?: string[] | undefined;
+  checks?: string[] | undefined;
+  skills?: string[] | undefined;
   [key: string]: unknown;
 }
 

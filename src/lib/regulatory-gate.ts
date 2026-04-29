@@ -94,10 +94,10 @@ export interface ChecklistCategory {
 }
 
 export interface RegulatoryInput {
-  project_domain?: string;
-  risk_level?: string;
-  data_types?: string[];
-  regions?: string[];
+  project_domain?: string | undefined;
+  risk_level?: string | undefined;
+  data_types?: string[] | undefined;
+  regions?: string[] | undefined;
 }
 
 export interface RegulatoryEvaluation {

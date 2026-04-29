@@ -24,13 +24,13 @@ import { join } from 'node:path';
 
 export interface CABSectionEntry {
   present: boolean;
-  title?: string;
-  user_stories?: number;
-  total_risks?: number;
-  high_risks?: number;
-  recommendation?: string;
-  total?: number;
-  approved?: number;
+  title?: string | undefined;
+  user_stories?: number | undefined;
+  total_risks?: number | undefined;
+  high_risks?: number | undefined;
+  recommendation?: string | undefined;
+  total?: number | undefined;
+  approved?: number | undefined;
 }
 
 export interface CABResult {

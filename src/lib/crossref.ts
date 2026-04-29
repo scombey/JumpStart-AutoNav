@@ -57,7 +57,7 @@ export interface CrossRefReport {
   files_scanned: number;
   score: number;
   pass: boolean;
-  error?: string;
+  error?: string | undefined;
 }
 
 // Implementation

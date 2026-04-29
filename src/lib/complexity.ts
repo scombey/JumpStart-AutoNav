@@ -54,13 +54,13 @@ export const RISK_KEYWORDS: readonly string[] = [
 ];
 
 export interface ComplexityInput {
-  description?: string;
-  file_count?: number;
-  dependency_count?: number;
-  domain?: string;
-  integrations?: number;
-  stakeholder_count?: number;
-  risk_signals?: string[];
+  description?: string | undefined;
+  file_count?: number | undefined;
+  dependency_count?: number | undefined;
+  domain?: string | undefined;
+  integrations?: number | undefined;
+  stakeholder_count?: number | undefined;
+  risk_signals?: string[] | undefined;
 }
 
 export interface ComplexityBreakdown {

@@ -113,7 +113,7 @@ import { createProvider, listModels } from './llm-provider.js';
 import { createMockRegistry, createPersonaRegistry } from './mock-responses.js';
 import { assertInsideRoot } from './path-safety.js';
 import { redactSecrets } from './secret-scanner.js';
-import { SimulationTracer } from './simulation-tracer.js';
+import { SimulationTracer, type TimelineLike } from './simulation-tracer.js';
 import { createTimeline, type Timeline } from './timeline.js';
 import { createToolBridge } from './tool-bridge.js';
 import { getToolsForPhase } from './tool-schemas.js';
@@ -150,33 +150,33 @@ export interface HeadlessOptions {
   /** Comma-parsed agent names (already split into array). Required. */
   agents: string[];
   /** Persona name (defaults to 'compliant-user'). */
-  persona?: string;
+  persona?: string | undefined;
   /** Agent LLM model (defaults to DEFAULT_CONFIG.agentModel). */
-  model?: string;
+  model?: string | undefined;
   /** User proxy LLM model (defaults to DEFAULT_CONFIG.proxyModel). */
-  proxyModel?: string;
+  proxyModel?: string | undefined;
   /** Run providers in mock mode (no API calls). */
-  mock?: boolean;
+  mock?: boolean | undefined;
   /** Scenario name to load fixtures from. */
-  scenario?: string;
+  scenario?: string | undefined;
   /** Output directory (defaults to `<projectRoot>/tests/e2e/.tmp`). */
-  output?: string;
+  output?: string | undefined;
   /** Don't write files (simulation mode). */
-  dryRun?: boolean;
+  dryRun?: boolean | undefined;
   /** Verbose console output. */
-  verbose?: boolean;
+  verbose?: boolean | undefined;
   /** Maximum conversation turns per agent (defaults to DEFAULT_CONFIG.maxTurns). */
-  maxTurns?: number;
+  maxTurns?: number | undefined;
   /** Project root for default path resolution (defaults to process.cwd()). */
-  projectRoot?: string;
+  projectRoot?: string | undefined;
   /** Override the agents directory. Defaults to `<projectRoot>/.jumpstart/agents`. */
-  agentsDir?: string;
+  agentsDir?: string | undefined;
   /** Override the personas directory. Defaults to `<projectRoot>/tests/e2e/personas`. */
-  personasDir?: string;
+  personasDir?: string | undefined;
   /** Override the scenarios directory. Defaults to `<projectRoot>/tests/e2e/scenarios`. */
-  scenariosDir?: string;
+  scenariosDir?: string | undefined;
   /** Override the reports directory. Defaults to `<projectRoot>/tests/e2e/reports`. */
-  reportsDir?: string;
+  reportsDir?: string | undefined;
   /** Custom logger callback (defaults to color-aware console.log). */
   logger?: HeadlessLogger;
 }
@@ -193,16 +193,16 @@ export interface ProxyAnswerEnvelope {
 
 export interface QuestionOption {
   label: string;
-  description?: string;
-  recommended?: boolean;
+  description?: string | undefined;
+  recommended?: boolean | undefined;
 }
 
 export interface AskQuestion {
   header: string;
   question: string;
   options?: QuestionOption[];
-  multiSelect?: boolean;
-  allowFreeformInput?: boolean;
+  multiSelect?: boolean | undefined;
+  allowFreeformInput?: boolean | undefined;
 }
 
 export interface AskQuestionsArgs {
@@ -451,7 +451,11 @@ export class HeadlessRunner {
       workspaceDir: this.workspaceDir,
       tracer: this.tracer,
       dryRun: this.options.dryRun === true,
-      timeline: this.timeline,
+      // Timeline.setPhase accepts `number | string | null`; TimelineLike
+      // expects `string`. The runtime is fine — callers pass strings.
+      // Cast through `unknown` to satisfy the structural compatibility
+      // check that exactOptionalPropertyTypes makes stricter.
+      timeline: this.timeline as unknown as TimelineLike | null,
       onUserProxyCall: this.options.mock
         ? null
         : // UserProxyCallback receives `unknown` from tool-bridge.

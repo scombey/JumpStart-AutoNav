@@ -53,7 +53,7 @@ export interface ArtifactEntry {
 export interface Manifest {
   version: string;
   generated: string;
-  lastUpdated?: string;
+  lastUpdated?: string | undefined;
   artifacts: Record<string, ArtifactEntry>;
 }
 

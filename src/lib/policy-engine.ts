@@ -59,31 +59,31 @@ export interface Policies {
 }
 
 export interface PolicyRuleInput {
-  id?: string;
-  category?: string;
-  name?: string;
-  description?: string;
-  pattern?: string;
-  severity?: string;
-  applies_to?: string[];
-  enabled?: boolean;
+  id?: string | undefined;
+  category?: string | undefined;
+  name?: string | undefined;
+  description?: string | undefined;
+  pattern?: string | undefined;
+  severity?: string | undefined;
+  applies_to?: string[] | undefined;
+  enabled?: boolean | undefined;
 }
 
 export interface PolicyFilter {
-  category?: string;
-  severity?: string;
-  enabled?: boolean;
+  category?: string | undefined;
+  severity?: string | undefined;
+  enabled?: boolean | undefined;
 }
 
 export interface StateOptions {
-  policyFile?: string;
+  policyFile?: string | undefined;
 }
 
 export interface AddPolicyResult {
   success: boolean;
   policy?: PolicyRule;
-  total?: number;
-  error?: string;
+  total?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface PolicyViolation {

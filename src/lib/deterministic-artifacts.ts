@@ -28,37 +28,37 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 export interface NormalizeOptions {
-  write?: boolean;
+  write?: boolean | undefined;
   [key: string]: unknown;
 }
 
 export interface NormalizeFileResult {
   success: boolean;
-  file?: string;
-  original_length?: number;
-  normalized_length?: number;
-  hash?: string;
-  modified?: boolean;
-  error?: string;
+  file?: string | undefined;
+  original_length?: number | undefined;
+  normalized_length?: number | undefined;
+  hash?: string | undefined;
+  modified?: boolean | undefined;
+  error?: string | undefined;
 }
 
 export interface StabilityResult {
   success: boolean;
-  identical?: boolean;
-  similarity?: number;
-  hash1?: string;
-  hash2?: string;
-  diff_lines?: number;
-  total_lines?: number;
-  error?: string;
+  identical?: boolean | undefined;
+  similarity?: number | undefined;
+  hash1?: string | undefined;
+  hash2?: string | undefined;
+  diff_lines?: number | undefined;
+  total_lines?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface NormalizeSpecsResult {
   success: boolean;
   files: number;
-  modified?: number;
+  modified?: number | undefined;
   results?: NormalizeFileResult[];
-  message?: string;
+  message?: string | undefined;
 }
 
 /**

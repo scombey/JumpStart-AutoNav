@@ -31,7 +31,7 @@ export interface AskQuestionsAnswer {
 
 export interface AskQuestionOption {
   label: string;
-  recommended?: boolean;
+  recommended?: boolean | undefined;
 }
 
 export interface AskQuestion {

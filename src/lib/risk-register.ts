@@ -90,43 +90,43 @@ export interface RiskState {
 }
 
 export interface RiskInput {
-  title?: string;
-  description?: string;
-  category?: string;
-  likelihood?: string;
-  impact?: string;
-  owner?: string;
-  mitigation?: string;
+  title?: string | undefined;
+  description?: string | undefined;
+  category?: string | undefined;
+  likelihood?: string | undefined;
+  impact?: string | undefined;
+  owner?: string | undefined;
+  mitigation?: string | undefined;
 }
 
 export interface RiskUpdate {
-  status?: string;
-  mitigation?: string;
-  owner?: string;
-  likelihood?: string;
-  impact?: string;
+  status?: string | undefined;
+  mitigation?: string | undefined;
+  owner?: string | undefined;
+  likelihood?: string | undefined;
+  impact?: string | undefined;
 }
 
 export interface RiskFilter {
-  category?: string;
-  status?: string;
-  minScore?: number;
+  category?: string | undefined;
+  status?: string | undefined;
+  minScore?: number | undefined;
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface AddRiskResult {
   success: boolean;
   risk?: Risk;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface UpdateRiskResult {
   success: boolean;
   risk?: Risk;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ListRisksResult {

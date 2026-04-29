@@ -50,10 +50,10 @@ function rejectForbiddenKey(key: unknown, fnName: string): void {
 export interface GraphNode {
   id: string;
   type: string;
-  name?: string;
-  path?: string;
-  addedAt?: string;
-  updated_at?: string;
+  name?: string | undefined;
+  path?: string | undefined;
+  addedAt?: string | undefined;
+  updated_at?: string | undefined;
   [extra: string]: unknown;
 }
 
@@ -66,7 +66,7 @@ export interface GraphEdge {
 export interface SpecGraph {
   version: string;
   generated: string;
-  lastUpdated?: string;
+  lastUpdated?: string | undefined;
   nodes: Record<string, GraphNode>;
   edges: GraphEdge[];
 }

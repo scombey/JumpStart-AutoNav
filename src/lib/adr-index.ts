@@ -53,16 +53,16 @@ export interface BuildIndexResult {
 }
 
 export interface SearchCriteria {
-  query?: string;
-  tag?: string;
-  component?: string;
-  status?: string;
+  query?: string | undefined;
+  tag?: string | undefined;
+  component?: string | undefined;
+  status?: string | undefined;
 }
 
 export interface SearchIndexResult {
   results: ADREntry[];
   total: number;
-  error?: string;
+  error?: string | undefined;
 }
 
 // Implementation

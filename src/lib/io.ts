@@ -48,7 +48,7 @@ export type ToolArgs = Record<string, string | true>;
 
 export interface WriteResultOptions {
   /** Pretty-print the JSON output. Default false (matches legacy). */
-  pretty?: boolean;
+  pretty?: boolean | undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

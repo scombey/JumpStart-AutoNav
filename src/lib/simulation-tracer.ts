@@ -94,7 +94,7 @@ export interface LLMCallRecord {
 
 export interface TranscriptEntry {
   type: 'tool_call' | 'user_proxy_question' | 'user_proxy_response';
-  tool?: string;
+  tool?: string | undefined;
   args?: unknown;
   result?: unknown;
   data?: unknown;
@@ -127,7 +127,7 @@ export interface HandoffValidationRecord {
 }
 
 export interface HandoffReport {
-  errors?: string[];
+  errors?: string[] | undefined;
   // Tolerate forward-compat fields the validator may emit alongside `errors`.
   [key: string]: unknown;
 }
@@ -163,9 +163,9 @@ export interface TimelineLike {
   recordEvent(event: {
     event_type: string;
     action: string;
-    phase?: string;
-    agent?: string;
-    parent_agent?: string;
+    phase?: string | undefined;
+    agent?: string | undefined;
+    parent_agent?: string | undefined;
     metadata?: Record<string, unknown> | null;
     duration_ms?: number | null;
   }): unknown;

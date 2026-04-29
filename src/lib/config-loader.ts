@@ -54,8 +54,8 @@ import { assertInsideRoot } from './path-safety.js';
 
 /** Input shape accepted by `loadConfig`. */
 export interface ConfigLoaderInput {
-  root?: string;
-  global_path?: string;
+  root?: string | undefined;
+  global_path?: string | undefined;
 }
 
 /** Override-tracking entry: a key that came from global config because
@@ -85,7 +85,7 @@ export interface LoadedConfig {
   global_keys: number;
   project_keys: number;
   /** Set only on project-config parse failure (legacy semantics). */
-  error?: string;
+  error?: string | undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

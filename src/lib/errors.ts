@@ -33,8 +33,8 @@ import type { ZodIssue } from 'zod';
  */
 export class JumpstartError extends Error {
   exitCode: number = 99;
-  phase?: number;
-  artifact?: string;
+  phase?: number | undefined;
+  artifact?: string | undefined;
 
   constructor(message: string) {
     super(message);

@@ -35,7 +35,7 @@ import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 export interface VersionTagArgs {
   'artifact-name': string;
   version: string;
-  message?: string;
+  message?: string | undefined;
 }
 
 /**

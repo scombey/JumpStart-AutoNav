@@ -87,29 +87,29 @@ export interface UpgradeOptions {
   /** Path to the npm package root. Defaults to `process.cwd()` when
    *  omitted (ESM port — legacy used `__dirname`-relative which is
    *  unavailable in ESM). CLI orchestrator should pass this explicitly. */
-  packageRoot?: string;
+  packageRoot?: string | undefined;
   /** Preview without writing. */
-  dryRun?: boolean;
+  dryRun?: boolean | undefined;
   /** Skip interactive confirmation. */
-  yes?: boolean;
+  yes?: boolean | undefined;
   /** Logging function — defaults to a no-op for library purity. */
-  log?: (msg: string) => void;
+  log?: ((msg: string) => void) | undefined;
   /** Confirmation function for interactive mode. Returns true to proceed. */
-  confirm?: (prompt: string) => Promise<boolean>;
+  confirm?: ((prompt: string) => Promise<boolean>) | undefined;
 }
 
 export interface UpgradeResult {
   success: boolean;
-  message?: string;
-  oldVersion?: string;
-  newVersion?: string;
-  filesUpdated?: number;
-  filesAdded?: number;
-  filesBackedUp?: number;
-  filesSkipped?: number;
-  backedUpFiles?: string[];
-  conflicts?: string[];
-  newConfigKeys?: string[];
+  message?: string | undefined;
+  oldVersion?: string | undefined;
+  newVersion?: string | undefined;
+  filesUpdated?: number | undefined;
+  filesAdded?: number | undefined;
+  filesBackedUp?: number | undefined;
+  filesSkipped?: number | undefined;
+  backedUpFiles?: string[] | undefined;
+  conflicts?: string[] | undefined;
+  newConfigKeys?: string[] | undefined;
 }
 
 export interface UpgradeBackup {
@@ -123,9 +123,9 @@ export interface UpgradeBackup {
 }
 
 export interface RestoreOptions {
-  version?: string;
-  files?: string[];
-  dryRun?: boolean;
+  version?: string | undefined;
+  files?: string[] | undefined;
+  dryRun?: boolean | undefined;
   log?: (msg: string) => void;
 }
 
@@ -141,13 +141,13 @@ export interface RestoreResult {
 }
 
 interface ArchiveMeta {
-  original_path?: string;
-  archived_at?: string;
-  reason?: string;
-  archived_to?: string;
-  operation?: string;
-  from_version?: string;
-  to_version?: string;
+  original_path?: string | undefined;
+  archived_at?: string | undefined;
+  reason?: string | undefined;
+  archived_to?: string | undefined;
+  operation?: string | undefined;
+  from_version?: string | undefined;
+  to_version?: string | undefined;
   [key: string]: unknown;
 }
 

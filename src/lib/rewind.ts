@@ -38,8 +38,8 @@ export interface PhaseArtifactInfo {
 }
 
 export interface ArchiveOptions {
-  root?: string;
-  archiveDir?: string;
+  root?: string | undefined;
+  archiveDir?: string | undefined;
 }
 
 export interface ArchivedEntry {
@@ -59,29 +59,29 @@ export interface InvalidatedPhase {
 }
 
 export interface StateChanges {
-  message?: string;
+  message?: string | undefined;
   previous_phase?: number | string | null;
-  new_phase?: number;
-  removed_approvals?: string[];
-  removed_history_entries?: number;
+  new_phase?: number | undefined;
+  removed_approvals?: string[] | undefined;
+  removed_history_entries?: number | undefined;
 }
 
 export interface RewindOptions {
-  root?: string;
-  statePath?: string;
-  archiveDir?: string;
-  reason?: string;
+  root?: string | undefined;
+  statePath?: string | undefined;
+  archiveDir?: string | undefined;
+  reason?: string | undefined;
 }
 
 export interface RewindResult {
   success: boolean;
-  rewound_to?: number;
-  phase_name?: string;
+  rewound_to?: number | undefined;
+  phase_name?: string | undefined;
   archived?: ArchivedEntry[];
-  skipped?: string[];
+  skipped?: string[] | undefined;
   invalidated_phases?: InvalidatedPhase[];
   state_changes?: StateChanges;
-  error?: string;
+  error?: string | undefined;
 }
 
 // Catalogs (preserved verbatim from legacy)

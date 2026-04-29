@@ -34,7 +34,7 @@ export interface SmellPatternConfig {
   patterns: RegExp[];
   severity: SmellSeverity;
   description: string;
-  exclude?: string[];
+  exclude?: string[] | undefined;
 }
 
 export interface SmellEntry {
@@ -69,7 +69,7 @@ export interface DirectoryScanResult {
 }
 
 export interface ScanDirectoryOptions {
-  threshold?: number;
+  threshold?: number | undefined;
 }
 
 // Smell patterns (preserved verbatim from legacy)

@@ -40,12 +40,12 @@ export type MigrationType =
 export interface MigrationInput {
   name: string;
   type: string;
-  description?: string;
-  table?: string;
-  column?: string;
-  backward_compatible?: boolean;
-  rollback_strategy?: string;
-  validation_steps?: string[];
+  description?: string | undefined;
+  table?: string | undefined;
+  column?: string | undefined;
+  backward_compatible?: boolean | undefined;
+  rollback_strategy?: string | undefined;
+  validation_steps?: string[] | undefined;
 }
 
 export interface Migration {
@@ -72,23 +72,23 @@ export interface DbEvolutionState {
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface PlanResult {
   success: boolean;
   migration?: Migration;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ValidateResult {
   success: boolean;
-  migration_id?: string;
-  safe?: boolean;
-  warnings?: string[];
-  risk_level?: string;
-  backward_compatible?: boolean;
-  error?: string;
+  migration_id?: string | undefined;
+  safe?: boolean | undefined;
+  warnings?: string[] | undefined;
+  risk_level?: string | undefined;
+  backward_compatible?: boolean | undefined;
+  error?: string | undefined;
 }
 
 export interface ReportResult {

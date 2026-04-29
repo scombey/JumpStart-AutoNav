@@ -47,7 +47,7 @@ export interface ModelEntry {
   safety_controls: string[];
   data_handling: string | null;
   registered_at: string;
-  status_updated_at?: string;
+  status_updated_at?: string | undefined;
 }
 
 export interface ModelEvaluation {
@@ -69,43 +69,43 @@ export interface ModelGovernanceState {
 }
 
 export interface ModelInput {
-  name?: string;
-  provider?: string;
-  version?: string;
-  use_case?: string;
-  risk_level?: string;
-  fallback?: string;
-  prompting_strategy?: string;
-  safety_controls?: string[];
-  data_handling?: string;
+  name?: string | undefined;
+  provider?: string | undefined;
+  version?: string | undefined;
+  use_case?: string | undefined;
+  risk_level?: string | undefined;
+  fallback?: string | undefined;
+  prompting_strategy?: string | undefined;
+  safety_controls?: string[] | undefined;
+  data_handling?: string | undefined;
 }
 
 export interface EvaluationInput {
   metrics?: Record<string, unknown>;
-  notes?: string;
-  evaluator?: string;
+  notes?: string | undefined;
+  evaluator?: string | undefined;
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface RegisterResult {
   success: boolean;
   model?: ModelEntry;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface EvalResult {
   success: boolean;
   evaluation?: ModelEvaluation;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface UpdateStatusResult {
   success: boolean;
   model?: ModelEntry;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ModelReport {

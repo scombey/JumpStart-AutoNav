@@ -64,49 +64,49 @@ export interface RoleApprovalStore {
 
 export interface ApproverInput {
   role: string;
-  name?: string;
-  required?: boolean;
+  name?: string | undefined;
+  required?: boolean | undefined;
 }
 
 export interface ApprovalFilter {
-  status?: string;
+  status?: string | undefined;
 }
 
 export interface StateOptions {
-  stateFile?: string;
-  approverName?: string;
-  comment?: string;
+  stateFile?: string | undefined;
+  approverName?: string | undefined;
+  comment?: string | undefined;
 }
 
 export interface AssignResult {
   success: boolean;
-  artifact?: string;
+  artifact?: string | undefined;
   approvers?: ApproverEntry[];
-  total_required?: number;
-  error?: string;
+  total_required?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface RecordResult {
   success: boolean;
-  artifact?: string;
-  role?: string;
-  action?: string;
-  workflow_status?: string;
-  pending_roles?: string[];
-  error?: string;
+  artifact?: string | undefined;
+  role?: string | undefined;
+  action?: string | undefined;
+  workflow_status?: string | undefined;
+  pending_roles?: string[] | undefined;
+  error?: string | undefined;
 }
 
 export interface StatusResult {
   success: true;
   artifact: string;
   has_workflow: boolean;
-  message?: string;
-  status?: string;
-  pending_roles?: string[];
-  approved_roles?: string[];
-  rejected_roles?: string[];
+  message?: string | undefined;
+  status?: string | undefined;
+  pending_roles?: string[] | undefined;
+  approved_roles?: string[] | undefined;
+  rejected_roles?: string[] | undefined;
   approvers?: ApproverEntry[];
-  fully_approved?: boolean;
+  fully_approved?: boolean | undefined;
 }
 
 export interface ListResult {

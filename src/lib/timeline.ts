@@ -95,8 +95,8 @@ export interface TimelineEventInput {
   phase?: number | string | null;
   agent?: string | null;
   parent_agent?: string | null;
-  event_type?: string;
-  action?: string;
+  event_type?: string | undefined;
+  action?: string | undefined;
   metadata?: Record<string, unknown> | null;
   duration_ms?: number | null;
 }
@@ -121,20 +121,20 @@ export interface CaptureFlags {
 }
 
 export interface CreateTimelineOptions {
-  filePath?: string;
-  sessionId?: string;
-  enabled?: boolean;
-  maxEvents?: number;
-  flushInterval?: number;
-  captureToolCalls?: boolean;
-  captureFileReads?: boolean;
-  captureFileWrites?: boolean;
-  captureLLMTurns?: boolean;
-  captureQuestions?: boolean;
-  captureApprovals?: boolean;
-  captureSubagents?: boolean;
-  captureResearch?: boolean;
-  archiveOnClear?: boolean;
+  filePath?: string | undefined;
+  sessionId?: string | undefined;
+  enabled?: boolean | undefined;
+  maxEvents?: number | undefined;
+  flushInterval?: number | undefined;
+  captureToolCalls?: boolean | undefined;
+  captureFileReads?: boolean | undefined;
+  captureFileWrites?: boolean | undefined;
+  captureLLMTurns?: boolean | undefined;
+  captureQuestions?: boolean | undefined;
+  captureApprovals?: boolean | undefined;
+  captureSubagents?: boolean | undefined;
+  captureResearch?: boolean | undefined;
+  archiveOnClear?: boolean | undefined;
 }
 
 export interface Timeline {
@@ -150,13 +150,13 @@ export interface Timeline {
 }
 
 export interface TimelineFilters {
-  session_id?: string;
+  session_id?: string | undefined;
   phase?: number | string | null;
-  agent?: string;
+  agent?: string | undefined;
   event_type?: string | string[];
-  from?: string;
-  to?: string;
-  limit?: number;
+  from?: string | undefined;
+  to?: string | undefined;
+  limit?: number | undefined;
 }
 
 export interface TimelineSummary {
@@ -174,8 +174,8 @@ export interface TimelineSummary {
 }
 
 export interface ClearTimelineOptions {
-  archive?: boolean;
-  archiveDir?: string;
+  archive?: boolean | undefined;
+  archiveDir?: string | undefined;
 }
 
 export interface ClearTimelineResult {
@@ -184,13 +184,13 @@ export interface ClearTimelineResult {
 }
 
 export interface RenderOptions {
-  title?: string;
+  title?: string | undefined;
 }
 
 export interface GenerateReportOptions {
   format?: 'markdown' | 'json' | 'html';
   filters?: TimelineFilters;
-  title?: string;
+  title?: string | undefined;
 }
 
 // Constants (verbatim from legacy)

@@ -61,8 +61,8 @@ export interface EvidenceState {
 }
 
 export interface StateOptions {
-  stateFile?: string;
-  outputDir?: string;
+  stateFile?: string | undefined;
+  outputDir?: string | undefined;
 }
 
 export interface CollectResult {

@@ -81,7 +81,7 @@ export interface InstallResult {
 export interface ClientConfig {
   name: string;
   configFileName?: string | null;
-  useCli?: boolean;
+  useCli?: boolean | undefined;
   /** Pit Crew M7 BLOCKER fix: argv array (no shell interpolation).
    *  The legacy `cliCommand: (apiKey) => string` form was vulnerable to
    *  shell injection via apiKey. Replaced by `cliArgv: (apiKey) => string[]`
@@ -93,13 +93,13 @@ export interface ClientConfig {
 
 export interface SetupOptions {
   targetDir: string;
-  dryRun?: boolean;
+  dryRun?: boolean | undefined;
 }
 
 export interface SetupOutcome {
   installed: boolean;
   clients: string[];
-  apiKey?: string;
+  apiKey?: string | undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

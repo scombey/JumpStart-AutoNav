@@ -164,5 +164,5 @@ export function createTestDeps(overrides: Partial<Deps> = {}): Deps {
  */
 export interface CommandResult {
   exitCode: number;
-  message?: string;
+  message?: string | undefined;
 }

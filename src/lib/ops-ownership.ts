@@ -56,24 +56,24 @@ export interface OpsState {
 }
 
 export interface ServiceInput {
-  name?: string;
-  service_owner?: string;
-  team?: string;
-  escalation_path?: string[];
-  oncall_model?: string;
-  support_hours?: string;
-  runbook_url?: string;
-  sla_tier?: string;
+  name?: string | undefined;
+  service_owner?: string | undefined;
+  team?: string | undefined;
+  escalation_path?: string[] | undefined;
+  oncall_model?: string | undefined;
+  support_hours?: string | undefined;
+  runbook_url?: string | undefined;
+  sla_tier?: string | undefined;
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface DefineResult {
   success: boolean;
   service?: ServiceOwnership;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface CompletenessFinding {

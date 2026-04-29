@@ -52,45 +52,45 @@ export interface DataContractsState {
 }
 
 export interface RegisterOptions {
-  stateFile?: string;
-  version?: string;
-  producer?: string;
-  consumers?: string[];
-  compatibility?: string;
+  stateFile?: string | undefined;
+  version?: string | undefined;
+  producer?: string | undefined;
+  consumers?: string[] | undefined;
+  compatibility?: string | undefined;
 }
 
 export interface RegisterResult {
   success: boolean;
   contract?: DataContract;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ValidateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface ValidateResult {
   success: boolean;
-  compatible?: boolean;
+  compatible?: boolean | undefined;
   issues?: Array<{ type: string; fields: string[] }>;
-  added?: string[];
-  removed?: string[];
-  error?: string;
+  added?: string[] | undefined;
+  removed?: string[] | undefined;
+  error?: string | undefined;
 }
 
 export interface LineageOptions {
-  stateFile?: string;
-  transformation?: string;
+  stateFile?: string | undefined;
+  transformation?: string | undefined;
 }
 
 export interface LineageResult {
   success: boolean;
   lineage?: LineageEntry;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface ReportOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface ReportResult {

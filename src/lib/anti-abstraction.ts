@@ -42,8 +42,8 @@ export interface ScanFileResult {
 }
 
 export interface ScanDirectoryOptions {
-  extensions?: string[];
-  excludeDirs?: string[];
+  extensions?: string[] | undefined;
+  excludeDirs?: string[] | undefined;
 }
 
 export interface ScanDirectoryResult {

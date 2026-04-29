@@ -42,9 +42,9 @@ export interface ComplexityThreshold {
 }
 
 export interface ScanOptions {
-  excludeDirs?: string[];
-  extensions?: string[];
-  limit?: number;
+  excludeDirs?: string[] | undefined;
+  extensions?: string[] | undefined;
+  limit?: number | undefined;
 }
 
 export interface FileMetrics {

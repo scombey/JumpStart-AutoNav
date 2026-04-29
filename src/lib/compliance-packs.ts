@@ -64,11 +64,11 @@ export interface ListFrameworksResult {
 
 export interface ApplyResult {
   success: boolean;
-  framework?: string;
-  name?: string;
-  controls_added?: number;
-  total_applied?: number;
-  error?: string;
+  framework?: string | undefined;
+  name?: string | undefined;
+  controls_added?: number | undefined;
+  total_applied?: number | undefined;
+  error?: string | undefined;
 }
 
 export interface ComplianceFinding {
@@ -82,16 +82,16 @@ export interface ComplianceFinding {
 
 export interface CheckResult {
   success: true;
-  message?: string;
-  applied_frameworks?: string[];
-  total_controls?: number;
+  message?: string | undefined;
+  applied_frameworks?: string[] | undefined;
+  total_controls?: number | undefined;
   findings: ComplianceFinding[];
   compliant: boolean;
-  summary?: string;
+  summary?: string | undefined;
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export const COMPLIANCE_FRAMEWORKS: Record<string, ComplianceFramework> = {

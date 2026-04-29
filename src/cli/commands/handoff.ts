@@ -37,7 +37,7 @@ import {
 
 export interface HandoffCheckArgs {
   path: string;
-  toPhase?: string;
+  toPhase?: string | undefined;
 }
 
 export function handoffCheckImpl(deps: Deps, args: HandoffCheckArgs): CommandResult {
@@ -123,7 +123,7 @@ export const coverageCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface ConsistencyArgs {
-  specsDir?: string;
+  specsDir?: string | undefined;
 }
 
 export function consistencyImpl(deps: Deps, args: ConsistencyArgs): CommandResult {
@@ -152,7 +152,7 @@ export const consistencyCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface LintArgs {
-  targetDir?: string;
+  targetDir?: string | undefined;
 }
 
 export async function lintImpl(deps: Deps, args: LintArgs): Promise<CommandResult> {
@@ -287,7 +287,7 @@ export const taskDepsCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface DiffArgs {
-  path?: string;
+  path?: string | undefined;
 }
 
 export async function diffImpl(deps: Deps, args: DiffArgs): Promise<CommandResult> {
@@ -384,11 +384,11 @@ export interface HandoffArgs {
 
 export function handoffImpl(deps: Deps, args: HandoffArgs): CommandResult {
   const { exportHandoffPackage } = legacyRequire<{
-    exportHandoffPackage: (opts: { root: string; outputPath?: string }) => {
+    exportHandoffPackage: (opts: { root: string; outputPath?: string | undefined }) => {
       success: boolean;
-      output_path?: string;
+      output_path?: string | undefined;
       stats?: Record<string, number>;
-      error?: string;
+      error?: string | undefined;
     };
   }>('export');
   const outputPath = parseFlag(args.rest, 'output');

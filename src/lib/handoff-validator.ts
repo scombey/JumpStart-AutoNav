@@ -56,7 +56,7 @@ export interface FunctionalRequirement {
   id: string;
   description: string;
   priority: string;
-  source_story?: string;
+  source_story?: string | undefined;
 }
 
 export interface NonFunctionalRequirement {
@@ -141,9 +141,9 @@ export interface PhantomCheckResult {
 }
 
 export interface HandoffReport extends ValidationOutcome {
-  transition?: string;
-  schema?: string;
-  payload_keys?: string[];
+  transition?: string | undefined;
+  schema?: string | undefined;
+  payload_keys?: string[] | undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────

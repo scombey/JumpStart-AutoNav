@@ -46,32 +46,32 @@ export interface SymbolEntry {
 }
 
 export interface AnalyzeOptions {
-  language?: string;
+  language?: string | undefined;
 }
 
 export interface AnalyzeResult {
   success: boolean;
-  error?: string;
-  file?: string;
-  language?: string;
-  total_lines?: number;
+  error?: string | undefined;
+  file?: string | undefined;
+  language?: string | undefined;
+  total_lines?: number | undefined;
   symbols?: SymbolEntry[];
-  symbol_count?: number;
-  has_exports?: boolean;
-  has_imports?: boolean;
+  symbol_count?: number | undefined;
+  has_exports?: boolean | undefined;
+  has_imports?: boolean | undefined;
 }
 
 export interface ValidateEditOptions {
-  language?: string;
+  language?: string | undefined;
 }
 
 export interface ValidateResult {
   success: boolean;
-  safe?: boolean;
-  unique_match?: boolean;
+  safe?: boolean | undefined;
+  unique_match?: boolean | undefined;
   bracket_balance?: 'preserved' | 'changed';
-  warnings?: string[];
-  error?: string;
+  warnings?: string[] | undefined;
+  error?: string | undefined;
 }
 
 export interface BracketCounts {

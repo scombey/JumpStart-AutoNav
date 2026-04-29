@@ -60,40 +60,40 @@ export interface CollaborationState {
 }
 
 export interface CreateOptions {
-  stateFile?: string;
-  owner?: string;
-  artifacts?: string[];
+  stateFile?: string | undefined;
+  owner?: string | undefined;
+  artifacts?: string[] | undefined;
 }
 
 export interface CreateResult {
   success: boolean;
   session?: CollaborationSession;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface JoinOptions {
-  stateFile?: string;
-  role?: string;
+  stateFile?: string | undefined;
+  role?: string | undefined;
 }
 
 export interface JoinResult {
   success: boolean;
   session?: CollaborationSession;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface LockOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface LockResult {
   success: boolean;
   lock?: CollaborationLock;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface StatusOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface StatusResult {

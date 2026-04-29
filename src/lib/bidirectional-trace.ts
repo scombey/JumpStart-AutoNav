@@ -56,8 +56,8 @@ export interface TraceMap {
 }
 
 export interface ScanTraceOptions {
-  srcDir?: string;
-  testsDir?: string;
+  srcDir?: string | undefined;
+  testsDir?: string | undefined;
 }
 
 export interface CoverageReport {

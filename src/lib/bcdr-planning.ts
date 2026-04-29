@@ -35,12 +35,12 @@ export interface ServiceTierTemplate {
 
 export interface ServiceInput {
   name: string;
-  tier?: string;
-  rto_hours?: number;
-  rpo_hours?: number;
-  failover?: string;
-  backup_frequency?: string;
-  dependencies?: string[];
+  tier?: string | undefined;
+  rto_hours?: number | undefined;
+  rpo_hours?: number | undefined;
+  failover?: string | undefined;
+  backup_frequency?: string | undefined;
+  dependencies?: string[] | undefined;
   recovery_procedures?: unknown[];
 }
 
@@ -66,13 +66,13 @@ export interface BCDRState {
 }
 
 export interface StateOptions {
-  stateFile?: string;
+  stateFile?: string | undefined;
 }
 
 export interface DefineResult {
   success: boolean;
   service?: BCDRService;
-  error?: string;
+  error?: string | undefined;
 }
 
 export interface CoverageResult {

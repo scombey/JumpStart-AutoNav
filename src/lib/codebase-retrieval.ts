@@ -34,11 +34,11 @@ import { join } from 'node:path';
 // Public types
 
 export interface IndexOptions {
-  excludeDirs?: string[];
+  excludeDirs?: string[] | undefined;
 }
 
 export interface QueryOptions extends IndexOptions {
-  limit?: number;
+  limit?: number | undefined;
 }
 
 export interface IndexCategoryEntry {
@@ -68,9 +68,9 @@ export interface QueryFileResult {
 
 export interface QueryFilesResult {
   success: boolean;
-  error?: string;
-  query?: string;
-  total_results?: number;
+  error?: string | undefined;
+  query?: string | undefined;
+  total_results?: number | undefined;
   results?: QueryFileResult[];
 }
 

@@ -37,7 +37,7 @@ export interface ReferencePattern {
 }
 
 export interface RenameOptions {
-  excludeDirs?: string[];
+  excludeDirs?: string[] | undefined;
 }
 
 export interface Reference {
@@ -49,14 +49,14 @@ export interface Reference {
 
 export interface PlanRenameResult {
   success: boolean;
-  error?: string;
-  old_path?: string;
-  new_path?: string;
-  references_found?: number;
-  affected_files?: string[];
+  error?: string | undefined;
+  old_path?: string | undefined;
+  new_path?: string | undefined;
+  references_found?: number | undefined;
+  affected_files?: string[] | undefined;
   references?: Reference[];
-  safe?: boolean;
-  warnings?: string[];
+  safe?: boolean | undefined;
+  warnings?: string[] | undefined;
 }
 
 export interface ValidateRenameResult {

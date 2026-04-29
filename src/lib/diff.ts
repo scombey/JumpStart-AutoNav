@@ -37,7 +37,7 @@ export type Change =
 
 export interface GenerateDiffInput {
   changes?: Change[];
-  root?: string;
+  root?: string | undefined;
 }
 
 /** Per-change diff entry. Field set matches legacy across all three types. */

@@ -80,7 +80,7 @@ export interface RegressionSuiteResult {
 }
 
 export interface RegressionOptions {
-  threshold?: number;
+  threshold?: number | undefined;
 }
 
 // ─────────────────────────────────────────────────────────────────────────
