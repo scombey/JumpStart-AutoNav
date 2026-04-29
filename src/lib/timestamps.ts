@@ -179,8 +179,10 @@ export function audit(filePath: string): AuditResult {
   const lines = content.split('\n');
 
   for (let idx = 0; idx < lines.length; idx++) {
-    const match = lines[idx].match(TIMESTAMP_LINE_REGEX);
-    if (!match) continue;
+    const line = lines[idx];
+    if (line === undefined) continue;
+    const match = line.match(TIMESTAMP_LINE_REGEX);
+    if (!match || match[1] === undefined) continue;
 
     result.entries++;
     const value = match[1].trim();
@@ -201,12 +203,12 @@ export function audit(filePath: string): AuditResult {
   }
 
   const fmMatch = content.match(FRONTMATTER_BLOCK_REGEX);
-  if (fmMatch) {
+  if (fmMatch && fmMatch[1] !== undefined) {
     const fm = fmMatch[1];
     for (const field of FRONTMATTER_DATE_FIELDS) {
       const fieldRegex = new RegExp(`^${field}:\\s*"?(.+?)"?$`, 'm');
       const fieldMatch = fm.match(fieldRegex);
-      if (!fieldMatch) continue;
+      if (!fieldMatch || fieldMatch[1] === undefined) continue;
 
       const value = fieldMatch[1].trim();
       if (value === '' || value.startsWith('{{') || value === 'Pending' || value === 'N/A') {

@@ -216,7 +216,7 @@ export function parseToolArgs(argv: string[]): ToolArgs {
   const args: ToolArgs = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (!arg.startsWith('--')) continue;
+    if (arg === undefined || !arg.startsWith('--')) continue;
     const key = arg.slice(2);
     const next = argv[i + 1];
     if (next !== undefined && !next.startsWith('--')) {
