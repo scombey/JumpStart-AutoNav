@@ -12,15 +12,15 @@
  * AND it locks down the EXACT byte sequence the legacy module produced
  * (the v0 IPC envelope contract).
  *
- * @see bin/lib-ts/io.ts
+ * @see src/lib/io.ts
  * @see bin/lib/io.js (legacy reference implementation)
  * @see specs/decisions/adr-006-error-model.md
  * @see specs/implementation-plan.md T4.1.1
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { JumpstartError } from '../bin/lib-ts/errors.js';
-import { parseToolArgs, readStdin, wrapTool, writeError, writeResult } from '../bin/lib-ts/io.js';
+import { JumpstartError } from '../src/lib/errors.js';
+import { parseToolArgs, readStdin, wrapTool, writeError, writeResult } from '../src/lib/io.js';
 
 interface CapturedIO {
   stdout: string[];

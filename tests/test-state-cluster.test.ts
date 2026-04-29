@@ -9,20 +9,20 @@
  *   - focus.ts: presets + buildFocusConfig + read/write
  *   - next-phase.ts: determineNextAction
  *
- * @see bin/lib-ts/{state-store,ceremony,approve,rewind,focus,next-phase}.ts
+ * @see src/lib/{state-store,ceremony,approve,rewind,focus,next-phase}.ts
  */
 
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { approveArtifact, detectCurrentArtifact, rejectArtifact } from '../bin/lib-ts/approve.js';
+import { approveArtifact, detectCurrentArtifact, rejectArtifact } from '../src/lib/approve.js';
 import {
   applyProfile,
   compareProfiles,
   expandProfile,
   VALID_PROFILES,
-} from '../bin/lib-ts/ceremony.js';
+} from '../src/lib/ceremony.js';
 import {
   buildFocusConfig,
   clearFocusFromConfig,
@@ -34,15 +34,15 @@ import {
   VALID_PRESETS,
   validatePhaseRange,
   writeFocusToConfig,
-} from '../bin/lib-ts/focus.js';
-import { determineNextAction } from '../bin/lib-ts/next-phase.js';
+} from '../src/lib/focus.js';
+import { determineNextAction } from '../src/lib/next-phase.js';
 import {
   archiveArtifacts,
   getDownstreamPhases,
   getPhaseArtifacts,
   PHASE_ORDER,
   rewindToPhase,
-} from '../bin/lib-ts/rewind.js';
+} from '../src/lib/rewind.js';
 import {
   createCheckpoint,
   listCheckpoints,
@@ -52,7 +52,7 @@ import {
   restoreCheckpoint,
   saveState,
   updateState,
-} from '../bin/lib-ts/state-store.js';
+} from '../src/lib/state-store.js';
 
 let tmpRoot: string;
 let statePath: string;

@@ -22,13 +22,13 @@
  *
  * **No `registry` subcommand**: the spec called for one but `bin/cli.js`
  * has no `subcommand === 'registry'` branch. Skipped — the registry
- * functions in `bin/lib-ts/registry.ts` are invoked indirectly via
+ * functions in `src/lib/registry.ts` are invoked indirectly via
  * `validate-module` (already in spec-validation.ts batch 1).
  *
  * @see bin/cli.js (lines 1350-1732 — legacy reference)
- * @see bin/lib-ts/install.ts (install/uninstallItem/getStatus/checkUpdates/...)
- * @see bin/lib-ts/integrate.ts (applyIntegration/cleanIntegration/readIntegrationLog)
- * @see bin/lib-ts/upgrade.ts  (upgrade/restore/listUpgradeBackups)
+ * @see src/lib/install.ts (install/uninstallItem/getStatus/checkUpdates/...)
+ * @see src/lib/integrate.ts (applyIntegration/cleanIntegration/readIntegrationLog)
+ * @see src/lib/upgrade.ts  (upgrade/restore/listUpgradeBackups)
  * @see specs/implementation-plan.md T4.7.2
  */
 
@@ -43,13 +43,9 @@ import {
   searchItems,
   uninstallItem,
   updateItems,
-} from '../../../bin/lib-ts/install.js';
-import {
-  applyIntegration,
-  cleanIntegration,
-  readIntegrationLog,
-} from '../../../bin/lib-ts/integrate.js';
-import { listUpgradeBackups, restore, upgrade } from '../../../bin/lib-ts/upgrade.js';
+} from '../../lib/install.js';
+import { applyIntegration, cleanIntegration, readIntegrationLog } from '../../lib/integrate.js';
+import { listUpgradeBackups, restore, upgrade } from '../../lib/upgrade.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -488,7 +484,7 @@ export async function upgradeImpl(deps: Deps, args: UpgradeArgs): Promise<Comman
     if (!result.success) {
       // RestoreResult does not currently carry a `message` field; emit
       // a generic failure note. (The RestoreResult shape exposed by
-      // bin/lib-ts/upgrade.ts is `{ success, restored, skipped }`.)
+      // src/lib/upgrade.ts is `{ success, restored, skipped }`.)
       deps.logger.error('Restore failed.');
       return { exitCode: 1 };
     }

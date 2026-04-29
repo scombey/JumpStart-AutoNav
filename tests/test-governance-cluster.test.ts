@@ -21,31 +21,31 @@
  *   - workstream-ownership.ts: defineWorkstream, addDependency, generateReport
  *   - ai-evaluation.ts: evaluate, configureBenchmark, generateReport
  *
- * @see bin/lib-ts/{18 governance modules}.ts
+ * @see src/lib/{18 governance modules}.ts
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import * as aiEval from '../bin/lib-ts/ai-evaluation.js';
-import * as compliance from '../bin/lib-ts/compliance-packs.js';
-import * as credBound from '../bin/lib-ts/credential-boundary.js';
-import * as dataClass from '../bin/lib-ts/data-classification.js';
-import * as evidence from '../bin/lib-ts/evidence-collector.js';
-import * as govDash from '../bin/lib-ts/governance-dashboard.js';
-import * as incident from '../bin/lib-ts/incident-feedback.js';
-import * as modelGov from '../bin/lib-ts/model-governance.js';
-import * as opsOwn from '../bin/lib-ts/ops-ownership.js';
-import * as policy from '../bin/lib-ts/policy-engine.js';
-import * as promptGov from '../bin/lib-ts/prompt-governance.js';
-import * as raci from '../bin/lib-ts/raci-matrix.js';
-import * as regGate from '../bin/lib-ts/regulatory-gate.js';
-import * as risk from '../bin/lib-ts/risk-register.js';
-import * as roleAppr from '../bin/lib-ts/role-approval.js';
-import * as vendor from '../bin/lib-ts/vendor-risk.js';
-import * as waiver from '../bin/lib-ts/waiver-workflow.js';
-import * as wsOwn from '../bin/lib-ts/workstream-ownership.js';
+import * as aiEval from '../src/lib/ai-evaluation.js';
+import * as compliance from '../src/lib/compliance-packs.js';
+import * as credBound from '../src/lib/credential-boundary.js';
+import * as dataClass from '../src/lib/data-classification.js';
+import * as evidence from '../src/lib/evidence-collector.js';
+import * as govDash from '../src/lib/governance-dashboard.js';
+import * as incident from '../src/lib/incident-feedback.js';
+import * as modelGov from '../src/lib/model-governance.js';
+import * as opsOwn from '../src/lib/ops-ownership.js';
+import * as policy from '../src/lib/policy-engine.js';
+import * as promptGov from '../src/lib/prompt-governance.js';
+import * as raci from '../src/lib/raci-matrix.js';
+import * as regGate from '../src/lib/regulatory-gate.js';
+import * as risk from '../src/lib/risk-register.js';
+import * as roleAppr from '../src/lib/role-approval.js';
+import * as vendor from '../src/lib/vendor-risk.js';
+import * as waiver from '../src/lib/waiver-workflow.js';
+import * as wsOwn from '../src/lib/workstream-ownership.js';
 
 let tmp: string;
 

@@ -19,7 +19,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -44,7 +44,15 @@ function runLegacyCli(moduleName: string, inputJson: string): unknown {
   // Pipe the input JSON to the legacy module's CLI driver and capture
   // stdout. stdio inherits stderr so the Node ESM warning prints once
   // per worker but doesn't pollute our captured stdout.
-  const stdout = execFileSync('node', [`bin/lib/${moduleName}.js`], {
+  //
+  // Post-M9: every IPC-driver legacy module is ESM and lives at .mjs;
+  // the .js variant exists only for CJS modules that don't have an IPC
+  // driver. Try .mjs first (the post-M9 shape), fall back to .js.
+  const mjsPath = path.join(repoRoot, 'bin', 'lib', `${moduleName}.mjs`);
+  const driverPath = existsSync(mjsPath)
+    ? mjsPath
+    : path.join(repoRoot, 'bin', 'lib', `${moduleName}.js`);
+  const stdout = execFileSync('node', [driverPath], {
     cwd: repoRoot,
     encoding: 'utf8',
     input: inputJson,

@@ -19,14 +19,14 @@
  * changes; commit the .json files alongside the test.
  *
  * @see specs/implementation-plan.md T4.5.3
- * @see bin/lib-ts/install.ts (readInstalled / writeInstalled)
+ * @see src/lib/install.ts (readInstalled / writeInstalled)
  */
 
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { readInstalled, writeInstalled } from '../bin/lib-ts/install.js';
+import { readInstalled, writeInstalled } from '../src/lib/install.js';
 
 const FIXTURES_DIR = path.join(__dirname, 'fixtures', 'installed-shapes');
 

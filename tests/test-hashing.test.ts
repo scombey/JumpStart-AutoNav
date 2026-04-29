@@ -12,7 +12,7 @@
  *   - `verifyAll` clean / tampered / missing / mixed cases plus the
  *     pre-rendered `summary` strings (callers grep them).
  *
- * @see bin/lib-ts/hashing.ts
+ * @see src/lib/hashing.ts
  * @see bin/lib/hashing.js (legacy reference implementation)
  * @see specs/implementation-plan.md T4.1.2
  */
@@ -29,7 +29,7 @@ import {
   registerArtifact,
   saveManifest,
   verifyAll,
-} from '../bin/lib-ts/hashing.js';
+} from '../src/lib/hashing.js';
 
 let tmpDir: string;
 

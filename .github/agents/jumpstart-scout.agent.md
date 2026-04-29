@@ -87,7 +87,7 @@ When the Codebase Context and its insights file are complete:
    - Mark all Phase Gate checkboxes as `[x]`
    - In header: Set `Status` to `Approved`, `Approval date` to today's date, `Approved by` to `project.approver` value from config
    - In Phase Gate: Set `Status` to `Approved`, `Approval date` to today's date, `Approved by` to `project.approver` value from config
-3. **Update resume context** — Write `resume_context` to `.jumpstart/state/state.json` using the state-store update mechanism (edit the file directly or use `bin/lib/state-store.js`). Set the `resume_context` field to a JSON object with:
+3. **Update resume context** — Write `resume_context` to `.jumpstart/state/state.json` using the state-store update mechanism (edit the file directly or use `bin/lib/state-store.mjs`). Set the `resume_context` field to a JSON object with:
    - `tldr`: 1-sentence summary of what the Scout accomplished (e.g., "Completed codebase reconnaissance — C4 diagrams, dependency map, and tech debt assessment generated for [project].")
    - `last_action`: The final protocol step completed (e.g., "Step 7: Draft Review & Approval")
    - `next_action`: "Begin Phase 0 — Challenge Discovery with the Challenger agent"

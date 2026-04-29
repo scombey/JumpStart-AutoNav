@@ -7,7 +7,7 @@
  *   2. tsc --noEmit
  *   3. biome check
  *   4. tsdown build (dist/ artifacts emitted)
- *   5. node bin/holodeck.js --scenario baseline (PASS)
+ *   5. node bin/holodeck.mjs --scenario baseline (PASS)
  *   6. npm audit --audit-level=high
  *
  * Exits 0 only if all six pass. Used by Checkpoint C2 (Samuel approves M0
@@ -68,15 +68,16 @@ run('check-public-any', 'node', ['scripts/check-public-any.mjs']);
 run('check-process-exit', 'node', ['scripts/check-process-exit.mjs']);
 run('check-return-shapes', 'node', ['scripts/check-return-shapes.mjs']);
 // Cross-module contract harness (T3.1): drift detection. Runs default
-// scan (bin/lib + bin/lib-ts) and writes .jumpstart/metrics/drift-catches.json.
+// scan (src/lib + bin/lib post-M9) and writes
+// .jumpstart/metrics/drift-catches.json.
 // Failure mode: HARNESS_FAIL_ON_DRIFT=1 makes the script exit nonzero when
 // incidents > 0. The vitest harness test independently asserts both the
 // zero-drift main case AND the 8-incident synthetic-fixture case.
 run('contract-harness', 'node', ['scripts/extract-public-surface.mjs'], {
   env: { ...process.env, HARNESS_FAIL_ON_DRIFT: '1' },
 });
-if (existsSync('bin/holodeck.js')) {
-  run('holodeck-baseline', 'node', ['bin/holodeck.js', '--scenario', 'baseline']);
+if (existsSync('bin/holodeck.mjs')) {
+  run('holodeck-baseline', 'node', ['bin/holodeck.mjs', '--scenario', 'baseline']);
 }
 run('npm-audit-high', 'npm', ['audit', '--audit-level=high']);
 

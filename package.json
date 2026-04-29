@@ -1,7 +1,8 @@
 {
-  "name": "jumpstart-mode",
-  "version": "1.1.14",
+  "name": "@scombey/jumpstart-mode",
+  "version": "2.0.0-rc.1",
   "description": "Spec-driven agentic engineering framework that transforms ideas into production code through AI-powered sequential phases",
+  "type": "module",
   "keywords": [
     "jumpstart",
     "framework",
@@ -17,19 +18,39 @@
     "extensible"
   ],
   "author": "Jo Otey <jootey@outlook.com>",
+  "contributors": [
+    "Samuel Combey <combeysamuel@gmail.com>"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/scombey/jumpstart-mode.git"
   },
   "bin": {
-    "jumpstart-mode": "./bin/cli.js",
+    "jumpstart-mode": "./dist/cli/bin.mjs",
     "jumpstart": "./bin/bootstrap.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/cli/main.d.mts",
+      "import": "./dist/cli/main.mjs"
+    },
+    "./lib/*": {
+      "types": "./dist/lib/*.d.mts",
+      "import": "./dist/lib/*.mjs"
+    },
+    "./errors": {
+      "types": "./dist/lib/errors.d.mts",
+      "import": "./dist/lib/errors.mjs"
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     ".jumpstart",
     ".github",
     "bin",
+    "dist/**/*.mjs",
+    "dist/**/*.d.mts",
     "AGENTS.md",
     "CLAUDE.md",
     ".cursorrules",
@@ -43,11 +64,11 @@
     "test:regression": "vitest run tests/test-regression.test.js",
     "test:requirements": "vitest run tests/test-requirements-extractor.test.js",
     "test:all": "vitest run",
-    "test:e2e": "node bin/holodeck.js --all",
-    "test:e2e:scenario": "node bin/holodeck.js --scenario",
-    "test:e2e:verify": "node bin/holodeck.js --all --verify-subagents",
-    "holodeck": "node bin/holodeck.js",
-    "holodeck:list": "node bin/holodeck.js --list",
+    "test:e2e": "node bin/holodeck.mjs --all",
+    "test:e2e:scenario": "node bin/holodeck.mjs --scenario",
+    "test:e2e:verify": "node bin/holodeck.mjs --all --verify-subagents",
+    "holodeck": "node bin/holodeck.mjs",
+    "holodeck:list": "node bin/holodeck.mjs --list",
     "emulate": "node bin/headless-runner.js",
     "emulate:mock": "node bin/headless-runner.js --mock",
     "emulate:architect": "node bin/headless-runner.js --agent architect --persona compliant-user",
@@ -63,7 +84,7 @@
     "check:dist-exports": "node scripts/check-dist-exports.mjs",
     "check:return-shapes": "node scripts/check-return-shapes.mjs",
     "verify-baseline": "node scripts/verify-baseline.mjs",
-    "prepublishOnly": "node bin/cli.js --help"
+    "prepublishOnly": "npm run build && node dist/cli/bin.mjs --help"
   },
   "dependencies": {
     "chalk": "^4.1.2",
@@ -87,6 +108,6 @@
     "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=24.0.0"
   }
 }

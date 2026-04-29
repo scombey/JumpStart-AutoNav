@@ -1,5 +1,5 @@
 /**
- * Tests for bin/lib/integrate.js — Dynamic Skill Integration Engine.
+ * Tests for bin/lib/integrate.mjs — Dynamic Skill Integration Engine.
  *
  * Covers:
  *   - SKILL.md frontmatter parsing (```skill fence and --- fence)
@@ -27,7 +27,7 @@ const {
   applyIntegration,
   cleanIntegration,
   readIntegrationLog,
-} = await import('../bin/lib/integrate.js');
+} = await import('../bin/lib/integrate.mjs');
 
 // ─── Test Fixtures ──────────────────────────────────────────────────────────
 

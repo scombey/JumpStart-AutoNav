@@ -1,7 +1,7 @@
 /**
  * test-complexity.test.ts — T4.1.7 batch (2/4).
  *
- * @see bin/lib-ts/complexity.ts
+ * @see src/lib/complexity.ts
  */
 
 import { describe, expect, it } from 'vitest';
@@ -10,7 +10,7 @@ import {
   HIGH_COMPLEXITY_DOMAINS,
   MEDIUM_COMPLEXITY_DOMAINS,
   RISK_KEYWORDS,
-} from '../bin/lib-ts/complexity.js';
+} from '../src/lib/complexity.js';
 
 describe('vocabulary constants', () => {
   it('lists healthcare + fintech as high-complexity domains', () => {

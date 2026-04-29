@@ -1,7 +1,7 @@
 /**
  * test-next-phase.test.js — Tests for Auto-Pilot Phase Progression (UX Feature 1)
  *
- * Tests for bin/lib/next-phase.js covering:
+ * Tests for bin/lib/next-phase.mjs covering:
  * - Fresh project (no state) → recommends /jumpstart.challenge
  * - Brownfield project → recommends /jumpstart.scout
  * - Mid-phase (unapproved artifact) → recommends approval
@@ -78,7 +78,7 @@ describe('determineNextAction', () => {
   beforeEach(async () => {
     tmpDir = createTempProject();
     // Dynamic import to get the ESM module
-    const mod = await import('../bin/lib/next-phase.js');
+    const mod = await import('../bin/lib/next-phase.mjs');
     determineNextAction = mod.determineNextAction;
   });
 

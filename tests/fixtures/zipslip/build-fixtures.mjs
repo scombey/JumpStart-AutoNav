@@ -25,7 +25,7 @@
  * and writes ZIP records by hand.
  *
  * @see specs/decisions/adr-010-marketplace-zipslip-prevention.md
- * @see bin/lib-ts/install.ts
+ * @see src/lib/install.ts
  * @see tests/test-install.test.ts
  */
 

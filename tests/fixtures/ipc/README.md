@@ -9,10 +9,10 @@ Per the per-module port recipe step 11 (specs/implementation-plan.md lines 148�
 
 | Module | Why IPC-eligible | v0 driver |
 |---|---|---|
-| `timestamps` | `bin/lib/timestamps.js:163-193` action: now/validate/audit | legacy JS |
-| `locks` | `bin/lib/locks.js:152-185` action: acquire/release/status/list | legacy JS |
-| `diff` | `bin/lib/diff.js:196-218` stdin → generateDiff | legacy JS |
-| `complexity` | `bin/lib/complexity.js:116-130` stdin → calculateComplexity | legacy JS |
+| `timestamps` | `bin/lib/timestamps.mjs:163-193` action: now/validate/audit | legacy JS |
+| `locks` | `bin/lib/locks.mjs:152-185` action: acquire/release/status/list | legacy JS |
+| `diff` | `bin/lib/diff.mjs:196-218` stdin → generateDiff | legacy JS |
+| `complexity` | `bin/lib/complexity.mjs:116-130` stdin → calculateComplexity | legacy JS |
 
 ## How the v0 fixtures were authored
 

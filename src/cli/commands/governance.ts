@@ -32,72 +32,59 @@
  */
 
 import { defineCommand } from 'citty';
-import { buildIndex, searchIndex } from '../../../bin/lib-ts/adr-index.js';
+import { buildIndex, searchIndex } from '../../lib/adr-index.js';
 import {
   evaluate as aiEvaluate,
   generateReport as aiEvaluationReport,
-} from '../../../bin/lib-ts/ai-evaluation.js';
+} from '../../lib/ai-evaluation.js';
 import {
   applyFramework,
   checkCompliance as checkComplianceFrameworks,
   listFrameworks,
-} from '../../../bin/lib-ts/compliance-packs.js';
-import { scanProject as scanCredentialBoundary } from '../../../bin/lib-ts/credential-boundary.js';
+} from '../../lib/compliance-packs.js';
+import { scanProject as scanCredentialBoundary } from '../../lib/credential-boundary.js';
 import {
   checkCompliance as checkDataClassification,
   classifyAsset,
   generateReport as dataClassificationReport,
-} from '../../../bin/lib-ts/data-classification.js';
+} from '../../lib/data-classification.js';
 import {
   collectEvidence,
   getStatus as evidenceStatus,
   packageEvidence,
-} from '../../../bin/lib-ts/evidence-collector.js';
-import {
-  gatherGovernanceData,
-  renderDashboardText,
-} from '../../../bin/lib-ts/governance-dashboard.js';
-import {
-  generateReport as incidentReport,
-  logIncident,
-} from '../../../bin/lib-ts/incident-feedback.js';
-import { writeResult } from '../../../bin/lib-ts/io.js';
+} from '../../lib/evidence-collector.js';
+import { gatherGovernanceData, renderDashboardText } from '../../lib/governance-dashboard.js';
+import { generateReport as incidentReport, logIncident } from '../../lib/incident-feedback.js';
+import { writeResult } from '../../lib/io.js';
 import {
   checkCompleteness as opsCheckCompleteness,
   defineOwnership as opsDefineOwnership,
   generateReport as opsReport,
-} from '../../../bin/lib-ts/ops-ownership.js';
-import { addPolicy, checkPolicies, listPolicies } from '../../../bin/lib-ts/policy-engine.js';
+} from '../../lib/ops-ownership.js';
+import { addPolicy, checkPolicies, listPolicies } from '../../lib/policy-engine.js';
 import {
   checkPermission,
   defineAssignment,
   generateReport as raciReport,
-} from '../../../bin/lib-ts/raci-matrix.js';
-import {
-  addRisk,
-  listRisks,
-  generateReport as riskReport,
-} from '../../../bin/lib-ts/risk-register.js';
+} from '../../lib/raci-matrix.js';
+import { addRisk, listRisks, generateReport as riskReport } from '../../lib/risk-register.js';
 import {
   assignApprovers,
   getApprovalStatus,
   listApprovalWorkflows,
   recordRoleAction,
-} from '../../../bin/lib-ts/role-approval.js';
-import {
-  scanDependencies,
-  generateReport as vendorReport,
-} from '../../../bin/lib-ts/vendor-risk.js';
+} from '../../lib/role-approval.js';
+import { scanDependencies, generateReport as vendorReport } from '../../lib/vendor-risk.js';
 import {
   expireWaivers,
   listWaivers,
   requestWaiver,
   resolveWaiver,
-} from '../../../bin/lib-ts/waiver-workflow.js';
+} from '../../lib/waiver-workflow.js';
 import {
   defineWorkstream,
   generateReport as workstreamReport,
-} from '../../../bin/lib-ts/workstream-ownership.js';
+} from '../../lib/workstream-ownership.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { asRest, parseFlag, safeJoin } from './_helpers.js';
 

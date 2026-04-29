@@ -5,8 +5,8 @@
  * `now()` shape and `ISO_UTC_REGEX` boundary cases. Audit tests use a
  * tmp-dir fixture so they exercise the real `fs.readFileSync` path.
  *
- * @see bin/lib-ts/timestamps.ts
- * @see bin/lib/timestamps.js (legacy reference)
+ * @see src/lib/timestamps.ts
+ * @see bin/lib/timestamps.mjs (legacy reference)
  * @see specs/implementation-plan.md T4.1.3
  */
 
@@ -14,7 +14,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { audit, ISO_UTC_REGEX, now, validate } from '../bin/lib-ts/timestamps.js';
+import { audit, ISO_UTC_REGEX, now, validate } from '../src/lib/timestamps.js';
 
 let tmpDir: string;
 

@@ -20,9 +20,16 @@
 
 import { existsSync } from 'node:fs';
 import { defineCommand } from 'citty';
-import { writeResult } from '../../../bin/lib-ts/io.js';
+import { writeResult } from '../../lib/io.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { assertUserPath, hasFlag, legacyRequire, parseFlag, safeJoin } from './_helpers.js';
+import {
+  assertUserPath,
+  hasFlag,
+  legacyImport,
+  legacyRequire,
+  parseFlag,
+  safeJoin,
+} from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // handoff-check
@@ -121,10 +128,9 @@ export interface ConsistencyArgs {
 
 export function consistencyImpl(deps: Deps, args: ConsistencyArgs): CommandResult {
   // The TS-ported analyzer takes { specs_dir, root }; passes through to
-  // the legacy bin/lib/analyzer.js. The legacy bin/cli.js call passed
+  // the legacy bin/lib/analyzer.mjs. The legacy bin/cli.js call passed
   // only specs_dir as a string — we map that here.
-  const { analyze } =
-    require('../../../bin/lib-ts/analyzer.js') as typeof import('../../../bin/lib-ts/analyzer.js');
+  const { analyze } = require('../../lib/analyzer.js') as typeof import('../../lib/analyzer.js');
   const specsDir = args.specsDir ?? safeJoin(deps, 'specs');
   const result = analyze({ specs_dir: specsDir, root: deps.projectRoot });
   writeResult(result as unknown as Record<string, unknown>);
@@ -183,7 +189,7 @@ export const lintCommand = defineCommand({
 
 export function contractsImpl(deps: Deps): CommandResult {
   const { validateContracts } =
-    require('../../../bin/lib-ts/contract-checker.js') as typeof import('../../../bin/lib-ts/contract-checker.js');
+    require('../../lib/contract-checker.js') as typeof import('../../lib/contract-checker.js');
   const specsDir = safeJoin(deps, 'specs');
   const result = validateContracts({ root: specsDir });
   writeResult(result as unknown as Record<string, unknown>);
@@ -203,7 +209,7 @@ export const contractsCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function regulatoryImpl(deps: Deps): CommandResult {
-  // Legacy bin/lib/regulatory-gate.js consumed the config-path string;
+  // Legacy bin/lib/regulatory-gate.mjs consumed the config-path string;
   // the TS port consumes a parsed RegulatoryInput. Both paths exist
   // during the strangler phase. We use the legacy lib because the
   // CLI layer is meant to be as thin as possible — config parsing
@@ -284,14 +290,17 @@ export interface DiffArgs {
   path?: string;
 }
 
-export function diffImpl(deps: Deps, args: DiffArgs): CommandResult {
-  const lib = legacyRequire<{
-    generateDiff: (target: string) => Record<string, unknown>;
-  }>('diff');
+export async function diffImpl(deps: Deps, args: DiffArgs): Promise<CommandResult> {
   // Pit Crew M8 HIGH (Adversary 5): pre-fix `target = args.path ?? root`
   // forwarded raw user input to generateDiff which then walked the
-  // attacker-chosen directory. Post-fix: gate via assertUserPath.
+  // attacker-chosen directory. Post-fix: gate via assertUserPath BEFORE
+  // touching the legacy module so ValidationError surfaces cleanly even
+  // when the legacy import would have failed on a missing dep.
   const target = args.path ? assertUserPath(deps, args.path, 'diff:path') : deps.projectRoot;
+  // M9 ESM cutover: diff is now an ESM legacy module (.mjs); use legacyImport.
+  const lib = await legacyImport<{
+    generateDiff: (target: string) => Record<string, unknown>;
+  }>('diff');
   const result = lib.generateDiff(target);
   writeResult(result);
   return { exitCode: 0 };
@@ -302,8 +311,8 @@ export const diffCommand = defineCommand({
   args: {
     path: { type: 'positional', description: 'Target path', required: false },
   },
-  run({ args }) {
-    diffImpl(createRealDeps(), { path: args.path });
+  async run({ args }) {
+    await diffImpl(createRealDeps(), { path: args.path });
   },
 });
 
@@ -348,7 +357,7 @@ export function validateModuleImpl(deps: Deps, args: ValidateModuleArgs): Comman
   // which walked the host filesystem. Post-fix: gate via assertUserPath.
   const safeDir = assertUserPath(deps, args.moduleDir, 'validate-module:moduleDir');
   const { validateForPublishing } =
-    require('../../../bin/lib-ts/registry.js') as typeof import('../../../bin/lib-ts/registry.js');
+    require('../../lib/registry.js') as typeof import('../../lib/registry.js');
   const result = validateForPublishing(safeDir);
   writeResult(result as unknown as Record<string, unknown>);
   return { exitCode: 0 };

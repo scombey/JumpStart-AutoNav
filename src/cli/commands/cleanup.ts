@@ -29,8 +29,9 @@
  */
 
 import { defineCommand } from 'citty';
+import * as legacyTimestamps from '../../lib/timestamps.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
+import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
 
 // biome-ignore lint/suspicious/noExplicitAny: <legacy lib runtime shapes>
 type LegacyLib = Record<string, any>;
@@ -53,8 +54,11 @@ export interface AdrArgs {
   json?: boolean;
 }
 
-export function adrImpl(deps: Deps, args: AdrArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('adr-index');
+export async function adrImpl(deps: Deps, args: AdrArgs): Promise<CommandResult> {
+  // M9 ESM cutover: adr-index is now an ESM legacy module
+  // (`bin/lib/adr-index.mjs`). require() can't load .mjs synchronously,
+  // so this impl uses the async `legacyImport` variant.
+  const lib = await legacyImport<LegacyLib>('adr-index');
   const action = args.action ?? 'build';
   let result: unknown;
   if (action === 'search') {
@@ -76,8 +80,8 @@ export const adrCommand = defineCommand({
     tag: { type: 'string', required: false, description: 'filter by tag' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
-  run({ args }) {
-    const r = adrImpl(createRealDeps(), {
+  async run({ args }) {
+    const r = await adrImpl(createRealDeps(), {
       action: args.action,
       query: args.query,
       tag: args.tag,
@@ -907,7 +911,12 @@ export interface TimestampArgs {
 }
 
 export function timestampImpl(deps: Deps, args: TimestampArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('timestamps');
+  // M9 ESM cutover: switched from `legacyRequire('timestamps')` to a
+  // static import of the TS port at `src/lib/timestamps.ts`. The legacy
+  // `bin/lib/timestamps.mjs` is now ESM and can't be require()d
+  // synchronously; the TS port has the same `now/validate/audit/
+  // ISO_UTC_REGEX` public surface (verified by `tests/test-leaf-parity.test.ts`).
+  const lib = legacyTimestamps as LegacyLib;
   const action = args.action ?? 'now';
   if (action === 'validate') {
     if (!args.arg) {
@@ -964,12 +973,13 @@ export interface RevertArgs {
   json?: boolean;
 }
 
-export function revertImpl(deps: Deps, args: RevertArgs): CommandResult {
+export async function revertImpl(deps: Deps, args: RevertArgs): Promise<CommandResult> {
   if (!args.artifact) {
     deps.logger.error('Usage: jumpstart-mode revert <artifact-path> [--reason "..."]');
     return { exitCode: 1 };
   }
-  const lib = legacyRequire<LegacyLib>('revert');
+  // M9 ESM cutover: revert is an ESM legacy module (.mjs) — use legacyImport.
+  const lib = await legacyImport<LegacyLib>('revert');
   const safePath = assertUserPath(deps, args.artifact, 'revert:artifact');
   const result = lib.revertArtifact({ artifact: safePath, reason: args.reason });
   maybeJson(deps, args.json, result);
@@ -991,8 +1001,8 @@ export const revertCommand = defineCommand({
     reason: { type: 'string', required: false, description: 'reason for revert' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
-  run({ args }) {
-    const r = revertImpl(createRealDeps(), {
+  async run({ args }) {
+    const r = await revertImpl(createRealDeps(), {
       artifact: args.artifact,
       reason: args.reason,
       json: Boolean(args.json),

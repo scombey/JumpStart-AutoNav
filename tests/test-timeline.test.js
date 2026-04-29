@@ -34,7 +34,7 @@ import {
   generateTimelineReport,
   EVENT_TYPES,
   DEFAULT_TIMELINE_PATH
-} from '../bin/lib/timeline.js';
+} from '../bin/lib/timeline.mjs';
 
 // CJS imports
 const require = createRequire(import.meta.url);
@@ -671,7 +671,7 @@ describe('SimulationTracer timeline delegation', () => {
 
 describe('hook export availability', () => {
   it('state-store exports setTimelineHook', async () => {
-    const { setTimelineHook } = await import('../bin/lib/state-store.js');
+    const { setTimelineHook } = await import('../bin/lib/state-store.mjs');
     expect(typeof setTimelineHook).toBe('function');
   });
 
@@ -681,14 +681,15 @@ describe('hook export availability', () => {
   });
 
   it('handoff exports setHandoffTimelineHook', async () => {
-    const { setHandoffTimelineHook } = await import('../bin/lib/handoff.js');
+    const { setHandoffTimelineHook } = await import('../bin/lib/handoff.mjs');
     expect(typeof setHandoffTimelineHook).toBe('function');
   });
 
   it('usage exports setUsageTimelineHook', async () => {
     // usage.js has a shebang that can cause issues with some import methods;
     // verify the export by reading and checking the source
-    const usageSource = fs.readFileSync(path.join(process.cwd(), 'bin', 'lib', 'usage.js'), 'utf8');
+    // M9: usage was renamed bin/lib/usage.js → bin/lib/usage.mjs (ESM).
+    const usageSource = fs.readFileSync(path.join(process.cwd(), 'bin', 'lib', 'usage.mjs'), 'utf8');
     expect(usageSource).toContain('export function setUsageTimelineHook');
     expect(usageSource).toContain('_timelineHook = timeline');
   });

@@ -5,7 +5,7 @@
  * Ports the residual `bin/cli.js` subcommands not covered by batches 1-8.
  * Per the strangler pattern, each command here is a **thin wrapper** that
  * delegates to its legacy `bin/lib/<name>.js` implementation via
- * `legacyRequire()`. Once a lib has a `bin/lib-ts/*.ts` port, the
+ * `legacyRequire()`. Once a lib has a `src/lib/*.ts` port, the
  * top-level ES import takes over (see lifecycle.ts and runners.ts for
  * canonical examples).
  *
@@ -35,7 +35,7 @@
 
 import { defineCommand } from 'citty';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
+import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
 
 // Permissive shape for legacy lib modules — every callsite immediately narrows
 // via property access. Documenting once here so individual commands stay terse.
@@ -408,7 +408,10 @@ export interface MergeTemplatesArgs {
   projectPath?: string;
 }
 
-export function mergeTemplatesImpl(deps: Deps, args: MergeTemplatesArgs): CommandResult {
+export async function mergeTemplatesImpl(
+  deps: Deps,
+  args: MergeTemplatesArgs
+): Promise<CommandResult> {
   if (!args.basePath || !args.projectPath) {
     deps.logger.error('Usage: jumpstart-mode merge-templates <base-path> <project-path>');
     return { exitCode: 1 };
@@ -418,7 +421,8 @@ export function mergeTemplatesImpl(deps: Deps, args: MergeTemplatesArgs): Comman
   // which keeps both inside projectRoot per ADR-009.
   const safeBase = assertUserPath(deps, args.basePath, 'merge-templates:base');
   const safeProject = assertUserPath(deps, args.projectPath, 'merge-templates:project');
-  const lib = legacyRequire<LegacyLib>('template-merge');
+  // M9 ESM cutover: template-merge is an ESM legacy module (.mjs).
+  const lib = await legacyImport<LegacyLib>('template-merge');
   const result = lib.mergeTemplateFiles(safeBase, safeProject);
   deps.logger.info(JSON.stringify({ stats: result.stats }, null, 2));
   if (result.merged) deps.logger.info(result.merged);
@@ -431,8 +435,8 @@ export const mergeTemplatesCommand = defineCommand({
     basePath: { type: 'positional', required: false, description: 'base template path' },
     projectPath: { type: 'positional', required: false, description: 'project path' },
   },
-  run({ args }) {
-    const r = mergeTemplatesImpl(createRealDeps(), {
+  async run({ args }) {
+    const r = await mergeTemplatesImpl(createRealDeps(), {
       basePath: args.basePath,
       projectPath: args.projectPath,
     });

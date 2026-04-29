@@ -1,15 +1,15 @@
 /**
  * test-diff.test.ts — T4.1.5 unit tests for the diff.ts port.
  *
- * @see bin/lib-ts/diff.ts
- * @see bin/lib/diff.js (legacy reference)
+ * @see src/lib/diff.ts
+ * @see bin/lib/diff.mjs (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { generateDiff, unifiedDiff } from '../bin/lib-ts/diff.js';
+import { generateDiff, unifiedDiff } from '../src/lib/diff.js';
 
 let tmpDir: string;
 
@@ -181,7 +181,7 @@ describe('generateDiff — Adv-3 path-traversal guard', () => {
   });
 
   it('thrown error is a ValidationError with exit code 2 (ADR-006)', async () => {
-    const { ValidationError } = await import('../bin/lib-ts/errors.js');
+    const { ValidationError } = await import('../src/lib/errors.js');
     let caught: unknown;
     try {
       generateDiff({

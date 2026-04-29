@@ -166,7 +166,7 @@ When all milestones are complete:
    - Set "Approved by" to the `project.approver` value from `.jumpstart/config.yaml`
    - Set "Approval date" to today's date
 4. Update `workflow.current_phase` to `4` in `.jumpstart/config.yaml`.
-5. **Update resume context** — Write `resume_context` to `.jumpstart/state/state.json` using the state-store update mechanism (edit the file directly or use `bin/lib/state-store.js`). Set the `resume_context` field to a JSON object with:
+5. **Update resume context** — Write `resume_context` to `.jumpstart/state/state.json` using the state-store update mechanism (edit the file directly or use `bin/lib/state-store.mjs`). Set the `resume_context` field to a JSON object with:
    - `tldr`: 1-sentence summary of what the Developer accomplished (e.g., "Implementation complete — all milestones delivered, tests passing, documentation updated.")
    - `last_action`: The final milestone completed (e.g., "Milestone 3: Final Documentation & Cleanup")
    - `next_action`: "Project build phase complete. Consider running /jumpstart.pitcrew for retrospective or manual review."

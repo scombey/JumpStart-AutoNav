@@ -1,7 +1,7 @@
 /**
  * test-quickstart.test.js — Tests for 5-Minute Quickstart Wizard (UX Feature 15)
  *
- * Tests for bin/lib/quickstart.js covering:
+ * Tests for bin/lib/quickstart.mjs covering:
  * - Domain options structure
  * - Ceremony options mapping
  * - Config building
@@ -18,7 +18,7 @@ let quickstart;
 describe('quickstart', () => {
   // Use beforeAll-style technique: import once
   it('module loads successfully', async () => {
-    quickstart = await import('../bin/lib/quickstart.js');
+    quickstart = await import('../bin/lib/quickstart.mjs');
     expect(quickstart).toBeDefined();
   });
 
@@ -26,7 +26,7 @@ describe('quickstart', () => {
 
   describe('DOMAIN_OPTIONS', () => {
     it('has common domain entries', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { DOMAIN_OPTIONS } = quickstart;
 
       expect(DOMAIN_OPTIONS.length).toBeGreaterThanOrEqual(8);
@@ -40,7 +40,7 @@ describe('quickstart', () => {
     });
 
     it('each option has value, title, and description', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       for (const option of quickstart.DOMAIN_OPTIONS) {
         expect(option).toHaveProperty('value');
         expect(option).toHaveProperty('title');
@@ -55,7 +55,7 @@ describe('quickstart', () => {
 
   describe('CEREMONY_OPTIONS', () => {
     it('maps to valid ceremony profiles', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { CEREMONY_OPTIONS } = quickstart;
 
       expect(CEREMONY_OPTIONS.length).toBe(3);
@@ -66,7 +66,7 @@ describe('quickstart', () => {
     });
 
     it('each option has value, title, and description', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       for (const option of quickstart.CEREMONY_OPTIONS) {
         expect(option).toHaveProperty('value');
         expect(option).toHaveProperty('title');
@@ -79,7 +79,7 @@ describe('quickstart', () => {
 
   describe('buildQuickstartConfig', () => {
     it('builds a valid config with all answers', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { buildQuickstartConfig } = quickstart;
 
       const config = buildQuickstartConfig({
@@ -99,7 +99,7 @@ describe('quickstart', () => {
     });
 
     it('uses defaults for missing answers', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { buildQuickstartConfig } = quickstart;
 
       const config = buildQuickstartConfig({});
@@ -111,7 +111,7 @@ describe('quickstart', () => {
     });
 
     it('handles "other" domain with custom value', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { buildQuickstartConfig } = quickstart;
 
       const config = buildQuickstartConfig({
@@ -123,7 +123,7 @@ describe('quickstart', () => {
     });
 
     it('handles "other" domain without custom value', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { buildQuickstartConfig } = quickstart;
 
       const config = buildQuickstartConfig({ domain: 'other' });
@@ -132,7 +132,7 @@ describe('quickstart', () => {
     });
 
     it('sets brownfield project type', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { buildQuickstartConfig } = quickstart;
 
       const config = buildQuickstartConfig({ projectType: 'brownfield' });
@@ -145,7 +145,7 @@ describe('quickstart', () => {
 
   describe('getFirstCommand', () => {
     it('returns /jumpstart.challenge for greenfield', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { getFirstCommand } = quickstart;
 
       const result = getFirstCommand({ projectType: 'greenfield' });
@@ -154,7 +154,7 @@ describe('quickstart', () => {
     });
 
     it('returns /jumpstart.scout for brownfield', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { getFirstCommand } = quickstart;
 
       const result = getFirstCommand({ projectType: 'brownfield' });
@@ -167,7 +167,7 @@ describe('quickstart', () => {
 
   describe('generateQuickstartSummary', () => {
     it('includes project details in summary lines', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { generateQuickstartSummary, buildQuickstartConfig } = quickstart;
 
       const config = buildQuickstartConfig({
@@ -187,7 +187,7 @@ describe('quickstart', () => {
     });
 
     it('returns the correct firstCommand for brownfield', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { generateQuickstartSummary, buildQuickstartConfig } = quickstart;
 
       const config = buildQuickstartConfig({ projectType: 'brownfield' });
@@ -201,7 +201,7 @@ describe('quickstart', () => {
 
   describe('applyConfigPatches', () => {
     it('patches ceremony profile in config content', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { applyConfigPatches, buildQuickstartConfig } = quickstart;
 
       const configContent = 'ceremony:\n  profile: standard\n';
@@ -212,7 +212,7 @@ describe('quickstart', () => {
     });
 
     it('patches domain into project section', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { applyConfigPatches, buildQuickstartConfig } = quickstart;
 
       const configContent = 'project:\n  type: greenfield\n  name: test\n';
@@ -223,7 +223,7 @@ describe('quickstart', () => {
     });
 
     it('does not modify content for standard ceremony', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { applyConfigPatches, buildQuickstartConfig } = quickstart;
 
       const configContent = 'ceremony:\n  profile: standard\n';
@@ -239,7 +239,7 @@ describe('quickstart', () => {
 
   describe('getConfigPatches', () => {
     it('returns empty patches for standard defaults', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { getConfigPatches, buildQuickstartConfig } = quickstart;
 
       const config = buildQuickstartConfig({});
@@ -250,7 +250,7 @@ describe('quickstart', () => {
     });
 
     it('returns ceremony patch for non-standard profile', async () => {
-      if (!quickstart) quickstart = await import('../bin/lib/quickstart.js');
+      if (!quickstart) quickstart = await import('../bin/lib/quickstart.mjs');
       const { getConfigPatches, buildQuickstartConfig } = quickstart;
 
       const config = buildQuickstartConfig({ ceremony: 'rigorous' });

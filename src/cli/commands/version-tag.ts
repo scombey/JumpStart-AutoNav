@@ -29,7 +29,7 @@
  */
 
 import { defineCommand } from 'citty';
-import { createVersionTag } from '../../../bin/lib-ts/versioning.js';
+import { createVersionTag } from '../../lib/versioning.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 
 export interface VersionTagArgs {

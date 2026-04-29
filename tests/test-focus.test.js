@@ -1,7 +1,7 @@
 /**
  * test-focus.test.js — Tests for Phase Focus Mode
  *
- * Tests for bin/lib/focus.js covering:
+ * Tests for bin/lib/focus.mjs covering:
  * - Preset listing and retrieval
  * - Phase range validation
  * - Focus config building (preset and custom)
@@ -68,7 +68,7 @@ function writeArtifact(tmpDir, relPath, approved = false) {
 
 describe('listPresets', () => {
   it('returns all predefined presets', async () => {
-    const { listPresets } = await import('../bin/lib/focus.js');
+    const { listPresets } = await import('../bin/lib/focus.mjs');
     const presets = listPresets();
     expect(presets.length).toBeGreaterThan(0);
     const names = presets.map(p => p.name);
@@ -81,7 +81,7 @@ describe('listPresets', () => {
   });
 
   it('each preset has required fields', async () => {
-    const { listPresets } = await import('../bin/lib/focus.js');
+    const { listPresets } = await import('../bin/lib/focus.mjs');
     const presets = listPresets();
     for (const preset of presets) {
       expect(preset).toHaveProperty('name');
@@ -97,7 +97,7 @@ describe('listPresets', () => {
 
 describe('getPreset', () => {
   it('returns details for a valid preset', async () => {
-    const { getPreset } = await import('../bin/lib/focus.js');
+    const { getPreset } = await import('../bin/lib/focus.mjs');
     const preset = getPreset('business-analyst');
     expect(preset.name).toBe('business-analyst');
     expect(preset.start_phase).toBe(0);
@@ -106,14 +106,14 @@ describe('getPreset', () => {
   });
 
   it('throws on invalid preset name', async () => {
-    const { getPreset } = await import('../bin/lib/focus.js');
+    const { getPreset } = await import('../bin/lib/focus.mjs');
     expect(() => getPreset('nonexistent')).toThrow('Unknown focus preset');
   });
 });
 
 describe('validatePhaseRange', () => {
   it('accepts valid phase ranges', async () => {
-    const { validatePhaseRange } = await import('../bin/lib/focus.js');
+    const { validatePhaseRange } = await import('../bin/lib/focus.mjs');
     expect(validatePhaseRange(0, 4).valid).toBe(true);
     expect(validatePhaseRange(1, 2).valid).toBe(true);
     expect(validatePhaseRange(2, 2).valid).toBe(true);
@@ -121,26 +121,26 @@ describe('validatePhaseRange', () => {
   });
 
   it('rejects invalid phase numbers', async () => {
-    const { validatePhaseRange } = await import('../bin/lib/focus.js');
+    const { validatePhaseRange } = await import('../bin/lib/focus.mjs');
     expect(validatePhaseRange(5, 6).valid).toBe(false);
     expect(validatePhaseRange(-2, 0).valid).toBe(false);
   });
 
   it('rejects start after end', async () => {
-    const { validatePhaseRange } = await import('../bin/lib/focus.js');
+    const { validatePhaseRange } = await import('../bin/lib/focus.mjs');
     expect(validatePhaseRange(3, 1).valid).toBe(false);
   });
 });
 
 describe('isPhaseInFocus', () => {
   it('returns true when focus is not enabled', async () => {
-    const { isPhaseInFocus } = await import('../bin/lib/focus.js');
+    const { isPhaseInFocus } = await import('../bin/lib/focus.mjs');
     expect(isPhaseInFocus(0, null)).toBe(true);
     expect(isPhaseInFocus(0, { enabled: false })).toBe(true);
   });
 
   it('returns true for phases within range', async () => {
-    const { isPhaseInFocus } = await import('../bin/lib/focus.js');
+    const { isPhaseInFocus } = await import('../bin/lib/focus.mjs');
     const focus = { enabled: true, start_phase: 1, end_phase: 3 };
     expect(isPhaseInFocus(1, focus)).toBe(true);
     expect(isPhaseInFocus(2, focus)).toBe(true);
@@ -148,7 +148,7 @@ describe('isPhaseInFocus', () => {
   });
 
   it('returns false for phases outside range', async () => {
-    const { isPhaseInFocus } = await import('../bin/lib/focus.js');
+    const { isPhaseInFocus } = await import('../bin/lib/focus.mjs');
     const focus = { enabled: true, start_phase: 1, end_phase: 3 };
     expect(isPhaseInFocus(0, focus)).toBe(false);
     expect(isPhaseInFocus(4, focus)).toBe(false);
@@ -157,7 +157,7 @@ describe('isPhaseInFocus', () => {
 
 describe('buildFocusConfig', () => {
   it('builds config from a preset', async () => {
-    const { buildFocusConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig } = await import('../bin/lib/focus.mjs');
     const config = buildFocusConfig({ preset: 'business-analyst' });
     expect(config.enabled).toBe(true);
     expect(config.preset).toBe('business-analyst');
@@ -167,7 +167,7 @@ describe('buildFocusConfig', () => {
   });
 
   it('builds config from custom range', async () => {
-    const { buildFocusConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig } = await import('../bin/lib/focus.mjs');
     const config = buildFocusConfig({ start_phase: 2, end_phase: 3 });
     expect(config.enabled).toBe(true);
     expect(config.preset).toBeNull();
@@ -176,31 +176,31 @@ describe('buildFocusConfig', () => {
   });
 
   it('full preset is not enabled', async () => {
-    const { buildFocusConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig } = await import('../bin/lib/focus.mjs');
     const config = buildFocusConfig({ preset: 'full' });
     expect(config.enabled).toBe(false);
   });
 
   it('custom range 0-4 is not enabled (matches full)', async () => {
-    const { buildFocusConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig } = await import('../bin/lib/focus.mjs');
     const config = buildFocusConfig({ start_phase: 0, end_phase: 4 });
     expect(config.enabled).toBe(false);
   });
 
   it('throws on invalid preset', async () => {
-    const { buildFocusConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig } = await import('../bin/lib/focus.mjs');
     expect(() => buildFocusConfig({ preset: 'invalid' })).toThrow('Unknown focus preset');
   });
 
   it('throws on invalid range', async () => {
-    const { buildFocusConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig } = await import('../bin/lib/focus.mjs');
     expect(() => buildFocusConfig({ start_phase: 3, end_phase: 1 })).toThrow();
   });
 });
 
 describe('getPhasesInRange', () => {
   it('returns correct phases for a range', async () => {
-    const { getPhasesInRange } = await import('../bin/lib/focus.js');
+    const { getPhasesInRange } = await import('../bin/lib/focus.mjs');
     const phases = getPhasesInRange(1, 3);
     expect(phases).toHaveLength(3);
     expect(phases[0].name).toBe('Analyst');
@@ -209,7 +209,7 @@ describe('getPhasesInRange', () => {
   });
 
   it('includes scout for range starting at -1', async () => {
-    const { getPhasesInRange } = await import('../bin/lib/focus.js');
+    const { getPhasesInRange } = await import('../bin/lib/focus.mjs');
     const phases = getPhasesInRange(-1, 0);
     expect(phases).toHaveLength(2);
     expect(phases[0].name).toBe('Scout');
@@ -230,7 +230,7 @@ describe('writeFocusToConfig and readFocusFromConfig', () => {
   });
 
   it('writes and reads a preset focus config', async () => {
-    const { buildFocusConfig, writeFocusToConfig, readFocusFromConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig, writeFocusToConfig, readFocusFromConfig } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const configPath = path.join(tmpDir, '.jumpstart', 'config.yaml');
 
@@ -246,7 +246,7 @@ describe('writeFocusToConfig and readFocusFromConfig', () => {
   });
 
   it('clearFocusFromConfig resets to full workflow', async () => {
-    const { buildFocusConfig, writeFocusToConfig, clearFocusFromConfig, readFocusFromConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig, writeFocusToConfig, clearFocusFromConfig, readFocusFromConfig } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const configPath = path.join(tmpDir, '.jumpstart', 'config.yaml');
 
@@ -260,13 +260,13 @@ describe('writeFocusToConfig and readFocusFromConfig', () => {
   });
 
   it('returns error when config file does not exist', async () => {
-    const { writeFocusToConfig, buildFocusConfig } = await import('../bin/lib/focus.js');
+    const { writeFocusToConfig, buildFocusConfig } = await import('../bin/lib/focus.mjs');
     const result = writeFocusToConfig('/nonexistent/config.yaml', buildFocusConfig({ preset: 'full' }));
     expect(result.success).toBe(false);
   });
 
   it('writes and reads a custom range focus config', async () => {
-    const { buildFocusConfig, writeFocusToConfig, readFocusFromConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig, writeFocusToConfig, readFocusFromConfig } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const configPath = path.join(tmpDir, '.jumpstart', 'config.yaml');
 
@@ -281,7 +281,7 @@ describe('writeFocusToConfig and readFocusFromConfig', () => {
   });
 
   it('double-write replaces focus config correctly', async () => {
-    const { buildFocusConfig, writeFocusToConfig, readFocusFromConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig, writeFocusToConfig, readFocusFromConfig } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const configPath = path.join(tmpDir, '.jumpstart', 'config.yaml');
 
@@ -295,7 +295,7 @@ describe('writeFocusToConfig and readFocusFromConfig', () => {
   });
 
   it('readFocusFromConfig returns null when no focus section exists', async () => {
-    const { readFocusFromConfig } = await import('../bin/lib/focus.js');
+    const { readFocusFromConfig } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const configPath = path.join(tmpDir, '.jumpstart', 'config.yaml');
 
@@ -318,14 +318,14 @@ describe('getFocusStatus', () => {
   });
 
   it('reports inactive when no focus is set', async () => {
-    const { getFocusStatus } = await import('../bin/lib/focus.js');
+    const { getFocusStatus } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const status = getFocusStatus({ root: tmpDir });
     expect(status.active).toBe(false);
   });
 
   it('reports active when focus is set', async () => {
-    const { getFocusStatus, buildFocusConfig, writeFocusToConfig } = await import('../bin/lib/focus.js');
+    const { getFocusStatus, buildFocusConfig, writeFocusToConfig } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const configPath = path.join(tmpDir, '.jumpstart', 'config.yaml');
     writeFocusToConfig(configPath, buildFocusConfig({ preset: 'business-analyst' }));
@@ -340,7 +340,7 @@ describe('getFocusStatus', () => {
 
 describe('VALID_PRESETS', () => {
   it('contains expected preset names', async () => {
-    const { VALID_PRESETS } = await import('../bin/lib/focus.js');
+    const { VALID_PRESETS } = await import('../bin/lib/focus.mjs');
     expect(VALID_PRESETS).toContain('full');
     expect(VALID_PRESETS).toContain('business-analyst');
     expect(VALID_PRESETS).toContain('prd-ready');
@@ -358,7 +358,7 @@ describe('determineNextAction with focus mode', () => {
 
   beforeEach(async () => {
     tmpDir = createTempProject();
-    const mod = await import('../bin/lib/next-phase.js');
+    const mod = await import('../bin/lib/next-phase.mjs');
     determineNextAction = mod.determineNextAction;
   });
 
@@ -367,7 +367,7 @@ describe('determineNextAction with focus mode', () => {
   });
 
   it('recommends focus start phase for fresh project with focus set', async () => {
-    const { buildFocusConfig, writeFocusToConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig, writeFocusToConfig } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const configPath = path.join(tmpDir, '.jumpstart', 'config.yaml');
     writeFocusToConfig(configPath, buildFocusConfig({ preset: 'prd-ready' }));
@@ -382,7 +382,7 @@ describe('determineNextAction with focus mode', () => {
   });
 
   it('recommends completion when focus end phase is reached', async () => {
-    const { buildFocusConfig, writeFocusToConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig, writeFocusToConfig } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const configPath = path.join(tmpDir, '.jumpstart', 'config.yaml');
     writeFocusToConfig(configPath, buildFocusConfig({ preset: 'business-analyst' }));
@@ -397,7 +397,7 @@ describe('determineNextAction with focus mode', () => {
   });
 
   it('allows normal progression within focus range', async () => {
-    const { buildFocusConfig, writeFocusToConfig } = await import('../bin/lib/focus.js');
+    const { buildFocusConfig, writeFocusToConfig } = await import('../bin/lib/focus.mjs');
     writeConfig(tmpDir);
     const configPath = path.join(tmpDir, '.jumpstart', 'config.yaml');
     writeFocusToConfig(configPath, buildFocusConfig({ preset: 'business-analyst' }));

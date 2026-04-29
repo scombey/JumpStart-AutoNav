@@ -156,9 +156,9 @@ describe('cleanup cluster — defineCommand meta.name', () => {
 });
 
 describe('cleanup cluster — Impl missing-required-args smoke', () => {
-  it('revertImpl returns exitCode=1 with no artifact', () => {
+  it('revertImpl returns exitCode=1 with no artifact', async () => {
     const deps = createTestDeps({ projectRoot: process.cwd() });
-    const r = revertImpl(deps, {});
+    const r = await revertImpl(deps, {});
     expect(r.exitCode).toBe(1);
   });
 

@@ -6,7 +6,7 @@
  *   - checkSpecDrift (PRD↔Arch↔Plan cross-refs)
  *   - checkCodeTraceability (planned-files resolution)
  *
- * @see bin/lib-ts/spec-drift.ts
+ * @see src/lib/spec-drift.ts
  * @see bin/lib/spec-drift.js (legacy reference)
  */
 
@@ -20,7 +20,7 @@ import {
   extractComponents,
   extractStoryIds,
   extractTaskIds,
-} from '../bin/lib-ts/spec-drift.js';
+} from '../src/lib/spec-drift.js';
 
 let tmpDir: string;
 

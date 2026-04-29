@@ -9,13 +9,13 @@
  * Both must throw `ValidationError`. Per implementation-plan T3.9 the
  * Tier 1 unit tests run from M1 onward and are NOT dormant; the Tier 2
  * subprocess replay tests against `dist/lib/path-safety.js` activate
- * once `bin/lib-ts/ipc.ts` lands at port time.
+ * once `src/lib/ipc.ts` lands at port time.
  *
  * Beyond the fixture replay, this file also asserts the negative-space
  * cases (paths that should be allowed) so a future change that
  * accidentally over-rejects gets caught.
  *
- * @see bin/lib-ts/path-safety.ts
+ * @see src/lib/path-safety.ts
  * @see tests/fixtures/security/path-traversal/README.md
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
  * @see specs/implementation-plan.md T3.9, Checkpoint C3
@@ -32,8 +32,8 @@ import {
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { ValidationError } from '../bin/lib-ts/errors.js';
-import { assertInsideRoot, safePathSchema } from '../bin/lib-ts/path-safety.js';
+import { ValidationError } from '../src/lib/errors.js';
+import { assertInsideRoot, safePathSchema } from '../src/lib/path-safety.js';
 
 interface PathTraversalFixture {
   name: string;

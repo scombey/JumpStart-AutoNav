@@ -14,13 +14,13 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ValidationError } from '../bin/lib-ts/errors.js';
-import { validateHandoff } from '../bin/lib-ts/handoff-validator.js';
-import { runHolodeck } from '../bin/lib-ts/holodeck.js';
-import { runRegressionSuite } from '../bin/lib-ts/regression.js';
-import { SimulationTracer } from '../bin/lib-ts/simulation-tracer.js';
-import { runBuild } from '../bin/lib-ts/smoke-tester.js';
-import { createToolBridge } from '../bin/lib-ts/tool-bridge.js';
+import { ValidationError } from '../src/lib/errors.js';
+import { validateHandoff } from '../src/lib/handoff-validator.js';
+import { runHolodeck } from '../src/lib/holodeck.js';
+import { runRegressionSuite } from '../src/lib/regression.js';
+import { SimulationTracer } from '../src/lib/simulation-tracer.js';
+import { runBuild } from '../src/lib/smoke-tester.js';
+import { createToolBridge } from '../src/lib/tool-bridge.js';
 
 let tmpDir: string;
 
@@ -39,7 +39,7 @@ afterEach(() => {
 
 describe('Pit Crew M7 BLOCKER 1 — context7-setup ClientConfig replaces cliCommand with cliArgv', () => {
   it('CLIENT_CONFIGS["claude-code"] uses cliArgv (argv array) not cliCommand (shell string)', async () => {
-    const mod = await import('../bin/lib-ts/context7-setup.js');
+    const mod = await import('../src/lib/context7-setup.js');
     const claudeCode = mod.CLIENT_CONFIGS['claude-code'];
     expect(claudeCode.cliArgv).toBeDefined();
     expect(typeof claudeCode.cliArgv).toBe('function');
@@ -50,7 +50,7 @@ describe('Pit Crew M7 BLOCKER 1 — context7-setup ClientConfig replaces cliComm
   });
 
   it('cliArgv produces a malicious-key-safe argv (apiKey is one element, not interpolated)', async () => {
-    const mod = await import('../bin/lib-ts/context7-setup.js');
+    const mod = await import('../src/lib/context7-setup.js');
     const claudeCode = mod.CLIENT_CONFIGS['claude-code'];
     const maliciousKey = 'ctx7sk-trailing-shell-metachars';
     const argv = claudeCode.cliArgv?.(maliciousKey) ?? [];

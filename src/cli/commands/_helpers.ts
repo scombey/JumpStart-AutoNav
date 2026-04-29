@@ -5,7 +5,7 @@
  * commands. They share these helpers to avoid copying boilerplate:
  *
  *   - `legacyRequire(modulePath)` — load a `bin/lib/*.js` legacy module
- *     (CommonJS). Used until each underlying lib has a `bin/lib-ts/*.ts`
+ *     (CommonJS). Used until each underlying lib has a `src/lib/*.ts`
  *     port. The `.js` extension is preserved since lib paths are CJS.
  *   - `safeJoin(deps, ...segments)` — `path.join(deps.projectRoot, ...)`
  *     with the result gated by `assertInsideRoot` from path-safety. Per
@@ -15,17 +15,22 @@
  *     citty positional rest array (we accept rest args as `string[]` and
  *     parse manually so the per-command `args` object stays small).
  *
- * **Strangler-phase note**: `legacyRequire()` uses bare `require()` — this
- * is the M4-M8 norm (see bin/lib-ts/dashboard.ts comment). At M9 ESM
- * cutover, callers switch to `import { createRequire } from 'node:module'`.
+ * **M9 ESM cutover**: `legacyRequire()` now uses
+ * `createRequire(import.meta.url)` instead of the bare CJS-scope
+ * `require()` it relied on during the strangler phase. The legacy JS
+ * libs in `bin/lib/*.js` are scoped to CommonJS via `bin/package.json`;
+ * `createRequire` resolves them as plain CJS modules.
  *
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
- * @see specs/implementation-plan.md T4.7.2
+ * @see specs/implementation-plan.md T4.7.2, T5.1 (M9 cutover)
  */
 
+import { createRequire } from 'node:module';
 import * as path from 'node:path';
-import { assertInsideRoot } from '../../../bin/lib-ts/path-safety.js';
+import { assertInsideRoot } from '../../lib/path-safety.js';
 import type { Deps } from '../deps.js';
+
+const require = createRequire(import.meta.url);
 
 /**
  * Load a legacy CommonJS lib module from `bin/lib/<name>.js`.
@@ -60,6 +65,39 @@ export function legacyRequire<T = any>(libName: string): T {
   // Defense-in-depth: confirm resolution stays under LEGACY_LIB_DIR.
   assertInsideRoot(libName, LEGACY_LIB_DIR, { schemaId: 'cli.legacyRequire' });
   return require(absolutePath) as T;
+}
+
+/**
+ * Async variant for legacy modules that ship as ESM (`bin/lib/<name>.mjs`).
+ * `require()` cannot load .mjs synchronously, so commands targeting the
+ * 38 ESM legacy modules call `await legacyImport(name)` instead.
+ *
+ * Same path-safety contract as `legacyRequire`: name must be a simple
+ * module identifier; absolute path resolution is anchored under
+ * `LEGACY_LIB_DIR`. Tries `.mjs` first (the post-M9 ESM shape), falls
+ * back to `.js` (CJS shape, in case a renamed module was missed).
+ */
+// biome-ignore lint/suspicious/noExplicitAny: same rationale as legacyRequire
+export async function legacyImport<T = any>(libName: string): Promise<T> {
+  if (!/^[a-z0-9][a-z0-9-]*$/i.test(libName)) {
+    throw new Error(`Invalid legacy lib name: ${libName}`);
+  }
+  assertInsideRoot(libName, LEGACY_LIB_DIR, { schemaId: 'cli.legacyImport' });
+  const mjsPath = path.join(LEGACY_LIB_DIR, `${libName}.mjs`);
+  try {
+    return (await import(mjsPath)) as T;
+  } catch (mjsErr) {
+    // Fall back to .js shape only if the .mjs path didn't exist; rethrow
+    // any other ESM error to keep root causes visible.
+    if (
+      !(mjsErr instanceof Error) ||
+      !/Cannot find module|ERR_MODULE_NOT_FOUND/i.test(mjsErr.message)
+    ) {
+      throw mjsErr;
+    }
+    const jsPath = path.join(LEGACY_LIB_DIR, `${libName}.js`);
+    return (await import(jsPath)) as T;
+  }
 }
 
 /**

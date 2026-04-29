@@ -10,7 +10,7 @@
  *   - promptless-mode.ts: WIZARDS + startWizard + answerStep
  *   - workshop-mode.ts: WORKSHOP_TYPES + startSession + captureInsight
  *
- * @see bin/lib-ts/{dashboard,timeline,context-summarizer,project-memory,role-views,promptless-mode,workshop-mode}.ts
+ * @see src/lib/{dashboard,timeline,context-summarizer,project-memory,role-views,promptless-mode,workshop-mode}.ts
  */
 
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -21,13 +21,13 @@ import {
   extractFrontmatter as ctxExtractFrontmatter,
   extractSections,
   summarizeArtifact,
-} from '../bin/lib-ts/context-summarizer.js';
+} from '../src/lib/context-summarizer.js';
 import {
   findClarifications,
   PHASES,
   renderDashboardText,
   STATUS_ICONS,
-} from '../bin/lib-ts/dashboard.js';
+} from '../src/lib/dashboard.js';
 import {
   addMemory,
   defaultMemoryStore,
@@ -37,21 +37,11 @@ import {
   recallMemory,
   saveMemoryStore,
   searchMemories,
-} from '../bin/lib-ts/project-memory.js';
-import {
-  answerStep,
-  getWizardStatus,
-  startWizard,
-  WIZARDS,
-} from '../bin/lib-ts/promptless-mode.js';
-import { generateRoleSummary, generateView, listRoles, ROLES } from '../bin/lib-ts/role-views.js';
-import {
-  createTimeline,
-  EVENT_TYPES,
-  loadTimeline,
-  queryTimeline,
-} from '../bin/lib-ts/timeline.js';
-import { captureInsight, startSession, WORKSHOP_TYPES } from '../bin/lib-ts/workshop-mode.js';
+} from '../src/lib/project-memory.js';
+import { answerStep, getWizardStatus, startWizard, WIZARDS } from '../src/lib/promptless-mode.js';
+import { generateRoleSummary, generateView, listRoles, ROLES } from '../src/lib/role-views.js';
+import { createTimeline, EVENT_TYPES, loadTimeline, queryTimeline } from '../src/lib/timeline.js';
+import { captureInsight, startSession, WORKSHOP_TYPES } from '../src/lib/workshop-mode.js';
 
 let tmpRoot: string;
 

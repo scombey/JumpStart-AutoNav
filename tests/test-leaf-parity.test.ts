@@ -48,7 +48,7 @@ const require = createRequire(`${process.cwd()}/`);
 
 describe('hashing — TS↔JS parity', () => {
   it('hashContent: identical hex digest across 4 input sizes', async () => {
-    const tsModule = await import('../bin/lib-ts/hashing.js');
+    const tsModule = await import('../src/lib/hashing.js');
     const jsModule = require(`${process.cwd()}/bin/lib/hashing.js`);
     const inputs = ['', 'abc', 'a'.repeat(1024), 'spec content with unicode: 日本語'];
     for (const input of inputs) {
@@ -63,8 +63,9 @@ describe('hashing — TS↔JS parity', () => {
 
 describe('timestamps — TS↔JS parity', () => {
   it('validate: same result shape across valid + invalid inputs', async () => {
-    const tsModule = await import('../bin/lib-ts/timestamps.js');
-    const jsModule = await import('../bin/lib/timestamps.js');
+    const tsModule = await import('../src/lib/timestamps.js');
+    // @ts-expect-error legacy JS, no .d.ts (parity test imports raw runtime export — see tests/test-leaf-parity.test.ts header)
+    const jsModule = (await import('../bin/lib/timestamps.mjs')) as any;
     const inputs = [
       '2024-01-01T00:00:00Z',
       '2024-01-01T00:00:00.123Z',
@@ -79,8 +80,9 @@ describe('timestamps — TS↔JS parity', () => {
   });
 
   it('now: shape parity (both return ISO 8601 UTC ending in Z)', async () => {
-    const tsModule = await import('../bin/lib-ts/timestamps.js');
-    const jsModule = await import('../bin/lib/timestamps.js');
+    const tsModule = await import('../src/lib/timestamps.js');
+    // @ts-expect-error legacy JS, no .d.ts (parity test imports raw runtime export — see tests/test-leaf-parity.test.ts header)
+    const jsModule = (await import('../bin/lib/timestamps.mjs')) as any;
     const tsNow = tsModule.now();
     const jsNow = jsModule.now();
     // Can't compare values (clock advances) but both must match the regex.
@@ -95,8 +97,9 @@ describe('timestamps — TS↔JS parity', () => {
 
 describe('diff — TS↔JS parity (no fs reads)', () => {
   it('unifiedDiff: byte-identical output across edit cases', async () => {
-    const tsModule = await import('../bin/lib-ts/diff.js');
-    const jsModule = await import('../bin/lib/diff.js');
+    const tsModule = await import('../src/lib/diff.js');
+    // @ts-expect-error legacy JS, no .d.ts (parity test imports raw runtime export — see tests/test-leaf-parity.test.ts header)
+    const jsModule = (await import('../bin/lib/diff.mjs')) as any;
     const cases = [
       ['', '', 'empty.txt'],
       ['a\nb\nc', 'a\nB\nc', 'mid-edit.txt'],
@@ -109,8 +112,9 @@ describe('diff — TS↔JS parity (no fs reads)', () => {
   });
 
   it('generateDiff: identical create-only result with no fs touches', async () => {
-    const tsModule = await import('../bin/lib-ts/diff.js');
-    const jsModule = await import('../bin/lib/diff.js');
+    const tsModule = await import('../src/lib/diff.js');
+    // @ts-expect-error legacy JS, no .d.ts (parity test imports raw runtime export — see tests/test-leaf-parity.test.ts header)
+    const jsModule = (await import('../bin/lib/diff.mjs')) as any;
     const input = {
       changes: [{ type: 'create' as const, path: 'new.txt', content: 'a\nb\nc' }],
       root: process.cwd(),
@@ -127,16 +131,18 @@ describe('diff — TS↔JS parity (no fs reads)', () => {
 
 describe('context-chunker — TS↔JS parity', () => {
   it('estimateTokens: identical math', async () => {
-    const tsModule = await import('../bin/lib-ts/context-chunker.js');
-    const jsModule = await import('../bin/lib/context-chunker.js');
+    const tsModule = await import('../src/lib/context-chunker.js');
+    // @ts-expect-error legacy JS, no .d.ts (parity test imports raw runtime export — see tests/test-leaf-parity.test.ts header)
+    const jsModule = (await import('../bin/lib/context-chunker.js')) as any;
     for (const input of ['', 'abc', 'a'.repeat(1000), 'unicode: 日本語']) {
       expect(tsModule.estimateTokens(input)).toBe(jsModule.estimateTokens(input));
     }
   });
 
   it('chunkContent: identical chunk plan for healthy inputs', async () => {
-    const tsModule = await import('../bin/lib-ts/context-chunker.js');
-    const jsModule = await import('../bin/lib/context-chunker.js');
+    const tsModule = await import('../src/lib/context-chunker.js');
+    // @ts-expect-error legacy JS, no .d.ts (parity test imports raw runtime export — see tests/test-leaf-parity.test.ts header)
+    const jsModule = (await import('../bin/lib/context-chunker.js')) as any;
     // Note: legacy uses overlap < maxTokens by default so the new
     // Adv-6 guard doesn't fire on legitimate inputs.
     const cases = [
@@ -157,8 +163,9 @@ describe('context-chunker — TS↔JS parity', () => {
 
 describe('artifact-comparison — TS↔JS parity', () => {
   it('compareArtifacts: identical changes array across cases', async () => {
-    const tsModule = await import('../bin/lib-ts/artifact-comparison.js');
-    const jsModule = await import('../bin/lib/artifact-comparison.js');
+    const tsModule = await import('../src/lib/artifact-comparison.js');
+    // @ts-expect-error legacy JS, no .d.ts (parity test imports raw runtime export — see tests/test-leaf-parity.test.ts header)
+    const jsModule = (await import('../bin/lib/artifact-comparison.js')) as any;
     const cases = [
       ['# A\nbody', '# A\nbody'],
       ['# A\nold', '# A\nnew\n## B\nadded'],
@@ -194,7 +201,7 @@ describe('artifact-comparison — TS↔JS parity', () => {
 
 describe('ambiguity-heatmap — TS↔JS parity', () => {
   it('scanAmbiguity: identical metrics across spec-shaped inputs', async () => {
-    const tsModule = await import('../bin/lib-ts/ambiguity-heatmap.js');
+    const tsModule = await import('../src/lib/ambiguity-heatmap.js');
     const jsModule = require(`${process.cwd()}/bin/lib/ambiguity-heatmap.js`);
     const inputs = [
       'The system should be intuitive and seamless.',
@@ -220,8 +227,9 @@ describe('ambiguity-heatmap — TS↔JS parity', () => {
 
 describe('complexity — TS↔JS parity', () => {
   it('calculateComplexity: identical depth + score + breakdown across signals', async () => {
-    const tsModule = await import('../bin/lib-ts/complexity.js');
-    const jsModule = await import('../bin/lib/complexity.js');
+    const tsModule = await import('../src/lib/complexity.js');
+    // @ts-expect-error legacy JS, no .d.ts (parity test imports raw runtime export — see tests/test-leaf-parity.test.ts header)
+    const jsModule = (await import('../bin/lib/complexity.mjs')) as any;
     const cases = [
       {},
       { description: 'security compliance gdpr hipaa pci', file_count: 250, domain: 'healthcare' },
@@ -240,7 +248,7 @@ describe('complexity — TS↔JS parity', () => {
 
 describe('versioning — TS↔JS parity (git-free)', () => {
   it('generateTag: identical canonical-shape output', async () => {
-    const tsModule = await import('../bin/lib-ts/versioning.js');
+    const tsModule = await import('../src/lib/versioning.js');
     const jsModule = require(`${process.cwd()}/bin/lib/versioning.js`);
     const cases = [
       ['prd', '1.0.0'],

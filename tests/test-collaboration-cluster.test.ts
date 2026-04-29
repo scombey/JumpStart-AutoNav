@@ -13,23 +13,23 @@
  *   - domain-ontology.ts: ELEMENT_TYPES, defineElement, queryOntology, validateTermUsage
  *   - ea-review-packet.ts: PACKET_SECTIONS, generatePacket
  *
- * @see bin/lib-ts/{10 collaboration modules}.ts
+ * @see src/lib/{10 collaboration modules}.ts
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import * as chatInt from '../bin/lib-ts/chat-integration.js';
-import * as contractChk from '../bin/lib-ts/contract-checker.js';
-import * as decisionConflicts from '../bin/lib-ts/decision-conflicts.js';
-import * as deliveryConf from '../bin/lib-ts/delivery-confidence.js';
-import * as depUpgrade from '../bin/lib-ts/dependency-upgrade.js';
-import * as detArtifacts from '../bin/lib-ts/deterministic-artifacts.js';
-import * as domainOnt from '../bin/lib-ts/domain-ontology.js';
-import * as eaReview from '../bin/lib-ts/ea-review-packet.js';
-import * as playback from '../bin/lib-ts/playback-summaries.js';
-import * as structElicit from '../bin/lib-ts/structured-elicitation.js';
+import * as chatInt from '../src/lib/chat-integration.js';
+import * as contractChk from '../src/lib/contract-checker.js';
+import * as decisionConflicts from '../src/lib/decision-conflicts.js';
+import * as deliveryConf from '../src/lib/delivery-confidence.js';
+import * as depUpgrade from '../src/lib/dependency-upgrade.js';
+import * as detArtifacts from '../src/lib/deterministic-artifacts.js';
+import * as domainOnt from '../src/lib/domain-ontology.js';
+import * as eaReview from '../src/lib/ea-review-packet.js';
+import * as playback from '../src/lib/playback-summaries.js';
+import * as structElicit from '../src/lib/structured-elicitation.js';
 
 let tmp: string;
 

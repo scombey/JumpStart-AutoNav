@@ -13,7 +13,7 @@
  *      expected-stdout.json. Catches half-authored fixture sets.
  *
  *   3. **Tracking ratchet** — counts the fixtured-module total + the
- *      total dual-mode-eligible modules in `bin/lib-ts/` and reports
+ *      total dual-mode-eligible modules in `src/lib/` and reports
  *      the ratio. Raises a warning (NOT a failure) if the ratio is
  *      below the documented floor; raises a failure if a previously-
  *      fixtured module loses its fixture (regression).
@@ -35,7 +35,7 @@ import { describe, expect, it } from 'vitest';
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const FIXTURES_ROOT = path.join(REPO_ROOT, 'tests', 'fixtures', 'ipc');
-const LIB_TS_ROOT = path.join(REPO_ROOT, 'bin', 'lib-ts');
+const LIB_TS_ROOT = path.join(REPO_ROOT, 'src', 'lib');
 
 /**
  * Floor: the minimum number of dual-mode lib modules that MUST have
@@ -47,7 +47,7 @@ const LIB_TS_ROOT = path.join(REPO_ROOT, 'bin', 'lib-ts');
  */
 const MIN_FIXTURED_MODULES = 5;
 
-/** Modules in bin/lib-ts/ that are NOT dual-mode (no IPC entry).
+/** Modules in src/lib/ that are NOT dual-mode (no IPC entry).
  *  These are pure-library modules — adding IPC fixtures for them
  *  would be misleading. */
 const NON_IPC_MODULES = new Set<string>([
@@ -75,7 +75,7 @@ function listFixturedModules(): string[] {
     .sort();
 }
 
-/** List dual-mode-eligible modules in bin/lib-ts/ (filtered by NON_IPC_MODULES). */
+/** List dual-mode-eligible modules in src/lib/ (filtered by NON_IPC_MODULES). */
 function listDualModeModules(): string[] {
   if (!existsSync(LIB_TS_ROOT)) return [];
   return readdirSync(LIB_TS_ROOT)
@@ -140,7 +140,7 @@ describe('T4.7.4 — IPC envelope fixture-coverage ratchet', () => {
     const orphans = fixtured.filter((m) => !dualMode.includes(m));
     expect(
       orphans,
-      `Fixture dirs without a matching bin/lib-ts/<name>.ts: ${orphans.join(', ')}. Did the module get removed/renamed?`
+      `Fixture dirs without a matching src/lib/<name>.ts: ${orphans.join(', ')}. Did the module get removed/renamed?`
     ).toEqual([]);
   });
 });

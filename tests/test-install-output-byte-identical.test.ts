@@ -16,14 +16,14 @@
  *      sorted) acts as a tripwire: if the fixture or the extractor
  *      drifts, the digest changes loudly.
  *
- * The legacy `bin/lib/install.js` shell-`unzip` parity check was
+ * The legacy `bin/lib/install.mjs` shell-`unzip` parity check was
  * dropped per the security guidance to avoid `child_process` use in
  * tests. The TS-vs-TS determinism plus content-bytes-vs-pinned-tree
  * comparison covers the same ground without invoking external
  * binaries.
  *
  * @see specs/implementation-plan.md T4.5.4
- * @see bin/lib-ts/install.ts (_extractZipSafely_TEST_ONLY)
+ * @see src/lib/install.ts (_extractZipSafely_TEST_ONLY)
  * @see tests/fixtures/zipslip/legitimate.zip
  */
 
@@ -32,7 +32,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } f
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { _extractZipSafely_TEST_ONLY } from '../bin/lib-ts/install.js';
+import { _extractZipSafely_TEST_ONLY } from '../src/lib/install.js';
 
 const FIXTURES_DIR = path.join(__dirname, 'fixtures', 'zipslip');
 const LEGITIMATE_ZIP = path.join(FIXTURES_DIR, 'legitimate.zip');

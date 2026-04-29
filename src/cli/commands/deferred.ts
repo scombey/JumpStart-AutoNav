@@ -4,13 +4,13 @@
  * Ports the five `bin/cli.js` subcommands that earlier batches skipped
  * because they are interactive or render-heavy:
  *
- *   - quickstart    (interactive prompts wizard; uses bin/lib/quickstart.js
+ *   - quickstart    (interactive prompts wizard; uses bin/lib/quickstart.mjs
  *                    + the legacy install() bootstrap. ESM dynamic import.)
- *   - self-evolve   (framework self-evolution proposal; bin/lib/self-evolve.js
+ *   - self-evolve   (framework self-evolution proposal; bin/lib/self-evolve.mjs
  *                    is ESM — dynamic import.)
- *   - summarize     (smart context summarizer; bin/lib-ts/context-summarizer
+ *   - summarize     (smart context summarizer; src/lib/context-summarizer
  *                    has a TypeScript port — top-level ES import.)
- *   - timeline      (interaction timeline; bin/lib-ts/timeline has a
+ *   - timeline      (interaction timeline; src/lib/timeline has a
  *                    TypeScript port — top-level ES import. Multi-flag
  *                    query/render surface.)
  *   - validate-all  (proactive validator + suggestion engine; legacy CJS
@@ -41,11 +41,8 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { defineCommand } from 'citty';
-import {
-  generateContextPacket,
-  renderContextMarkdown,
-} from '../../../bin/lib-ts/context-summarizer.js';
-import { writeResult } from '../../../bin/lib-ts/io.js';
+import { generateContextPacket, renderContextMarkdown } from '../../lib/context-summarizer.js';
+import { writeResult } from '../../lib/io.js';
 import {
   clearTimeline,
   generateTimelineReport,
@@ -53,7 +50,7 @@ import {
   queryTimeline,
   renderMarkdown as renderTimelineMarkdown,
   type TimelineFilters,
-} from '../../../bin/lib-ts/timeline.js';
+} from '../../lib/timeline.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { asRest, hasFlag, legacyRequire, parseFlag, safeJoin } from './_helpers.js';
 
@@ -73,7 +70,7 @@ interface SelfEvolveLib {
 }
 
 export async function selfEvolveImpl(deps: Deps, args: SelfEvolveArgs): Promise<CommandResult> {
-  // bin/lib/self-evolve.js is ESM (uses `export`), so it must be loaded via
+  // bin/lib/self-evolve.mjs is ESM (uses `export`), so it must be loaded via
   // dynamic import — `legacyRequire` would fail with ERR_REQUIRE_ESM.
   const mod = (await import(
     path.join(deps.projectRoot, 'bin', 'lib', 'self-evolve.js')

@@ -16,9 +16,9 @@ let configMergeMod;
 let upgradeMod;
 
 beforeEach(async () => {
-  manifestMod = await import('../bin/lib/framework-manifest.js');
-  configMergeMod = await import('../bin/lib/config-merge.js');
-  upgradeMod = await import('../bin/lib/upgrade.js');
+  manifestMod = await import('../bin/lib/framework-manifest.mjs');
+  configMergeMod = await import('../bin/lib/config-merge.mjs');
+  upgradeMod = await import('../bin/lib/upgrade.mjs');
 });
 
 // ── Temp directory helpers ──────────────────────────────────────────────────

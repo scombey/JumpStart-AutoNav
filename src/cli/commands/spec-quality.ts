@@ -29,26 +29,23 @@
  */
 
 import { defineCommand } from 'citty';
-import * as ambiguityLib from '../../../bin/lib-ts/ambiguity-heatmap.js';
-import { analyzeStructure } from '../../../bin/lib-ts/ast-edit-engine.js';
-import { buildCoverageReport, scanTraceLinks } from '../../../bin/lib-ts/bidirectional-trace.js';
+import * as ambiguityLib from '../../lib/ambiguity-heatmap.js';
+import { analyzeStructure } from '../../lib/ast-edit-engine.js';
+import { buildCoverageReport, scanTraceLinks } from '../../lib/bidirectional-trace.js';
 import {
   compareProfiles,
   getProfileDescription,
   getProfileSummary,
   VALID_PROFILES,
-} from '../../../bin/lib-ts/ceremony.js';
-import { calculateComplexity } from '../../../bin/lib-ts/complexity.js';
-import { chunkImplementationPlan } from '../../../bin/lib-ts/context-chunker.js';
-import { validateCrossRefs } from '../../../bin/lib-ts/crossref.js';
-import { gatherDashboardData, renderDashboardText } from '../../../bin/lib-ts/dashboard.js';
-import * as ontologyLib from '../../../bin/lib-ts/domain-ontology.js';
-import { writeResult } from '../../../bin/lib-ts/io.js';
-import {
-  generateReport as qualityGraphReport,
-  scanQuality,
-} from '../../../bin/lib-ts/quality-graph.js';
-import { generateReport as refactorReport } from '../../../bin/lib-ts/refactor-planner.js';
+} from '../../lib/ceremony.js';
+import { calculateComplexity } from '../../lib/complexity.js';
+import { chunkImplementationPlan } from '../../lib/context-chunker.js';
+import { validateCrossRefs } from '../../lib/crossref.js';
+import { gatherDashboardData, renderDashboardText } from '../../lib/dashboard.js';
+import * as ontologyLib from '../../lib/domain-ontology.js';
+import { writeResult } from '../../lib/io.js';
+import { generateReport as qualityGraphReport, scanQuality } from '../../lib/quality-graph.js';
+import { generateReport as refactorReport } from '../../lib/refactor-planner.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 

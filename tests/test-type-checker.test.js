@@ -1,5 +1,5 @@
 /**
- * test-type-checker.test.js — Tests for bin/lib/type-checker.js
+ * test-type-checker.test.js — Tests for bin/lib/type-checker.mjs
  *
  * Covers:
  * - Type checker detection (tsconfig.json, mypy.ini, pyright, pyproject.toml)
@@ -16,7 +16,7 @@ import { tmpdir } from 'os';
 let runTypeCheck, detectTypeChecker, parseTypeErrors;
 
 beforeEach(async () => {
-  const mod = await import('../bin/lib/type-checker.js');
+  const mod = await import('../bin/lib/type-checker.mjs');
   runTypeCheck = mod.runTypeCheck;
   detectTypeChecker = mod.detectTypeChecker;
   parseTypeErrors = mod.parseTypeErrors;
