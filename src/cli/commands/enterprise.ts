@@ -36,11 +36,15 @@
 import { defineCommand } from 'citty';
 import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
 import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
+import * as legacyEnvironmentPromotion from '../../lib/environment-promotion.js';
 import * as legacyLegacyModernizer from '../../lib/legacy-modernizer.js';
 import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
+import * as legacyMultiRepo from '../../lib/multi-repo.js';
+import * as legacyParallelAgents from '../../lib/parallel-agents.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
+import * as legacyPrPackage from '../../lib/pr-package.js';
 import * as legacyReleaseReadiness from '../../lib/release-readiness.js';
 import * as legacyTemplateMerge from '../../lib/template-merge.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
@@ -182,7 +186,10 @@ export interface EnvPromotionArgs {
 }
 
 export function envPromotionImpl(deps: Deps, args: EnvPromotionArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('environment-promotion');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('environment-promotion')`
+  // to a static import of the TS port at `src/lib/environment-promotion.ts`.
+  // Existing wiring already invoked the real exports (`promote`/`checkGates`/
+  // `getStatus`); no latent bugs to fix.
   const action = args.action ?? 'status';
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'environment-promotion.json');
   let result: unknown;
@@ -191,15 +198,15 @@ export function envPromotionImpl(deps: Deps, args: EnvPromotionArgs): CommandRes
       deps.logger.error('Usage: jumpstart-mode env-promotion promote <environment>');
       return { exitCode: 1 };
     }
-    result = lib.promote(args.arg, { stateFile });
+    result = legacyEnvironmentPromotion.promote(args.arg, { stateFile });
   } else if (action === 'gate') {
     if (!args.arg) {
       deps.logger.error('Usage: jumpstart-mode env-promotion gate <environment>');
       return { exitCode: 1 };
     }
-    result = lib.checkGates(args.arg, { stateFile });
+    result = legacyEnvironmentPromotion.checkGates(args.arg, { stateFile });
   } else {
-    result = lib.getStatus({ stateFile });
+    result = legacyEnvironmentPromotion.getStatus({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Env promotion: ${action}`);
@@ -562,7 +569,10 @@ export interface MultiRepoArgs {
 }
 
 export function multiRepoImpl(deps: Deps, args: MultiRepoArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('multi-repo');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('multi-repo')`
+  // to a static import of the TS port at `src/lib/multi-repo.ts`. Existing
+  // wiring already invoked the real exports (`initProgram`/`linkRepo`/
+  // `getProgramStatus`); no latent bugs to fix.
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'multi-repo.json');
   const action = args.action ?? 'status';
   let result: unknown;
@@ -571,15 +581,15 @@ export function multiRepoImpl(deps: Deps, args: MultiRepoArgs): CommandResult {
       deps.logger.error('Usage: jumpstart-mode multi-repo init <program-name>');
       return { exitCode: 1 };
     }
-    result = lib.initProgram(args.arg, { stateFile });
+    result = legacyMultiRepo.initProgram(args.arg, { stateFile });
   } else if (action === 'link') {
     if (!args.arg) {
       deps.logger.error('Usage: jumpstart-mode multi-repo link <repo-url> [role]');
       return { exitCode: 1 };
     }
-    result = lib.linkRepo(args.arg, args.role ?? 'other', { stateFile });
+    result = legacyMultiRepo.linkRepo(args.arg, args.role ?? 'other', { stateFile });
   } else {
-    result = lib.getProgramStatus({ stateFile });
+    result = legacyMultiRepo.getProgramStatus({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Multi-repo: ${action}`);
@@ -616,16 +626,34 @@ export interface ParallelAgentsArgs {
 }
 
 export function parallelAgentsImpl(deps: Deps, args: ParallelAgentsArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('parallel-agents');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('parallel-agents')`
+  // to a static import of the TS port at `src/lib/parallel-agents.ts`. The
+  // previous wiring called `lib.planParallelExecution` / `lib.getStatus` —
+  // neither was exported by the legacy module, so the command silently
+  // produced `undefined` results regardless of arg shape. Replaced with
+  // the actual legacy contract: `scheduleRun` / `listRuns` / `getRunStatus`
+  // / `reconcileRun`. The legacy CLI default was `status`; preserved as a
+  // call to `listRuns` since the legacy never had a single-run-status
+  // entry point that didn't require a run id.
   const action = args.action ?? 'status';
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'parallel-agents.json');
   let result: unknown;
-  if (action === 'plan') {
-    result = lib.planParallelExecution
-      ? lib.planParallelExecution(deps.projectRoot, { stateFile })
-      : lib.getStatus?.({ stateFile });
+  if (action === 'schedule' || action === 'plan') {
+    result = legacyParallelAgents.scheduleRun([], { root: deps.projectRoot }, { stateFile });
+  } else if (action === 'reconcile') {
+    if (!args.arg) {
+      deps.logger.error('Usage: jumpstart-mode parallel-agents reconcile <run-id>');
+      return { exitCode: 1 };
+    }
+    result = legacyParallelAgents.reconcileRun(args.arg, { stateFile });
+  } else if (action === 'run-status') {
+    if (!args.arg) {
+      deps.logger.error('Usage: jumpstart-mode parallel-agents run-status <run-id>');
+      return { exitCode: 1 };
+    }
+    result = legacyParallelAgents.getRunStatus(args.arg, { stateFile });
   } else {
-    result = lib.getStatus?.({ stateFile });
+    result = legacyParallelAgents.listRuns({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Parallel agents: ${action}`);
@@ -635,8 +663,12 @@ export function parallelAgentsImpl(deps: Deps, args: ParallelAgentsArgs): Comman
 export const parallelAgentsCommand = defineCommand({
   meta: { name: 'parallel-agents', description: 'Parallel agent orchestration' },
   args: {
-    action: { type: 'positional', required: false, description: 'status | plan' },
-    arg: { type: 'positional', required: false, description: 'optional argument' },
+    action: {
+      type: 'positional',
+      required: false,
+      description: 'status | schedule | plan | reconcile | run-status',
+    },
+    arg: { type: 'positional', required: false, description: 'run id (reconcile / run-status)' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
   run({ args }) {
@@ -800,13 +832,37 @@ export interface PrPackageArgs {
 }
 
 export function prPackageImpl(deps: Deps, args: PrPackageArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('pr-package');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('pr-package')`
+  // to a static import of the TS port at `src/lib/pr-package.ts`. The
+  // previous wiring called `lib.generatePrPackage` / `lib.getStatus` —
+  // neither was exported by the legacy module, so the command silently
+  // produced `undefined` results regardless of arg shape. Replaced with
+  // the actual legacy contract: `createPRPackage` / `listPRPackages` /
+  // `exportPRPackage`. The legacy CLI default action was `generate` (see
+  // bin/cli.js ~2658); preserved as a thin wrapper that turns the optional
+  // branch arg into a minimal title + summary so the call shape stays
+  // stable without accreting new args.
   const action = args.action ?? 'generate';
   let result: unknown;
   if (action === 'generate') {
-    result = lib.generatePrPackage?.(deps.projectRoot, { branch: args.arg });
+    const branch = args.arg ?? 'unknown-branch';
+    result = legacyPrPackage.createPRPackage(
+      {
+        title: `Work package — ${branch}`,
+        summary: `Auto-generated work package for branch \`${branch}\`.`,
+      },
+      deps.projectRoot
+    );
+  } else if (action === 'list') {
+    result = legacyPrPackage.listPRPackages(deps.projectRoot);
+  } else if (action === 'export') {
+    if (!args.arg) {
+      deps.logger.error('Usage: jumpstart-mode pr-package export <package-id>');
+      return { exitCode: 1 };
+    }
+    result = legacyPrPackage.exportPRPackage(args.arg, deps.projectRoot);
   } else {
-    result = lib.getStatus?.(deps.projectRoot) ?? {};
+    result = legacyPrPackage.listPRPackages(deps.projectRoot);
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`PR package: ${action}`);
@@ -816,8 +872,8 @@ export function prPackageImpl(deps: Deps, args: PrPackageArgs): CommandResult {
 export const prPackageCommand = defineCommand({
   meta: { name: 'pr-package', description: 'Pull-request review package generator' },
   args: {
-    action: { type: 'positional', required: false, description: 'generate | status' },
-    arg: { type: 'positional', required: false, description: 'branch name' },
+    action: { type: 'positional', required: false, description: 'generate | list | export' },
+    arg: { type: 'positional', required: false, description: 'branch name or package id' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
   run({ args }) {
