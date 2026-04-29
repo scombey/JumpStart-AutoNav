@@ -29,6 +29,7 @@
 import { existsSync } from 'node:fs';
 import * as path from 'node:path';
 import { defineCommand } from 'citty';
+import * as legacyAgentCheckpoint from '../../lib/agent-checkpoint.js';
 import {
   approveArtifact,
   detectCurrentArtifact,
@@ -265,37 +266,23 @@ export interface AgentCheckpointArgs {
   json?: boolean | undefined;
 }
 
-interface AgentCheckpointLib {
-  saveCheckpoint: (
-    payload: { agent: string; type: string },
-    opts: { stateFile: string }
-  ) => { checkpoint: { id: string } };
-  restoreCheckpoint: (
-    cpId: string,
-    opts: { stateFile: string }
-  ) => { success: boolean; checkpoint?: { id: string }; error?: string };
-  cleanCheckpoints: (opts: { stateFile: string }) => { removed: number; remaining: number };
-  listCheckpoints: (
-    filter: Record<string, unknown>,
-    opts: { stateFile: string }
-  ) => {
-    total: number;
-    checkpoints: { id: string; agent: string; phase?: string; saved_at: string }[];
-  };
-}
-
 export function agentCheckpointImpl(deps: Deps, args: AgentCheckpointArgs): CommandResult {
-  const lib = legacyRequire<AgentCheckpointLib>('agent-checkpoint');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('agent-checkpoint')`
+  // to a static import of the TS port at `src/lib/agent-checkpoint.ts`. Public
+  // surface preserved verbatim — see refs in tests/test-agent-checkpoint.test.ts.
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'agent-checkpoints.json');
   const action = args.action ?? 'list';
 
   if (action === 'save') {
     const agent = args.arg ?? 'cli';
-    const result = lib.saveCheckpoint({ agent, type: 'manual' }, { stateFile });
+    const result = legacyAgentCheckpoint.saveCheckpoint({ agent, type: 'manual' }, { stateFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
-    } else {
+    } else if (result.success) {
       deps.logger.success(`Checkpoint saved: ${result.checkpoint.id}`);
+    } else {
+      deps.logger.error(result.error);
+      return { exitCode: 1 };
     }
     return { exitCode: 0 };
   }
@@ -304,10 +291,10 @@ export function agentCheckpointImpl(deps: Deps, args: AgentCheckpointArgs): Comm
       deps.logger.error('Usage: jumpstart-mode agent-checkpoint restore <checkpoint-id>');
       return { exitCode: 1 };
     }
-    const result = lib.restoreCheckpoint(args.arg, { stateFile });
+    const result = legacyAgentCheckpoint.restoreCheckpoint(args.arg, { stateFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
-    } else if (result.success && result.checkpoint) {
+    } else if (result.success) {
       deps.logger.success(`Restored: ${result.checkpoint.id}`);
     } else {
       deps.logger.error(result.error ?? 'restore failed');
@@ -316,7 +303,7 @@ export function agentCheckpointImpl(deps: Deps, args: AgentCheckpointArgs): Comm
     return { exitCode: 0 };
   }
   if (action === 'clean') {
-    const result = lib.cleanCheckpoints({ stateFile });
+    const result = legacyAgentCheckpoint.cleanCheckpoints({ stateFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else {
@@ -325,13 +312,13 @@ export function agentCheckpointImpl(deps: Deps, args: AgentCheckpointArgs): Comm
     return { exitCode: 0 };
   }
   // list (default)
-  const result = lib.listCheckpoints({}, { stateFile });
+  const result = legacyAgentCheckpoint.listCheckpoints({}, { stateFile });
   if (args.json) {
     writeResult(result as unknown as Record<string, unknown>);
   } else {
     deps.logger.info(`Checkpoints (${result.total})`);
     for (const c of result.checkpoints) {
-      deps.logger.info(`  ${c.id}: ${c.agent} ${c.phase || ''} (${c.saved_at})`);
+      deps.logger.info(`  ${c.id}: ${c.agent} ${c.phase ?? ''} (${c.saved_at})`);
     }
   }
   return { exitCode: 0 };
