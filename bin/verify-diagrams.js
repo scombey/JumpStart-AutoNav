@@ -168,7 +168,7 @@ const C4_FUNCTIONS = [
   'Container', 'Container_Ext', 'ContainerDb', 'ContainerDb_Ext', 'ContainerQueue', 'ContainerQueue_Ext',
   'Component', 'Component_Ext', 'ComponentDb', 'ComponentDb_Ext', 'ComponentQueue', 'ComponentQueue_Ext',
   // Boundaries
-  'Boundary', 'Enterprise_Boundary', 'System_Boundary', 'Container_Boundary',
+  'Boundary', 'Enterprise_Boundary', 'System_Boundary', 'Container_Boundary', 'Component_Boundary',
   // Relationships
   'Rel', 'Rel_Back', 'Rel_Neighbor', 'Rel_Back_Neighbor',
   'Rel_D', 'Rel_Down', 'Rel_U', 'Rel_Up', 'Rel_L', 'Rel_Left', 'Rel_R', 'Rel_Right',

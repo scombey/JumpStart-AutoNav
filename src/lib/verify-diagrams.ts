@@ -290,6 +290,7 @@ const C4_FUNCTIONS = [
   'Enterprise_Boundary',
   'System_Boundary',
   'Container_Boundary',
+  'Component_Boundary',
   // Relationships
   'Rel',
   'Rel_Back',
