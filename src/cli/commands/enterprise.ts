@@ -34,6 +34,7 @@
  */
 
 import { defineCommand } from 'citty';
+import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
@@ -66,7 +67,10 @@ export interface EnterpriseSearchArgs {
 }
 
 export function enterpriseSearchImpl(deps: Deps, args: EnterpriseSearchArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('enterprise-search');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('enterprise-search')`
+  // to a static import of the TS port at `src/lib/enterprise-search.ts`. Public
+  // surface preserved verbatim — see refs in tests/test-enterprise-search.test.ts.
+  const lib = legacyEnterpriseSearch as LegacyLib;
   const action = args.action ?? 'index';
   if (action === 'search') {
     if (!args.query) {
