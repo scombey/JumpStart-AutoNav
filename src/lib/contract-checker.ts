@@ -97,11 +97,13 @@ export function extractModelEntities(content: string): ModelEntity[] {
 
   for (let i = 1; i < sections.length; i++) {
     const section = sections[i];
+    if (section === undefined) continue;
     const nameMatch = section.match(/^\s*(\w+)/);
-    if (!nameMatch) continue;
+    if (!nameMatch || nameMatch[1] === undefined) continue;
 
     const entity: ModelEntity = { name: nameMatch[1], fields: [] };
     for (const m of section.matchAll(FIELD_REGEX)) {
+      if (m[1] === undefined || m[2] === undefined) continue;
       entity.fields.push({
         name: m[1],
         type: m[2].trim(),
@@ -122,21 +124,22 @@ export function extractContractEntities(content: string): ContractEndpoint[] {
 
   for (let i = 1; i < sections.length; i++) {
     const section = sections[i];
+    if (section === undefined) continue;
     const headerMatch = section.match(/^(\w+)\s+([^`]+)`/);
-    if (!headerMatch) continue;
+    if (!headerMatch || headerMatch[1] === undefined || headerMatch[2] === undefined) continue;
 
     const endpoint = `${headerMatch[1]} ${headerMatch[2]}`;
 
     const fields: string[] = [];
     for (const m of section.matchAll(FIELD_NAME_REGEX)) {
-      if (!RESERVED_FIELDS.has(m[1])) {
+      if (m[1] !== undefined && !RESERVED_FIELDS.has(m[1])) {
         fields.push(m[1]);
       }
     }
 
     const entities: string[] = [];
     for (const m of section.matchAll(ENTITY_REF_REGEX)) {
-      if (!RESERVED_ENTITIES.has(m[1])) {
+      if (m[1] !== undefined && !RESERVED_ENTITIES.has(m[1])) {
         entities.push(m[1]);
       }
     }

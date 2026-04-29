@@ -228,7 +228,11 @@ export function answerStep(
     return { success: false, error: 'Wizard is already complete' };
   }
 
-  session.steps[session.current_step].answer = answer;
+  const currentStep = session.steps[session.current_step];
+  if (currentStep === undefined) {
+    return { success: false, error: 'Wizard step out of range' };
+  }
+  currentStep.answer = answer;
   session.current_step++;
 
   const complete = session.current_step >= session.steps.length;
@@ -236,10 +240,11 @@ export function answerStep(
 
   saveState(state, stateFile);
 
+  const nextStep = complete ? null : (session.steps[session.current_step] ?? null);
   return {
     success: true,
     complete,
-    next_step: complete ? null : session.steps[session.current_step],
+    next_step: nextStep,
     answers: Object.fromEntries(
       session.steps.filter((s) => s.answer !== null).map((s) => [s.id, s.answer])
     ),

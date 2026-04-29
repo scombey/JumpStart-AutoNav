@@ -80,7 +80,9 @@ export function getNextVersion(artifactName: string, cwd?: string): string {
       .map((v) => v.split('.').map(Number))
       .sort((a, b) => {
         for (let i = 0; i < 3; i++) {
-          if (a[i] !== b[i]) return b[i] - a[i];
+          const ai = a[i] ?? 0;
+          const bi = b[i] ?? 0;
+          if (ai !== bi) return bi - ai;
         }
         return 0;
       });
@@ -88,7 +90,10 @@ export function getNextVersion(artifactName: string, cwd?: string): string {
     if (versions.length === 0) return '1.0.0';
 
     const latest = versions[0];
-    return `${latest[0]}.${latest[1] + 1}.0`;
+    if (latest === undefined) return '1.0.0';
+    const major = latest[0] ?? 1;
+    const minor = latest[1] ?? 0;
+    return `${major}.${minor + 1}.0`;
   } catch {
     return '1.0.0';
   }
@@ -198,7 +203,7 @@ export function listVersions(cwd?: string): VersionEntry[] {
       .split('\n')
       .map((tag): VersionEntry | null => {
         const match = tag.match(/^spec\/(.+)\/v(.+)$/);
-        if (match) {
+        if (match?.[1] !== undefined && match[2] !== undefined) {
           return { artifact: match[1], version: match[2], tag };
         }
         return null;

@@ -203,6 +203,12 @@ export function rewindToPhase(targetPhase: number, options: RewindOptions = {}):
   }
 
   const phaseInfo = PHASE_ARTIFACTS[String(phase)];
+  if (phaseInfo === undefined) {
+    return {
+      success: false,
+      error: `Phase ${phase} not in PHASE_ARTIFACTS catalog`,
+    };
+  }
   const root = options.root || process.cwd();
   const statePath = options.statePath || join(root, '.jumpstart', 'state', 'state.json');
   const reason = options.reason || `Rewound to Phase ${phase} (${phaseInfo.name})`;
@@ -223,6 +229,7 @@ export function rewindToPhase(targetPhase: number, options: RewindOptions = {}):
   const invalidatedPhases: InvalidatedPhase[] = [];
   for (const dp of downstream) {
     const dpInfo = PHASE_ARTIFACTS[String(dp)];
+    if (dpInfo === undefined) continue;
     const artifacts = getPhaseArtifacts(dp);
     allArtifacts.push(...artifacts);
     invalidatedPhases.push({ phase: dp, name: dpInfo.name, artifacts });

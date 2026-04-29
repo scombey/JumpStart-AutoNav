@@ -268,13 +268,18 @@ function levenshtein(a: string, b: string): number {
   );
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
-      dp[i][j] =
-        a[i - 1] === b[j - 1]
-          ? dp[i - 1][j - 1]
-          : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      const row = dp[i];
+      const prevRow = dp[i - 1];
+      if (row === undefined || prevRow === undefined) continue;
+      const aChar = a[i - 1];
+      const bChar = b[j - 1];
+      const diag = prevRow[j - 1] ?? 0;
+      const above = prevRow[j] ?? 0;
+      const left = row[j - 1] ?? 0;
+      row[j] = aChar === bChar ? diag : 1 + Math.min(above, left, diag);
     }
   }
-  return dp[m][n];
+  return dp[m]?.[n] ?? 0;
 }
 
 export function generateReport(options: ReportOptions = {}): ReportResult {
@@ -285,9 +290,11 @@ export function generateReport(options: ReportOptions = {}): ReportResult {
   const report: ReportResult = { success: true, total_domains: domains.length, domains: {} };
 
   for (const d of domains) {
-    const elements = state.domains[d].elements;
+    const domain = state.domains[d];
+    if (domain === undefined) continue;
+    const elements = domain.elements;
     const byType: Record<string, number> = {};
-    for (const e of elements) byType[e.type] = (byType[e.type] || 0) + 1;
+    for (const e of elements) byType[e.type] = (byType[e.type] ?? 0) + 1;
     report.domains[d] = { total_elements: elements.length, by_type: byType };
   }
 

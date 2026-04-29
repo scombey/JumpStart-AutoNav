@@ -194,9 +194,10 @@ export function extractEpics(content: string): Epic[] {
 
   for (const line of lines) {
     const epicMatch = line.match(/^#{2,4}\s+(?:Epic\s+)?(\d+|E\d+)[:\s—–-]+\s*(.+)$/i);
-    if (epicMatch) {
+    if (epicMatch?.[1] !== undefined && epicMatch[2] !== undefined) {
       if (currentEpic) epics.push(currentEpic);
-      const id = epicMatch[1].startsWith('E') ? epicMatch[1] : `E${epicMatch[1].padStart(2, '0')}`;
+      const epicNum = epicMatch[1];
+      const id = epicNum.startsWith('E') ? epicNum : `E${epicNum.padStart(2, '0')}`;
       currentEpic = {
         id,
         title: epicMatch[2].trim(),
@@ -208,7 +209,7 @@ export function extractEpics(content: string): Epic[] {
 
     if (currentEpic) {
       const storyMatch = line.match(/(?:^[-*]\s+\*{0,2})(E\d+-S\d+)(?:\*{0,2})[:\s—–-]+\s*(.+)/i);
-      if (storyMatch) {
+      if (storyMatch?.[1] !== undefined && storyMatch[2] !== undefined) {
         currentEpic.stories.push({
           id: storyMatch[1],
           title: storyMatch[2].trim().replace(/\*{1,2}/g, ''),
@@ -234,7 +235,7 @@ export function extractTasks(content: string): Task[] {
     const taskMatch = line.match(
       /(?:^#{2,4}\s+|^[-*]\s+\*{0,2})(M\d+-T\d+)(?:\*{0,2})[:\s—–-]+\s*(.+)/i
     );
-    if (taskMatch) {
+    if (taskMatch?.[1] !== undefined && taskMatch[2] !== undefined) {
       const storyRefs = line.match(/E\d+-S\d+/g) || [];
       tasks.push({
         id: taskMatch[1],

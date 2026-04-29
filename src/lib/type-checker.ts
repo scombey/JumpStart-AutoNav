@@ -131,7 +131,14 @@ export function parseTypeErrors(output: string, _checkerName: string): TypeCheck
   for (const line of lines) {
     // TypeScript format: src/index.ts(10,5): error TS2322: Type 'string'...
     const tsMatch = line.match(/^(.+?)\((\d+),\d+\):\s+(error|warning)\s+(TS\d+):\s+(.+)/);
-    if (tsMatch) {
+    if (
+      tsMatch &&
+      tsMatch[1] !== undefined &&
+      tsMatch[2] !== undefined &&
+      tsMatch[3] !== undefined &&
+      tsMatch[4] !== undefined &&
+      tsMatch[5] !== undefined
+    ) {
       findings.push({
         file: tsMatch[1],
         line: Number.parseInt(tsMatch[2], 10),
@@ -144,7 +151,14 @@ export function parseTypeErrors(output: string, _checkerName: string): TypeCheck
 
     // TypeScript alt format: src/index.ts:10:5 - error TS2322: ...
     const tsAltMatch = line.match(/^(.+?):(\d+):\d+\s+-\s+(error|warning)\s+(TS\d+):\s+(.+)/);
-    if (tsAltMatch) {
+    if (
+      tsAltMatch &&
+      tsAltMatch[1] !== undefined &&
+      tsAltMatch[2] !== undefined &&
+      tsAltMatch[3] !== undefined &&
+      tsAltMatch[4] !== undefined &&
+      tsAltMatch[5] !== undefined
+    ) {
       findings.push({
         file: tsAltMatch[1],
         line: Number.parseInt(tsAltMatch[2], 10),
@@ -157,13 +171,20 @@ export function parseTypeErrors(output: string, _checkerName: string): TypeCheck
 
     // mypy format: src/main.py:10: error: Incompatible types... [assignment]
     const mypyMatch = line.match(/^(.+?):(\d+):\s+(error|warning|note):\s+(.+?)(?:\s+\[(.+?)\])?$/);
-    if (mypyMatch && !line.startsWith(' ')) {
+    if (
+      mypyMatch &&
+      !line.startsWith(' ') &&
+      mypyMatch[1] !== undefined &&
+      mypyMatch[2] !== undefined &&
+      mypyMatch[3] !== undefined &&
+      mypyMatch[4] !== undefined
+    ) {
       const sev = mypyMatch[3] === 'note' ? 'warning' : (mypyMatch[3] as 'error' | 'warning');
       findings.push({
         file: mypyMatch[1],
         line: Number.parseInt(mypyMatch[2], 10),
         severity: sev,
-        code: mypyMatch[5] || null,
+        code: mypyMatch[5] ?? null,
         message: mypyMatch[4].trim(),
       });
       continue;
@@ -173,14 +194,20 @@ export function parseTypeErrors(output: string, _checkerName: string): TypeCheck
     const pyrightMatch = line.match(
       /^(.+?):(\d+):\d+\s+-\s+(error|warning|information):\s+(.+?)(?:\s+\((.+?)\))?$/
     );
-    if (pyrightMatch) {
+    if (
+      pyrightMatch &&
+      pyrightMatch[1] !== undefined &&
+      pyrightMatch[2] !== undefined &&
+      pyrightMatch[3] !== undefined &&
+      pyrightMatch[4] !== undefined
+    ) {
       const sev =
         pyrightMatch[3] === 'information' ? 'warning' : (pyrightMatch[3] as 'error' | 'warning');
       findings.push({
         file: pyrightMatch[1],
         line: Number.parseInt(pyrightMatch[2], 10),
         severity: sev,
-        code: pyrightMatch[5] || null,
+        code: pyrightMatch[5] ?? null,
         message: pyrightMatch[4].trim(),
       });
     }
