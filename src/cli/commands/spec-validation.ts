@@ -400,6 +400,7 @@ export function shardImpl(deps: Deps, args: ShardArgs): CommandResult {
   if (!existsSync(shardDir)) mkdirSync(shardDir, { recursive: true });
   for (let i = 0; i < epics.length; i++) {
     const epic = epics[i];
+    if (epic === undefined) continue;
     const shard = sharder.generateShard(epic, i + 1);
     const shardPath = path.join(
       shardDir,

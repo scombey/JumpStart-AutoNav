@@ -372,6 +372,9 @@ export function installForClient(
       return { success: false, message: 'CLI argv is empty' };
     }
     const [bin, ...rest] = argv;
+    if (bin === undefined) {
+      return { success: false, message: 'CLI argv is empty' };
+    }
     const result = spawnSync(bin, rest, {
       stdio: 'pipe',
       cwd: targetDir,
@@ -556,7 +559,7 @@ export async function setupContext7(options: SetupOptions): Promise<SetupOutcome
   if (dryRun) {
     console.log(chalk.yellow.bold('   [DRY RUN] Would configure Context7 for:'));
     for (const c of selectedClients as string[]) {
-      console.log(chalk.gray(`     - ${CLIENT_CONFIGS[c].name}`));
+      console.log(chalk.gray(`     - ${CLIENT_CONFIGS[c]?.name ?? c}`));
     }
     console.log('');
     return { installed: false, clients: selectedClients };
@@ -564,7 +567,9 @@ export async function setupContext7(options: SetupOptions): Promise<SetupOutcome
 
   const results: Array<{ clientKey: string } & InstallResult> = [];
   for (const clientKey of selectedClients as string[]) {
-    const clientName = CLIENT_CONFIGS[clientKey].name;
+    const clientCfg = CLIENT_CONFIGS[clientKey];
+    if (clientCfg === undefined) continue;
+    const clientName = clientCfg.name;
     const result = installForClient(clientKey, trimmedKey, targetDir);
     results.push({ clientKey, ...result });
 

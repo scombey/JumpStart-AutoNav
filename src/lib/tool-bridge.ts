@@ -327,9 +327,11 @@ export function createToolBridge(options: ToolBridgeOptions): ToolBridge {
               const content = readFileSync(fullPath, 'utf8');
               const lines = content.split('\n');
               for (let i = 0; i < lines.length; i++) {
-                const match = regex ? regex.test(lines[i]) : lines[i].includes(query);
+                const line = lines[i];
+                if (line === undefined) continue;
+                const match = regex ? regex.test(line) : line.includes(query);
                 if (match) {
-                  results.push({ file: fullPath, line: i + 1, content: lines[i] });
+                  results.push({ file: fullPath, line: i + 1, content: line });
                 }
                 if (regex) regex.lastIndex = 0; // reset for global regex
               }
