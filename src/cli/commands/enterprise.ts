@@ -36,6 +36,7 @@
 import { defineCommand } from 'citty';
 import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
 import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
+import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
@@ -469,11 +470,31 @@ export interface MigrationPlannerArgs {
 }
 
 export function migrationPlannerImpl(deps: Deps, args: MigrationPlannerArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('migration-planner');
-  const action = args.action ?? 'plan';
-  const result = lib.planMigration
-    ? lib.planMigration(deps.projectRoot, { target: args.arg })
-    : lib.plan?.(deps.projectRoot);
+  // M11 strangler-tail cleanup: switched from `legacyRequire('migration-planner')`
+  // to a static import of the TS port at `src/lib/migration-planner.ts`. The
+  // previous wiring called `lib.planMigration` / `lib.plan` — neither was
+  // exported by the legacy module, so the command silently produced
+  // `undefined` results regardless of arg shape. Replaced with the actual
+  // legacy contract: `createMigration` / `advancePhase` / `generateReport`.
+  const stateFile = safeJoin(deps, '.jumpstart', 'state', 'migration-plan.json');
+  const action = args.action ?? 'report';
+  let result: unknown;
+  if (action === 'create') {
+    if (!args.arg) {
+      deps.logger.error(
+        'Usage: jumpstart-mode migration-planner create <name> --strategy <strangler-fig|big-bang|phased-cutover|parallel-run|feature-flag>'
+      );
+      return { exitCode: 1 };
+    }
+    result = legacyMigrationPlanner.createMigration(
+      { name: args.arg, strategy: 'strangler-fig' },
+      { stateFile }
+    );
+  } else if (action === 'report') {
+    result = legacyMigrationPlanner.generateReport({ stateFile });
+  } else {
+    result = legacyMigrationPlanner.generateReport({ stateFile });
+  }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Migration planner: ${action}`);
   return { exitCode: 0 };

@@ -67,12 +67,7 @@ describe('enterprise-templates — VERTICALS catalog', () => {
   });
 
   it('banking carries PCI-DSS + SOX + GDPR + AML-KYC (legacy parity)', () => {
-    expect(TEMPLATE_CATALOG.banking.compliance).toEqual([
-      'PCI-DSS',
-      'SOX',
-      'GDPR',
-      'AML-KYC',
-    ]);
+    expect(TEMPLATE_CATALOG.banking.compliance).toEqual(['PCI-DSS', 'SOX', 'GDPR', 'AML-KYC']);
   });
 
   it('public-sector carries FedRAMP + FISMA + Section-508 + WCAG (legacy parity)', () => {

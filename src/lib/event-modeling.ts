@@ -29,7 +29,13 @@ import { dirname, join } from 'node:path';
 const DEFAULT_STATE_FILE = join('.jumpstart', 'state', 'event-modeling.json');
 
 export const EVENT_TYPES = ['domain-event', 'integration-event', 'command', 'query'] as const;
-export const PATTERNS = ['saga', 'choreography', 'orchestration', 'cqrs', 'event-sourcing'] as const;
+export const PATTERNS = [
+  'saga',
+  'choreography',
+  'orchestration',
+  'cqrs',
+  'event-sourcing',
+] as const;
 
 export interface EventTopic {
   id: string;

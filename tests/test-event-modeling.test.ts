@@ -42,22 +42,11 @@ afterEach(() => {
 
 describe('event-modeling — constants', () => {
   it('exposes the 4 EVENT_TYPES the legacy module documents', () => {
-    expect(EVENT_TYPES).toEqual([
-      'domain-event',
-      'integration-event',
-      'command',
-      'query',
-    ]);
+    expect(EVENT_TYPES).toEqual(['domain-event', 'integration-event', 'command', 'query']);
   });
 
   it('exposes the 5 PATTERNS the legacy module documents', () => {
-    expect(PATTERNS).toEqual([
-      'saga',
-      'choreography',
-      'orchestration',
-      'cqrs',
-      'event-sourcing',
-    ]);
+    expect(PATTERNS).toEqual(['saga', 'choreography', 'orchestration', 'cqrs', 'event-sourcing']);
   });
 });
 

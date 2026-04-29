@@ -48,7 +48,7 @@ import { writeResult } from '../../lib/io.js';
 import { generateReport as qualityGraphReport, scanQuality } from '../../lib/quality-graph.js';
 import { generateReport as refactorReport } from '../../lib/refactor-planner.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
+import { assertUserPath, safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // ambiguity-heatmap
