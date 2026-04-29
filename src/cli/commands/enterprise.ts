@@ -36,12 +36,15 @@
 import { defineCommand } from 'citty';
 import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
 import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
+import * as legacyLegacyModernizer from '../../lib/legacy-modernizer.js';
 import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
+import * as legacyReleaseReadiness from '../../lib/release-readiness.js';
+import * as legacyTemplateMerge from '../../lib/template-merge.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
+import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
 // Permissive shape for legacy lib modules — every callsite immediately narrows
 // via property access. Documenting once here so individual commands stay terse.
@@ -380,17 +383,40 @@ export const knowledgeGraphCommand = defineCommand({
 export interface LegacyModernizerArgs {
   action?: string | undefined;
   arg?: string | undefined;
+  platform?: string | undefined;
   json?: boolean | undefined;
 }
 
 export function legacyModernizerImpl(deps: Deps, args: LegacyModernizerArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('legacy-modernizer');
-  const action = args.action ?? 'scan';
+  // M11 strangler-tail cleanup: switched from `legacyRequire('legacy-modernizer')`
+  // to a static import of the TS port at `src/lib/legacy-modernizer.ts`. The
+  // previous wiring called `lib.scan` / `lib.planModernization` — neither was
+  // exported by the legacy module, so the command silently produced
+  // `undefined` results regardless of arg shape. Replaced with the actual
+  // legacy contract: `assessSystem` / `createPlan` / `generateReport`. The
+  // legacy CLI default action was `report` (see bin/cli.js ~3982), preserved.
+  const stateFile = safeJoin(deps, '.jumpstart', 'state', 'legacy-modernization.json');
+  const action = args.action ?? 'report';
   let result: unknown;
-  if (action === 'plan') {
-    result = lib.planModernization?.(deps.projectRoot) ?? lib.scan?.(deps.projectRoot);
+  if (action === 'assess') {
+    if (!args.arg) {
+      deps.logger.error(
+        'Usage: jumpstart-mode legacy-modernizer assess <name> --platform <platform>'
+      );
+      return { exitCode: 1 };
+    }
+    result = legacyLegacyModernizer.assessSystem(
+      { name: args.arg, platform: args.platform ?? 'unknown' },
+      { stateFile }
+    );
+  } else if (action === 'plan') {
+    if (!args.arg) {
+      deps.logger.error('Usage: jumpstart-mode legacy-modernizer plan <assessment-id>');
+      return { exitCode: 1 };
+    }
+    result = legacyLegacyModernizer.createPlan(args.arg, {}, { stateFile });
   } else {
-    result = lib.scan?.(deps.projectRoot) ?? lib.scanLegacy?.(deps.projectRoot);
+    result = legacyLegacyModernizer.generateReport({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Legacy modernizer: ${action}`);
@@ -400,14 +426,20 @@ export function legacyModernizerImpl(deps: Deps, args: LegacyModernizerArgs): Co
 export const legacyModernizerCommand = defineCommand({
   meta: { name: 'legacy-modernizer', description: 'Legacy code modernization scanner' },
   args: {
-    action: { type: 'positional', required: false, description: 'scan | plan' },
-    arg: { type: 'positional', required: false, description: 'optional argument' },
+    action: { type: 'positional', required: false, description: 'report | assess | plan' },
+    arg: {
+      type: 'positional',
+      required: false,
+      description: 'name (assess) or assessment id (plan)',
+    },
+    platform: { type: 'string', required: false, description: 'legacy platform (assess only)' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
   run({ args }) {
     const r = legacyModernizerImpl(createRealDeps(), {
       action: args.action,
       arg: args.arg,
+      platform: args.platform,
       json: Boolean(args.json),
     });
     if (r.exitCode !== 0) throw new Error(r.message ?? 'legacy-modernizer failed');
@@ -423,10 +455,13 @@ export interface MergeTemplatesArgs {
   projectPath?: string | undefined;
 }
 
-export async function mergeTemplatesImpl(
-  deps: Deps,
-  args: MergeTemplatesArgs
-): Promise<CommandResult> {
+// M11 strangler-tail cleanup: switched from async `legacyImport('template-merge')`
+// (M9 ESM-cutover shim) to a static import of the TS port at
+// `src/lib/template-merge.ts`. Now sync — `await` at call sites is a no-op.
+// The M8 + M9 regression tests in tests/test-m9-pitcrew-regressions.test.ts
+// + tests/test-cli-enterprise.test.ts continue to use `await mergeTemplatesImpl(...)`
+// for back-compat; both still pass.
+export function mergeTemplatesImpl(deps: Deps, args: MergeTemplatesArgs): CommandResult {
   if (!args.basePath || !args.projectPath) {
     deps.logger.error('Usage: jumpstart-mode merge-templates <base-path> <project-path>');
     return { exitCode: 1 };
@@ -436,9 +471,7 @@ export async function mergeTemplatesImpl(
   // which keeps both inside projectRoot per ADR-009.
   const safeBase = assertUserPath(deps, args.basePath, 'merge-templates:base');
   const safeProject = assertUserPath(deps, args.projectPath, 'merge-templates:project');
-  // M9 ESM cutover: template-merge is an ESM legacy module (.mjs).
-  const lib = await legacyImport<LegacyLib>('template-merge');
-  const result = lib.mergeTemplateFiles(safeBase, safeProject);
+  const result = legacyTemplateMerge.mergeTemplateFiles(safeBase, safeProject);
   deps.logger.info(JSON.stringify({ stats: result.stats }, null, 2));
   if (result.merged) deps.logger.info(result.merged);
   return { exitCode: 0 };
@@ -450,8 +483,8 @@ export const mergeTemplatesCommand = defineCommand({
     basePath: { type: 'positional', required: false, description: 'base template path' },
     projectPath: { type: 'positional', required: false, description: 'project path' },
   },
-  async run({ args }) {
-    const r = await mergeTemplatesImpl(createRealDeps(), {
+  run({ args }) {
+    const r = mergeTemplatesImpl(createRealDeps(), {
       basePath: args.basePath,
       projectPath: args.projectPath,
     });
@@ -916,15 +949,23 @@ export interface ReleaseReadinessArgs {
 }
 
 export function releaseReadinessImpl(deps: Deps, args: ReleaseReadinessArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('release-readiness');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('release-readiness')`
+  // to a static import of the TS port at `src/lib/release-readiness.ts`. The
+  // previous wiring called `lib.checkReadiness` / `lib.getStatus` — neither was
+  // exported by the legacy module, so the command silently produced
+  // `undefined` results regardless of arg shape. Replaced with the actual
+  // legacy contract: `assessReadiness` / `generateReport`. The legacy CLI
+  // route (bin/cli.js ~3450) ultimately calls `assessReadiness` on the
+  // happy path, preserved as the default `check` action.
   const action = args.action ?? 'check';
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'release-readiness.json');
   let result: unknown;
   if (action === 'check') {
-    result = lib.checkReadiness?.(deps.projectRoot, { stateFile });
+    result = legacyReleaseReadiness.assessReadiness(deps.projectRoot, { stateFile });
+  } else if (action === 'report' || action === 'status') {
+    result = legacyReleaseReadiness.generateReport({ stateFile });
   } else {
-    result =
-      lib.getStatus?.({ stateFile }) ?? lib.checkReadiness?.(deps.projectRoot, { stateFile });
+    result = legacyReleaseReadiness.assessReadiness(deps.projectRoot, { stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Release readiness: ${action}`);
@@ -934,7 +975,7 @@ export function releaseReadinessImpl(deps: Deps, args: ReleaseReadinessArgs): Co
 export const releaseReadinessCommand = defineCommand({
   meta: { name: 'release-readiness', description: 'Release readiness checklist' },
   args: {
-    action: { type: 'positional', required: false, description: 'check | status' },
+    action: { type: 'positional', required: false, description: 'check | report | status' },
     arg: { type: 'positional', required: false, description: 'optional argument' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
