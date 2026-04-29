@@ -41,6 +41,7 @@ import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
+import * as legacyReleaseReadiness from '../../lib/release-readiness.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -946,15 +947,23 @@ export interface ReleaseReadinessArgs {
 }
 
 export function releaseReadinessImpl(deps: Deps, args: ReleaseReadinessArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('release-readiness');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('release-readiness')`
+  // to a static import of the TS port at `src/lib/release-readiness.ts`. The
+  // previous wiring called `lib.checkReadiness` / `lib.getStatus` — neither was
+  // exported by the legacy module, so the command silently produced
+  // `undefined` results regardless of arg shape. Replaced with the actual
+  // legacy contract: `assessReadiness` / `generateReport`. The legacy CLI
+  // route (bin/cli.js ~3450) ultimately calls `assessReadiness` on the
+  // happy path, preserved as the default `check` action.
   const action = args.action ?? 'check';
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'release-readiness.json');
   let result: unknown;
   if (action === 'check') {
-    result = lib.checkReadiness?.(deps.projectRoot, { stateFile });
+    result = legacyReleaseReadiness.assessReadiness(deps.projectRoot, { stateFile });
+  } else if (action === 'report' || action === 'status') {
+    result = legacyReleaseReadiness.generateReport({ stateFile });
   } else {
-    result =
-      lib.getStatus?.({ stateFile }) ?? lib.checkReadiness?.(deps.projectRoot, { stateFile });
+    result = legacyReleaseReadiness.assessReadiness(deps.projectRoot, { stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Release readiness: ${action}`);
@@ -964,7 +973,7 @@ export function releaseReadinessImpl(deps: Deps, args: ReleaseReadinessArgs): Co
 export const releaseReadinessCommand = defineCommand({
   meta: { name: 'release-readiness', description: 'Release readiness checklist' },
   args: {
-    action: { type: 'positional', required: false, description: 'check | status' },
+    action: { type: 'positional', required: false, description: 'check | report | status' },
     arg: { type: 'positional', required: false, description: 'optional argument' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
