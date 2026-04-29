@@ -132,6 +132,22 @@ const subCommands: Record<string, () => Promise<CommandDef>> = {
     import('./commands/handoff.js').then((m) => m.validateModuleCommand)
   ),
   handoff: lazy(() => import('./commands/handoff.js').then((m) => m.handoffCommand)),
+
+  // Lifecycle/state cluster (T4.7.2 batch 2 — bin/cli.js lines ~1762, 1815-1898,
+  // 2166-2306, 2498-2553, 2997-3052, 4162-4193, 5213-5273)
+  approve: lazy(() => import('./commands/lifecycle.js').then((m) => m.approveCommand)),
+  reject: lazy(() => import('./commands/lifecycle.js').then((m) => m.rejectCommand)),
+  checkpoint: lazy(() => import('./commands/lifecycle.js').then((m) => m.checkpointCommand)),
+  'agent-checkpoint': lazy(() =>
+    import('./commands/lifecycle.js').then((m) => m.agentCheckpointCommand)
+  ),
+  focus: lazy(() => import('./commands/lifecycle.js').then((m) => m.focusCommand)),
+  init: lazy(() => import('./commands/lifecycle.js').then((m) => m.initCommand)),
+  lock: lazy(() => import('./commands/lifecycle.js').then((m) => m.lockCommand)),
+  memory: lazy(() => import('./commands/lifecycle.js').then((m) => m.memoryCommand)),
+  rewind: lazy(() => import('./commands/lifecycle.js').then((m) => m.rewindCommand)),
+  next: lazy(() => import('./commands/lifecycle.js').then((m) => m.nextCommand)),
+  'plan-executor': lazy(() => import('./commands/lifecycle.js').then((m) => m.planExecutorCommand)),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
