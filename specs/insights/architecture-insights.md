@@ -249,3 +249,27 @@ The Pit Crew pattern is paying compound interest: each round catches material is
 → Both artifacts validate post-fix; ready to seal Phase 3.
 
 ---
+
+## 2026-04-28 Addendum: ADR-002 resolved to citty (post-T4.7.0)
+
+The provisional ADR-002 v1.0.0 (2026-04-24) committed to commander v14 with a measurable inversion criterion: if T4.7.0's depth-cost analysis showed commander adding >1000 lines of boilerplate vs citty across the 147-leaf 4–5-level subcommand tree, flip the decision back to citty.
+
+T4.7.0 ran on 2026-04-28 (`scripts/estimate-commander-boilerplate.mjs`) on `bin/cli.js` (5360L, 147 subcommands, 91 nested groups). Output (`.jumpstart/metrics/cli-framework-cost.json`):
+
+| Metric | Commander | Citty |
+|---|---|---|
+| Total registration lines | 2709 | 339 |
+| Lines per leaf (avg) | 8 + N/option | 1 |
+| **Delta** | — | **2370 (commander excess)** |
+
+The delta was 2.37× the threshold. ADR-002 amended to v2.0.0 with citty as the final decision; coordinated sweep across architecture.md (Technology Stack + C4 diagram + Project Structure tree + ADR summary + narrative refs), implementation-plan T4.7.1 description, and tsdown.config.ts (`neverBundle` swap) all landed in the same M8 PR (`feat/m8-cli-dispatcher`) before T4.7.1 (`src/cli/main.ts` authoring) began.
+
+**Key lessons reinforced**:
+
+1. **Pre-committed quantitative thresholds work.** The pre-2026-04-28 architecture would have rationalized either choice; the Pit Crew Adversary's insistence on "compute the cost, don't hand-wave" produced a machine-generated number that left no room for ambiguity at decision time.
+2. **Provisional ADRs are honest ADRs** when the data isn't yet available. The v1.0.0 → v2.0.0 transition was clean because the criterion was set in advance; we didn't have to retrofit reasoning.
+3. **The "sweep risk" called out in the v1.0.0 Negatives section materialized exactly as predicted**, but because it was anticipated and bounded (4 spec files + 1 ADR amendment), the cost was ~30 minutes of careful editing rather than a milestone-blocking disruption.
+
+→ Citty is the final CLI framework. M8 proceeds with `src/cli/main.ts` authored against citty's `defineCommand` + lazy `subCommands` API.
+
+---
