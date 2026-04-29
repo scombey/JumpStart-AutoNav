@@ -4,7 +4,71 @@ All notable changes to `jumpstart-mode` will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Phase 4 / Developer M0 + M1 + M2 (Tooling + Detection + Leaf Ports)
+> **Package rename at 2.0.0-rc.1.** `jumpstart-mode` becomes `@scombey/jumpstart-mode`. Existing 1.x consumers stay on the unscoped name until they explicitly opt in. See [`docs/upgrade-to-2.0.md`](docs/upgrade-to-2.0.md) for the migration walkthrough and ADR-008 for the naming decision (path c — fork to scoped name, since the 1.x slot is owned by the original author).
+
+## [Unreleased]
+
+No changes since `2.0.0-rc.1`.
+
+## [2.0.0-rc.1] — 2026-04-29 — M9 ESM Cutover (Stage 5)
+
+The rewrite cutover. The full TypeScript port (M0 → M8) is now the canonical surface; the strangler-phase 1.x layout collapses into a publishable 2.0 package on the `next` dist-tag.
+
+### Headline changes
+
+- **Package rename + version bump.** `jumpstart-mode@1.1.14` → `@scombey/jumpstart-mode@2.0.0-rc.1`. ADR-008 path (c). The 1.x package on the original name remains unchanged.
+- **ESM-first.** `package.json` flips to `"type": "module"`. Every TS port + the CLI runner ship as ESM (`.mjs`) under `dist/`. The legacy CJS strangler tail in `bin/lib/*.{js,mjs}` is scoped via a nested `bin/package.json` declaring `"type": "commonjs"` until the M11 cleanup retires it.
+- **Node 24+ required.** `engines.node: ">=24.0.0"`. Node 22 and below fail with a clear `engines` mismatch rather than crashing on syntax.
+- **New CLI entry point.** `bin: "./dist/cli/bin.mjs"`. Replaces the 5,359-line `bin/cli.js` monolith with a citty-driven dispatcher (`src/cli/main.ts`) routing 147 commands through 14 cluster files in `src/cli/commands/`.
+- **`exports` map.** Top-level + `./lib/*` + `./errors` subpath imports for downstream consumers.
+- **Tarball: 1.444 MiB compressed**, under the 1.5 MiB NFR-P04 target. The CI gate stays at the original `MAX_BYTES=1572864`.
+
+### Module collapse
+
+- 111 modules moved `bin/lib-ts/* → src/lib/*` via `git mv` (history-preserving). Every importer follows.
+- New `src/cli/bin.ts` — npm-bin entry point with shebang + ADR-006 typed-error → exit-code translation. The only `process.exit` site outside `src/lib/ipc.ts` (gated by `scripts/check-process-exit.mjs`).
+- New `legacyImport(libName)` async helper in `src/cli/commands/_helpers.ts` — `require()` cannot synchronously load `.mjs`, so the four impls that call into ESM legacy modules (`adrImpl`, `revertImpl`, `mergeTemplatesImpl`, `diffImpl`) became async and use `legacyImport` instead. Path-safety contract preserved.
+- `bin/holodeck.js` → `bin/holodeck.mjs` (uses ESM `state-store` + `usage`; `createRequire(import.meta.url)` for surviving CJS deps).
+
+### Build pipeline
+
+- tsdown emits `dist/cli/{bin,main,deps,commands/*}.mjs` and `dist/lib/*.mjs` from a unified `src/` rootDir.
+- `unbundle: true` produces one `.mjs` + `.mjs.map` + `.d.mts` per entry. No shared-chunk re-exporters.
+- Shebang preservation on `dist/cli/bin.mjs` (SEC-005 post-build assertion).
+- `target: "node24"` — top-level await, structuredClone, Array.with, etc.
+
+### Security hardening (Pit Crew M9)
+
+Three confirmed exploits + several silent-regression risks resolved before merge — pinned in `tests/test-m9-pitcrew-regressions.test.ts` (28 cases):
+
+- **B1 — silent dashboard regression.** `src/lib/dashboard.ts` was calling `require('../../bin/lib/handoff.mjs')` against an ESM target. `require()` of `.mjs` throws `ERR_REQUIRE_ESM`; the bare `catch {}` swallowed it; the dashboard rendered with handoff/next-phase data quietly missing. Fix: `await import()` surfaced through the already-async `gatherDashboardData`. Bare swallow replaced with DEBUG-gated logger.
+- **B2 — secrets leak via stderr.** `src/cli/bin.ts` wrote raw `JumpstartError.message` and full `.stack` to stderr. ADR-012 forbids leaking secret-shaped payloads (env-var-shaped LLM error messages, absolute filesystem paths in stack frames). Fix: every stderr line goes through `redactSecrets`; stack output is `DEBUG=1`-gated.
+- **B3 — confirmed RCE via cwd-anchored legacy-lib resolution.** `src/cli/commands/_helpers.ts` had `PACKAGE_ROOT = path.resolve(process.cwd())`. An attacker who tricks a victim into running `npx @scombey/jumpstart-mode <cmd>` from a poisoned cwd containing `bin/lib/io.js` would achieve arbitrary code execution. Fix: `PACKAGE_ROOT = path.resolve(MODULE_DIR, '..', '..', '..')` where `MODULE_DIR = path.dirname(fileURLToPath(import.meta.url))` — anchored at the installed package, never cwd.
+- **H1** — orphan `adrImpl`/`adrCommand` lived in `governance.ts` but `main.ts` only wires `cleanup.ts`'s version; deleted to prevent maintenance traps.
+- **H4** — `package.json files: ["bin"]` shipped the entire bin/ tree wholesale. Tightened to an explicit allowlist (six concrete bin scripts + `bin/lib/**/*.{js,mjs}`).
+- **H5** — `prepublishOnly` now refuses to publish on a dirty working tree.
+- **M3** — vitest's alias array is first-match-wins, not "try until resolves" as the comment claimed; deleted the dead second `@lib/* → bin/lib/*` entry.
+- **M6** — `legacyImport`'s `.mjs → .js` fallback used a brittle regex against `mjsErr.message`; switched to `(err as NodeJS.ErrnoException)?.code === 'ERR_MODULE_NOT_FOUND'`.
+
+### Test surface
+
+- **3,356 tests pass across 144 files** (up from 3,329 at M8 close — +28 M9 regression tests).
+- 12/12 `verify-baseline` gates green.
+- `tsc --noEmit` clean (with `allowJs` removed — the post-cutover tsconfig).
+- `biome check` clean.
+
+### Deferred to M10/M11
+
+- `npm publish --tag next` (T5.4) — ships from a clean main; needs `npm login` credentials.
+- Smoke tests on Node 24 sandbox + Node <24 engines-mismatch UX (T5.5/T5.6).
+- 14-day RC soak on the `next` dist-tag (M10) followed by `dist-tag latest` promotion.
+- M11 strangler cleanup deletes `bin/lib/*.{js,mjs}`, `bin/cli.js`, and the 82 obsolete `.test.js` files; tightens `tsconfig` further; drops the `legacyRequire`/`legacyImport` helpers from `_helpers.ts`.
+
+---
+
+## [Unreleased - 1.x line] — Phase 4 / Developer M0 + M1 + M2 (Tooling + Detection + Leaf Ports)
+
+The historical 1.x section below describes the in-flight TypeScript port that became the M0–M2 work for the 2.0 cutover.
 
 In progress. M0 establishes the TypeScript toolchain. M1 adds the cross-module contract harness and other detection-infrastructure gates. M2 begins porting leaf utilities into TypeScript using the full 11-step per-module recipe — first port: `bin/lib-ts/io.ts`.
 
