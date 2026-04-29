@@ -43,6 +43,7 @@ import { chunkImplementationPlan } from '../../lib/context-chunker.js';
 import { validateCrossRefs } from '../../lib/crossref.js';
 import { gatherDashboardData, renderDashboardText } from '../../lib/dashboard.js';
 import * as ontologyLib from '../../lib/domain-ontology.js';
+import * as legacyEventModeling from '../../lib/event-modeling.js';
 import { writeResult } from '../../lib/io.js';
 import { generateReport as qualityGraphReport, scanQuality } from '../../lib/quality-graph.js';
 import { generateReport as refactorReport } from '../../lib/refactor-planner.js';
@@ -649,7 +650,12 @@ interface EventModelingLib {
 }
 
 export function eventModelingImpl(deps: Deps, args: EventModelingArgs): CommandResult {
-  const lib = legacyRequire<EventModelingLib>('event-modeling');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('event-modeling')`
+  // to a static import of the TS port at `src/lib/event-modeling.ts`. Public
+  // surface preserved verbatim — see refs in tests/test-event-modeling.test.ts.
+  // The TS port has tighter types; the cluster's EventModelingLib is the
+  // permissive shape every command file uses, so cast through unknown.
+  const lib = legacyEventModeling as unknown as EventModelingLib;
   const action = args.action ?? 'report';
 
   if (action === 'define') {
