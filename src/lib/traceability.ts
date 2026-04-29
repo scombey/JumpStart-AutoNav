@@ -164,7 +164,9 @@ export function buildTraceabilityChain(root: string): TraceabilityResult {
     const relatedTasks = tasks.filter((t) => {
       const lines = implContent.split('\n');
       for (let i = 0; i < lines.length; i++) {
-        if (lines[i].includes(t)) {
+        const line = lines[i];
+        if (line === undefined) continue;
+        if (line.includes(t)) {
           const context = lines.slice(Math.max(0, i - 5), i + 5).join('\n');
           if (context.includes(storyId)) return true;
         }

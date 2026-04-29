@@ -270,7 +270,7 @@ export function buildRepoGraph(
         try {
           const content = readFileSync(adrPath, 'utf8');
           const titleMatch = content.match(/^# (.+)/m);
-          if (titleMatch) title = titleMatch[1];
+          if (titleMatch?.[1] !== undefined) title = titleMatch[1];
         } catch {
           // use filename as title
         }

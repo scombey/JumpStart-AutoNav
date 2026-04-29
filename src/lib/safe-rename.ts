@@ -120,11 +120,13 @@ export function findReferences(
               if (content.includes(term)) {
                 const lines = content.split('\n');
                 for (let i = 0; i < lines.length; i++) {
-                  if (lines[i].includes(term)) {
+                  const line = lines[i];
+                  if (line === undefined) continue;
+                  if (line.includes(term)) {
                     references.push({
                       file: relFile,
                       line: i + 1,
-                      content: lines[i].trim().substring(0, 150),
+                      content: line.trim().substring(0, 150),
                       match: term,
                     });
                   }
