@@ -253,7 +253,9 @@ export function findClarifications(specsDir: string): Clarification[] {
     const content = readFileSync(filePath, 'utf8');
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
-      for (const match of lines[i].matchAll(TAG_RE)) {
+      const line = lines[i];
+      if (line === undefined) continue;
+      for (const match of line.matchAll(TAG_RE)) {
         results.push({
           file: `specs/${file}`,
           line: i + 1,
@@ -348,7 +350,7 @@ export async function gatherDashboardData(
     try {
       const raw = readFileSync(configPath, 'utf8');
       const typeMatch = raw.match(/^\s*type:\s*(\S+)/m);
-      if (typeMatch) projectType = typeMatch[1];
+      if (typeMatch?.[1] !== undefined) projectType = typeMatch[1];
     } catch {
       /* default greenfield */
     }
@@ -409,9 +411,10 @@ export async function gatherDashboardData(
     qualityScores.length > 0
       ? Math.round(qualityScores.reduce((sum, q) => sum + q.score, 0) / qualityScores.length)
       : null;
+  const firstScore = qualityScores[0];
   const lowestPhase =
-    qualityScores.length > 0
-      ? qualityScores.reduce((min, q) => (q.score < min.score ? q : min), qualityScores[0])
+    firstScore !== undefined
+      ? qualityScores.reduce((min, q) => (q.score < min.score ? q : min), firstScore)
       : null;
 
   const quality: QualitySummary = {

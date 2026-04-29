@@ -153,7 +153,9 @@ function isArtifactApproved(content: string): boolean {
   if (!/## Phase Gate Approval/i.test(content)) return false;
 
   const approvedByMatch = content.match(/\*\*Approved by:\*\*\s*(.+)/i);
-  if (!approvedByMatch || approvedByMatch[1].trim().toLowerCase() === 'pending') return false;
+  if (!approvedByMatch || (approvedByMatch[1] ?? '').trim().toLowerCase() === 'pending') {
+    return false;
+  }
 
   const gateSection = content.split(/## Phase Gate Approval/i)[1] || '';
   const unchecked = gateSection.match(/- \[ \]/g);
@@ -259,8 +261,8 @@ export function determineNextAction(options: NextActionOptions = {}): NextAction
           current_phase: 0,
           next_phase: 1,
           next_agent: 'analyst',
-          command: AGENT_COMMANDS.analyst,
-          message: `Phase 0 (Challenger) is already approved. Next: Phase 1 — ${PHASE_DESCRIPTIONS['1']}`,
+          command: AGENT_COMMANDS.analyst ?? '',
+          message: `Phase 0 (Challenger) is already approved. Next: Phase 1 — ${PHASE_DESCRIPTIONS['1'] ?? ''}`,
           context_files: getHandoff(0).context_files || [],
           focus: focusConfig?.enabled
             ? {
@@ -301,15 +303,15 @@ export function determineNextAction(options: NextActionOptions = {}): NextAction
         '3': 'architect',
         '4': 'developer',
       };
-      const agent = agentNames[String(focusStart)];
-      const command = AGENT_COMMANDS[agent];
+      const agent = agentNames[String(focusStart)] ?? 'challenger';
+      const command = AGENT_COMMANDS[agent] ?? '';
       return {
         action: 'start',
         current_phase: null,
         next_phase: focusStart,
         next_agent: agent,
         command,
-        message: `Focus mode active (${focusConfig.preset || 'custom'}). Start with Phase ${focusStart} — ${PHASE_DESCRIPTIONS[String(focusStart)]}`,
+        message: `Focus mode active (${focusConfig.preset || 'custom'}). Start with Phase ${focusStart} — ${PHASE_DESCRIPTIONS[String(focusStart)] ?? ''}`,
         context_files: [],
         focus: {
           active: true,
@@ -325,8 +327,8 @@ export function determineNextAction(options: NextActionOptions = {}): NextAction
         current_phase: null,
         next_phase: -1,
         next_agent: 'scout',
-        command: AGENT_COMMANDS.scout,
-        message: `Brownfield project detected. Start with the Scout to analyze the existing codebase. ${PHASE_DESCRIPTIONS['-1']}`,
+        command: AGENT_COMMANDS.scout ?? '',
+        message: `Brownfield project detected. Start with the Scout to analyze the existing codebase. ${PHASE_DESCRIPTIONS['-1'] ?? ''}`,
         context_files: [],
       };
     }
@@ -351,8 +353,8 @@ export function determineNextAction(options: NextActionOptions = {}): NextAction
         current_phase: -1,
         next_phase: 0,
         next_agent: 'challenger',
-        command: AGENT_COMMANDS.challenger,
-        message: `Scout phase is approved. Next: Phase 0 — ${PHASE_DESCRIPTIONS['0']}`,
+        command: AGENT_COMMANDS.challenger ?? '',
+        message: `Scout phase is approved. Next: Phase 0 — ${PHASE_DESCRIPTIONS['0'] ?? ''}`,
         context_files: getHandoff(-1).context_files || [],
       };
     }
@@ -362,8 +364,8 @@ export function determineNextAction(options: NextActionOptions = {}): NextAction
       current_phase: null,
       next_phase: 0,
       next_agent: 'challenger',
-      command: AGENT_COMMANDS.challenger,
-      message: `Ready to begin! Start with Phase 0 — ${PHASE_DESCRIPTIONS['0']}`,
+      command: AGENT_COMMANDS.challenger ?? '',
+      message: `Ready to begin! Start with Phase 0 — ${PHASE_DESCRIPTIONS['0'] ?? ''}`,
       context_files: [],
     };
   }
@@ -405,8 +407,8 @@ export function determineNextAction(options: NextActionOptions = {}): NextAction
     const artifactPath = join(root, artifactRelPath);
 
     if (!existsSync(artifactPath)) {
-      const agentName = PHASE_NAMES[String(currentPhase)].toLowerCase();
-      const command = AGENT_COMMANDS[agentName] || AGENT_COMMANDS[state.current_agent || ''];
+      const agentName = (PHASE_NAMES[String(currentPhase)] ?? '').toLowerCase();
+      const command = AGENT_COMMANDS[agentName] ?? AGENT_COMMANDS[state.current_agent || ''] ?? '';
       return {
         action: 'continue',
         current_phase: currentPhase,

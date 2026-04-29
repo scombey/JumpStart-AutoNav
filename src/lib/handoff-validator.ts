@@ -250,9 +250,12 @@ function extractPmToArchitect(
   let match: RegExpExecArray | null;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex.exec idiom
   while ((match = storyRegex.exec(content)) !== null) {
+    const storyId = match[1];
+    const storyTitle = match[2];
+    if (storyId === undefined || storyTitle === undefined) continue;
     const story: UserStory = {
-      id: match[1],
-      title: match[2].trim(),
+      id: storyId,
+      title: storyTitle.trim(),
       acceptance_criteria: [],
     };
 
@@ -286,6 +289,9 @@ function extractPmToArchitect(
   const nfrRegex = /###\s+NFR-(\d+):\s*(.+)/g;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex.exec idiom
   while ((match = nfrRegex.exec(content)) !== null) {
+    const nfrId = match[1];
+    const nfrTitle = match[2];
+    if (nfrId === undefined || nfrTitle === undefined) continue;
     const nfrStart = match.index + match[0].length;
     const nextSection = content.indexOf('\n### ', nfrStart);
     const nfrBody = content
@@ -293,16 +299,16 @@ function extractPmToArchitect(
       .trim();
 
     payload.non_functional_requirements.push({
-      id: `NFR-${match[1]}`,
-      category: inferNfrCategory(match[2]),
-      description: match[2].trim(),
+      id: `NFR-${nfrId}`,
+      category: inferNfrCategory(nfrTitle),
+      description: nfrTitle.trim(),
       metric: extractMetric(nfrBody) ?? 'To be defined',
     });
   }
 
   // Extract problem statement from Product Overview
   const overviewMatch = content.match(/## Product Overview\s*\n([\s\S]*?)(?=\n## )/);
-  if (overviewMatch) {
+  if (overviewMatch?.[1] !== undefined) {
     payload.domain_context.problem_statement = overviewMatch[1].trim().substring(0, 500);
   }
   if (
@@ -339,13 +345,16 @@ function extractArchitectToDev(
       .filter((c) => c.trim())
       .map((c) => c.trim());
     if (cols.length >= 3) {
-      const layer = cols[0].toLowerCase();
+      const layer = cols[0]?.toLowerCase();
+      const colName = cols[1];
+      const colVer = cols[2];
+      if (layer === undefined || colName === undefined || colVer === undefined) continue;
       if (layer === 'runtime') {
-        payload.technology_stack.runtime = { name: cols[1], version: cols[2] };
+        payload.technology_stack.runtime = { name: colName, version: colVer };
       } else if (layer === 'framework') {
-        payload.technology_stack.framework = { name: cols[1], version: cols[2] };
+        payload.technology_stack.framework = { name: colName, version: colVer };
       } else if (layer === 'database') {
-        payload.technology_stack.database = { name: cols[1], version: cols[2] };
+        payload.technology_stack.database = { name: colName, version: colVer };
       }
     }
   }
@@ -361,11 +370,13 @@ function extractArchitectToDev(
 
     const purposeMatch = compBody.match(/\*\*Purpose:\*\*\s*(.+)/);
     const interfaceMatch = compBody.match(/\*\*Interface:\*\*\s*(.+)/);
+    const compName = match[1];
+    if (compName === undefined) continue;
 
     payload.components.push({
-      name: match[1].trim(),
-      purpose: purposeMatch ? purposeMatch[1].trim() : 'Not specified',
-      interface: interfaceMatch ? interfaceMatch[1].trim() : 'Not specified',
+      name: compName.trim(),
+      purpose: purposeMatch?.[1] !== undefined ? purposeMatch[1].trim() : 'Not specified',
+      interface: interfaceMatch?.[1] !== undefined ? interfaceMatch[1].trim() : 'Not specified',
     });
   }
 
@@ -373,19 +384,25 @@ function extractArchitectToDev(
   const taskRegex = /(M\d+-T\d+)\s*[:-]\s*(.+)/g;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex.exec idiom
   while ((match = taskRegex.exec(content)) !== null) {
+    const taskId = match[1];
+    const taskTitle = match[2];
+    if (taskId === undefined || taskTitle === undefined) continue;
+    const milestone = taskId.split('-')[0];
+    if (milestone === undefined) continue;
     payload.task_list.push({
-      id: match[1],
-      title: match[2].trim(),
-      milestone: match[1].split('-')[0],
+      id: taskId,
+      title: taskTitle.trim(),
+      milestone,
     });
   }
 
   // Extract deployment info
   const deployMatch = content.match(/## Deployment\s*\n([\s\S]*?)(?=\n## |$)/);
-  if (deployMatch) {
+  if (deployMatch?.[1] !== undefined) {
     const body = deployMatch[1];
     const envMatch = body.match(/\*\*Environment:\*\*\s*(.+)/);
-    payload.deployment_strategy.environment = envMatch ? envMatch[1].trim() : 'production';
+    payload.deployment_strategy.environment =
+      envMatch?.[1] !== undefined ? envMatch[1].trim() : 'production';
   }
 
   return payload;
@@ -409,10 +426,12 @@ function extractDevToQa(content: string, _frontmatter: Record<string, unknown>):
   let match: RegExpExecArray | null;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex.exec idiom
   while ((match = taskPattern.exec(content)) !== null) {
-    if (!seenTasks.has(match[1])) {
-      seenTasks.add(match[1]);
+    const tid = match[1];
+    if (tid === undefined) continue;
+    if (!seenTasks.has(tid)) {
+      seenTasks.add(tid);
       payload.implemented_tasks.push({
-        id: match[1],
+        id: tid,
         status: 'completed',
         files_changed: ['src/'],
       });
@@ -562,7 +581,7 @@ export function checkPhantomRequirements(
     let m: RegExpExecArray | null;
     // biome-ignore lint/suspicious/noAssignInExpressions: standard regex.exec idiom
     while ((m = pattern.exec(downstreamContent)) !== null) {
-      downstreamIds.add(m[1]);
+      if (m[1] !== undefined) downstreamIds.add(m[1]);
     }
   }
 
@@ -656,7 +675,7 @@ function extractMetric(text: string): string | null {
 
 function extractPriority(text: string): string | null {
   const m = text.match(/\*\*Priority:\*\*\s*(.+)/i);
-  if (!m) return null;
+  if (!m || m[1] === undefined) return null;
   const p = m[1].trim().toLowerCase();
   if (p.includes('must')) return 'must-have';
   if (p.includes('should')) return 'should-have';

@@ -186,19 +186,17 @@ export function summarizeUsage(logPath: string): UsageSummary {
   const byAgent: Record<string, UsageBreakdown> = {};
 
   for (const entry of log.entries) {
-    if (!byPhase[entry.phase]) {
-      byPhase[entry.phase] = { tokens: 0, cost_usd: 0, sessions: 0 };
-    }
-    byPhase[entry.phase].tokens += entry.estimated_tokens;
-    byPhase[entry.phase].cost_usd += entry.estimated_cost_usd;
-    byPhase[entry.phase].sessions++;
+    const phaseBucket = byPhase[entry.phase] ?? { tokens: 0, cost_usd: 0, sessions: 0 };
+    phaseBucket.tokens += entry.estimated_tokens;
+    phaseBucket.cost_usd += entry.estimated_cost_usd;
+    phaseBucket.sessions++;
+    byPhase[entry.phase] = phaseBucket;
 
-    if (!byAgent[entry.agent]) {
-      byAgent[entry.agent] = { tokens: 0, cost_usd: 0, sessions: 0 };
-    }
-    byAgent[entry.agent].tokens += entry.estimated_tokens;
-    byAgent[entry.agent].cost_usd += entry.estimated_cost_usd;
-    byAgent[entry.agent].sessions++;
+    const agentBucket = byAgent[entry.agent] ?? { tokens: 0, cost_usd: 0, sessions: 0 };
+    agentBucket.tokens += entry.estimated_tokens;
+    agentBucket.cost_usd += entry.estimated_cost_usd;
+    agentBucket.sessions++;
+    byAgent[entry.agent] = agentBucket;
   }
 
   return {

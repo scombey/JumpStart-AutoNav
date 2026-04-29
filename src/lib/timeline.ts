@@ -535,8 +535,16 @@ export function getTimelineSummary(filePath?: string): TimelineSummary {
     if (evt.session_id) sessions.add(evt.session_id);
   }
 
-  const firstTs = new Date(events[0].timestamp).getTime();
-  const lastTs = new Date(events[events.length - 1].timestamp).getTime();
+  const first = events[0];
+  const last = events[events.length - 1];
+  if (first === undefined || last === undefined) {
+    // Already returned EMPTY_SUMMARY at the top of the function for an
+    // empty events array; this branch is dead but exhaustive for the
+    // strict-flag check.
+    throw new Error('Unreachable — empty events handled earlier');
+  }
+  const firstTs = new Date(first.timestamp).getTime();
+  const lastTs = new Date(last.timestamp).getTime();
 
   return {
     total_events: events.length,
@@ -545,8 +553,8 @@ export function getTimelineSummary(filePath?: string): TimelineSummary {
     by_phase: byPhase,
     sessions: [...sessions],
     duration_ms: lastTs - firstTs,
-    first_event: events[0].timestamp,
-    last_event: events[events.length - 1].timestamp,
+    first_event: first.timestamp,
+    last_event: last.timestamp,
   };
 }
 
@@ -601,7 +609,9 @@ export function renderMarkdown(events: TimelineEvent[], options: RenderOptions =
   const lines: string[] = [];
   lines.push(`# ${title}\n`);
   lines.push(`**Events:** ${events.length}  `);
-  lines.push(`**Period:** ${events[0].timestamp} → ${events[events.length - 1].timestamp}  `);
+  lines.push(
+    `**Period:** ${events[0]?.timestamp ?? ''} → ${events[events.length - 1]?.timestamp ?? ''}  `
+  );
 
   const sessions = [...new Set(events.map((e) => e.session_id).filter(Boolean))];
   if (sessions.length > 0) {
