@@ -12,7 +12,7 @@
  *   - memory             (legacy bin/lib/project-memory.js — but lib-ts port exists; uses legacyRequire to match cli.js)
  *   - rewind             (rewind.rewindToPhase, lib-ts)
  *   - next               (next-phase.determineNextAction, lib-ts)
- *   - plan-executor      (legacy bin/lib/plan-executor.js)
+ *   - plan-executor      (lib-ts: ported in M11 batch 5)
  *
  * **Skipped**: `status` is the marketplace-status branch in bin/cli.js
  * (lines ~1505-1528) — it's not a phase/framework status command. Kept
@@ -48,6 +48,7 @@ import {
 import { writeResult } from '../../lib/io.js';
 import { acquireLock, listLocks, lockStatus, releaseLock } from '../../lib/locks.js';
 import { determineNextAction } from '../../lib/next-phase.js';
+import * as legacyPlanExecutor from '../../lib/plan-executor.js';
 import { renderRewindReport, rewindToPhase } from '../../lib/rewind.js';
 import { createCheckpoint, listCheckpoints, restoreCheckpoint } from '../../lib/state-store.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
@@ -812,51 +813,24 @@ export interface PlanExecutorArgs {
   json?: boolean | undefined;
 }
 
-interface PlanExecutorLib {
-  initializeExecution: (
-    root: string,
-    opts: { stateFile: string }
-  ) => {
-    success: boolean;
-    total_jobs?: number | undefined;
-    milestones?: string[] | undefined;
-    error?: string | undefined;
-  };
-  updateJobStatus: (
-    jobId: string,
-    status: string,
-    opts: { stateFile: string }
-  ) => { success: boolean; previous_status?: string; new_status?: string; error?: string };
-  verifyJob: (
-    jobId: string,
-    root: string,
-    opts: { stateFile: string }
-  ) => { success: boolean; verified?: boolean; error?: string };
-  resetExecution: (opts: { stateFile: string }) => { jobs_reset: number };
-  getExecutionStatus: (opts: { stateFile: string }) => {
-    initialized: boolean;
-    progress?: number | undefined;
-    total_jobs?: number | undefined;
-    status_counts?: { completed: number; in_progress: number; pending: number };
-    next_tasks?: { id: string; title: string }[];
-  };
-}
-
 export function planExecutorImpl(deps: Deps, args: PlanExecutorArgs): CommandResult {
-  const execLib = legacyRequire<PlanExecutorLib>('plan-executor');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('plan-
+  // executor')` to a static import of the TS port at
+  // `src/lib/plan-executor.ts`. Existing wiring already invoked the
+  // actual exports — no latent bugs to fix here.
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'plan-execution.json');
   const action = args.action ?? 'status';
 
   if (action === 'init') {
-    const result = execLib.initializeExecution(deps.projectRoot, { stateFile });
+    const result = legacyPlanExecutor.initializeExecution(deps.projectRoot, { stateFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else if (result.success) {
       deps.logger.success('Plan execution initialized');
       deps.logger.info(`  Jobs: ${result.total_jobs}`);
-      deps.logger.info(`  Milestones: ${(result.milestones ?? []).join(', ')}`);
+      deps.logger.info(`  Milestones: ${result.milestones.join(', ')}`);
     } else {
-      deps.logger.error(result.error ?? 'init failed');
+      deps.logger.error(result.error);
       return { exitCode: 1 };
     }
     return { exitCode: 0 };
@@ -866,13 +840,13 @@ export function planExecutorImpl(deps: Deps, args: PlanExecutorArgs): CommandRes
       deps.logger.error('Usage: jumpstart-mode plan-executor update <job-id> <status>');
       return { exitCode: 1 };
     }
-    const result = execLib.updateJobStatus(args.arg, args.status, { stateFile });
+    const result = legacyPlanExecutor.updateJobStatus(args.arg, args.status, { stateFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else if (result.success) {
       deps.logger.success(`${args.arg}: ${result.previous_status} → ${result.new_status}`);
     } else {
-      deps.logger.error(result.error ?? 'update failed');
+      deps.logger.error(result.error);
       return { exitCode: 1 };
     }
     return { exitCode: 0 };
@@ -882,7 +856,7 @@ export function planExecutorImpl(deps: Deps, args: PlanExecutorArgs): CommandRes
       deps.logger.error('Usage: jumpstart-mode plan-executor verify <job-id>');
       return { exitCode: 1 };
     }
-    const result = execLib.verifyJob(args.arg, deps.projectRoot, { stateFile });
+    const result = legacyPlanExecutor.verifyJob(args.arg, deps.projectRoot, { stateFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else if (result.success && result.verified) {
@@ -890,13 +864,13 @@ export function planExecutorImpl(deps: Deps, args: PlanExecutorArgs): CommandRes
     } else if (result.success) {
       deps.logger.warn(`${args.arg}: verification failed`);
     } else {
-      deps.logger.error(result.error ?? 'verify failed');
+      deps.logger.error(result.error);
       return { exitCode: 1 };
     }
     return { exitCode: 0 };
   }
   if (action === 'reset') {
-    const result = execLib.resetExecution({ stateFile });
+    const result = legacyPlanExecutor.resetExecution({ stateFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else {
@@ -905,15 +879,15 @@ export function planExecutorImpl(deps: Deps, args: PlanExecutorArgs): CommandRes
     return { exitCode: 0 };
   }
   // status (default)
-  const result = execLib.getExecutionStatus({ stateFile });
+  const result = legacyPlanExecutor.getExecutionStatus({ stateFile });
   if (args.json) {
     writeResult(result as unknown as Record<string, unknown>);
-  } else if (result.initialized && result.status_counts) {
+  } else if (result.initialized) {
     deps.logger.info(`Plan Execution: ${result.progress}%`);
     deps.logger.info(
-      `  Total: ${result.total_jobs}  Completed: ${result.status_counts.completed}  In Progress: ${result.status_counts.in_progress}  Pending: ${result.status_counts.pending}`
+      `  Total: ${result.total_jobs}  Completed: ${result.status_counts['completed'] ?? 0}  In Progress: ${result.status_counts['in_progress'] ?? 0}  Pending: ${result.status_counts['pending'] ?? 0}`
     );
-    if (result.next_tasks && result.next_tasks.length > 0) {
+    if (result.next_tasks.length > 0) {
       deps.logger.info('  Next tasks:');
       for (const t of result.next_tasks.slice(0, 5)) {
         deps.logger.info(`    → ${t.id}: ${t.title}`);
