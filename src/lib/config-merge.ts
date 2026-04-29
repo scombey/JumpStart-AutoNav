@@ -67,7 +67,9 @@ export function flattenYaml(yamlStr: string): Record<string, string> {
     if (/^\s*$/.test(line) || /^\s*#/.test(line)) continue;
 
     const match = line.match(/^(\s*)([\w][\w.-]*)\s*:\s*(.*)/);
-    if (!match) continue;
+    if (!match || match[1] === undefined || match[2] === undefined || match[3] === undefined) {
+      continue;
+    }
 
     const indent = match[1].length;
     const key = match[2];
@@ -75,7 +77,9 @@ export function flattenYaml(yamlStr: string): Record<string, string> {
 
     const valueWithoutComment = rawValue.replace(/\s+#.*$/, '').trim();
 
-    while (stack.length > 0 && stack[stack.length - 1].indent >= indent) {
+    while (stack.length > 0) {
+      const top = stack[stack.length - 1];
+      if (top === undefined || top.indent < indent) break;
       stack.pop();
     }
 
@@ -133,11 +137,11 @@ export function mergeConfigs(
     } else if (userValue === undefined) {
       preservedKeys.push(key);
     } else if (userValue !== oldValue && userValue !== newValue) {
-      if (oldValue !== newValue) {
+      if (oldValue !== undefined && oldValue !== newValue) {
         conflicts.push({ key, oldDefault: oldValue, newDefault: newValue, userValue });
       }
       preservedKeys.push(key);
-    } else if (userValue === oldValue && newValue !== oldValue) {
+    } else if (userValue === oldValue && newValue !== oldValue && oldValue !== undefined) {
       mergedYaml = replaceYamlValue(mergedYaml, key, oldValue, newValue);
     }
   }
@@ -178,6 +182,7 @@ function replaceYamlValue(
 ): string {
   const keyParts = dottedKey.split('.');
   const leafKey = keyParts[keyParts.length - 1];
+  if (leafKey === undefined) return yamlStr;
 
   const escapedOld = oldValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const escapedLeaf = leafKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -218,6 +223,7 @@ function buildNewKeysBlock(
   const sections: Record<string, string[]> = {};
   for (const key of newKeys) {
     const topLevel = key.split('.')[0];
+    if (topLevel === undefined) continue;
     if (!sections[topLevel]) sections[topLevel] = [];
     sections[topLevel].push(key);
   }
@@ -255,6 +261,7 @@ function extractSectionFromYaml(yamlStr: string, sectionName: string): string | 
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (line === undefined) continue;
 
     if (!capturing) {
       const match = line.match(new RegExp(`^${sectionName}\\s*:`));
@@ -262,8 +269,10 @@ function extractSectionFromYaml(yamlStr: string, sectionName: string): string | 
         capturing = true;
         let j = i - 1;
         const precedingComments: string[] = [];
-        while (j >= 0 && /^\s*#/.test(lines[j])) {
-          precedingComments.unshift(lines[j]);
+        while (j >= 0) {
+          const prev = lines[j];
+          if (prev === undefined || !/^\s*#/.test(prev)) break;
+          precedingComments.unshift(prev);
           j--;
         }
         capturedLines.push(...precedingComments);
@@ -277,7 +286,9 @@ function extractSectionFromYaml(yamlStr: string, sectionName: string): string | 
 
   if (capturedLines.length === 0) return null;
 
-  while (capturedLines.length > 0 && capturedLines[capturedLines.length - 1].trim() === '') {
+  while (capturedLines.length > 0) {
+    const last = capturedLines[capturedLines.length - 1];
+    if (last === undefined || last.trim() !== '') break;
     capturedLines.pop();
   }
 
