@@ -36,6 +36,7 @@
 import { defineCommand } from 'citty';
 import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
 import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
+import * as legacyLegacyModernizer from '../../lib/legacy-modernizer.js';
 import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
 import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
@@ -380,17 +381,40 @@ export const knowledgeGraphCommand = defineCommand({
 export interface LegacyModernizerArgs {
   action?: string | undefined;
   arg?: string | undefined;
+  platform?: string | undefined;
   json?: boolean | undefined;
 }
 
 export function legacyModernizerImpl(deps: Deps, args: LegacyModernizerArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('legacy-modernizer');
-  const action = args.action ?? 'scan';
+  // M11 strangler-tail cleanup: switched from `legacyRequire('legacy-modernizer')`
+  // to a static import of the TS port at `src/lib/legacy-modernizer.ts`. The
+  // previous wiring called `lib.scan` / `lib.planModernization` — neither was
+  // exported by the legacy module, so the command silently produced
+  // `undefined` results regardless of arg shape. Replaced with the actual
+  // legacy contract: `assessSystem` / `createPlan` / `generateReport`. The
+  // legacy CLI default action was `report` (see bin/cli.js ~3982), preserved.
+  const stateFile = safeJoin(deps, '.jumpstart', 'state', 'legacy-modernization.json');
+  const action = args.action ?? 'report';
   let result: unknown;
-  if (action === 'plan') {
-    result = lib.planModernization?.(deps.projectRoot) ?? lib.scan?.(deps.projectRoot);
+  if (action === 'assess') {
+    if (!args.arg) {
+      deps.logger.error(
+        'Usage: jumpstart-mode legacy-modernizer assess <name> --platform <platform>'
+      );
+      return { exitCode: 1 };
+    }
+    result = legacyLegacyModernizer.assessSystem(
+      { name: args.arg, platform: args.platform ?? 'unknown' },
+      { stateFile }
+    );
+  } else if (action === 'plan') {
+    if (!args.arg) {
+      deps.logger.error('Usage: jumpstart-mode legacy-modernizer plan <assessment-id>');
+      return { exitCode: 1 };
+    }
+    result = legacyLegacyModernizer.createPlan(args.arg, {}, { stateFile });
   } else {
-    result = lib.scan?.(deps.projectRoot) ?? lib.scanLegacy?.(deps.projectRoot);
+    result = legacyLegacyModernizer.generateReport({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Legacy modernizer: ${action}`);
@@ -400,14 +424,20 @@ export function legacyModernizerImpl(deps: Deps, args: LegacyModernizerArgs): Co
 export const legacyModernizerCommand = defineCommand({
   meta: { name: 'legacy-modernizer', description: 'Legacy code modernization scanner' },
   args: {
-    action: { type: 'positional', required: false, description: 'scan | plan' },
-    arg: { type: 'positional', required: false, description: 'optional argument' },
+    action: { type: 'positional', required: false, description: 'report | assess | plan' },
+    arg: {
+      type: 'positional',
+      required: false,
+      description: 'name (assess) or assessment id (plan)',
+    },
+    platform: { type: 'string', required: false, description: 'legacy platform (assess only)' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
   run({ args }) {
     const r = legacyModernizerImpl(createRealDeps(), {
       action: args.action,
       arg: args.arg,
+      platform: args.platform,
       json: Boolean(args.json),
     });
     if (r.exitCode !== 0) throw new Error(r.message ?? 'legacy-modernizer failed');
