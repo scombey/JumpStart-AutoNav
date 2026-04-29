@@ -258,8 +258,18 @@ export function runBuild(command: string, root: string): BuildReport {
     };
   }
 
+  const [head, ...tail] = parts;
+  if (head === undefined) {
+    return {
+      pass: false,
+      command,
+      duration_ms: 0,
+      output: 'Empty build command',
+      exit_code: 1,
+    };
+  }
   try {
-    const result = spawnSync(parts[0], parts.slice(1), {
+    const result = spawnSync(head, tail, {
       cwd: root,
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -370,7 +380,12 @@ export function startAndWait(
 ): Promise<StartupOutcome> {
   return new Promise((resolve) => {
     const parts = command.split(' ');
-    const proc = spawn(parts[0], parts.slice(1), {
+    const [head, ...tail] = parts;
+    if (head === undefined) {
+      resolve({ process: null, ready: false, error: 'Empty start command' });
+      return;
+    }
+    const proc = spawn(head, tail, {
       cwd: root,
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false,

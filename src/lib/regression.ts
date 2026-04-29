@@ -122,15 +122,17 @@ export function loadGoldenMaster(name: string, mastersDir: string): GoldenMaster
     ? readdirSync(expectedDir).filter((f) => f.includes(name))
     : [];
 
-  if (inputFiles.length === 0) {
+  const [inputName] = inputFiles;
+  const [expectedName] = expectedFiles;
+  if (inputName === undefined) {
     throw new Error(`No golden master input found for '${name}' in ${inputDir}`);
   }
-  if (expectedFiles.length === 0) {
+  if (expectedName === undefined) {
     throw new Error(`No golden master expected output found for '${name}' in ${expectedDir}`);
   }
 
-  const inputPath = path.join(inputDir, inputFiles[0]);
-  const expectedPath = path.join(expectedDir, expectedFiles[0]);
+  const inputPath = path.join(inputDir, inputName);
+  const expectedPath = path.join(expectedDir, expectedName);
 
   return {
     input: readFileSync(inputPath, 'utf8'),
@@ -314,12 +316,13 @@ export async function runRegressionSuite(
   for (const expectedFile of expectedFiles) {
     // Extract name from expected file (e.g., 'todo-app-prd.md' → 'todo-app')
     const nameParts = expectedFile.replace('.md', '').split('-');
-    const baseName = nameParts.slice(0, -1).join('-') || nameParts[0];
+    const baseName = nameParts.slice(0, -1).join('-') || nameParts[0] || expectedFile;
 
     const inputFiles = readdirSync(inputDir).filter((f) => f.includes(baseName));
-    if (inputFiles.length === 0) continue;
+    const [firstInput] = inputFiles;
+    if (firstInput === undefined) continue;
 
-    const inputFilePath = path.join(inputDir, inputFiles[0]);
+    const inputFilePath = path.join(inputDir, firstInput);
     const expected = readFileSync(path.join(expectedDir, expectedFile), 'utf8');
 
     let actual: string;
@@ -328,7 +331,7 @@ export async function runRegressionSuite(
     } catch (err) {
       results.push({
         name: baseName,
-        input_file: inputFiles[0],
+        input_file: firstInput,
         expected_file: expectedFile,
         similarity: 0,
         pass: false,
@@ -340,7 +343,7 @@ export async function runRegressionSuite(
     const diff = structuralDiff(actual, expected);
     results.push({
       name: baseName,
-      input_file: inputFiles[0],
+      input_file: firstInput,
       expected_file: expectedFile,
       similarity: diff.similarity,
       pass: diff.similarity >= threshold,
