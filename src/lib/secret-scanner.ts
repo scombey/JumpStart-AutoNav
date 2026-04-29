@@ -286,6 +286,7 @@ export function scanFile(filePath: string, patterns: SecretPattern[]): SecretFin
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (line === undefined) continue;
     // Pit Crew M3 Reviewer M4 (DEFERRED): the legacy skip-line regex
     // `^\s*(#|\/\/)\s*(example|TODO|FIXME|NOTE)` allows `// TODO
     // actualSecret = "ghp_..."` to bypass the scanner. Tightening it
