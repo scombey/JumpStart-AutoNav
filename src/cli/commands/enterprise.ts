@@ -46,6 +46,7 @@ import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
 import * as legacyPrPackage from '../../lib/pr-package.js';
+import * as legacyReferenceArchitectures from '../../lib/reference-architectures.js';
 import * as legacyReleaseReadiness from '../../lib/release-readiness.js';
 import * as legacyTemplateMerge from '../../lib/template-merge.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
@@ -942,7 +943,10 @@ export interface ReferenceArchArgs {
 }
 
 export function referenceArchImpl(deps: Deps, args: ReferenceArchArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('reference-architectures');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('reference-
+  // architectures')` to a static import of the TS port at
+  // `src/lib/reference-architectures.ts`. Existing wiring already
+  // invoked the actual exports — no latent bugs to fix here.
   const action = args.action ?? 'list';
   let result: unknown;
   if (action === 'get') {
@@ -950,13 +954,13 @@ export function referenceArchImpl(deps: Deps, args: ReferenceArchArgs): CommandR
       deps.logger.error('Usage: jumpstart-mode reference-arch get <pattern-id>');
       return { exitCode: 1 };
     }
-    result = lib.getPattern(args.arg);
+    result = legacyReferenceArchitectures.getPattern(args.arg);
   } else if (action === 'register') {
     if (!args.arg) {
       deps.logger.error('Usage: jumpstart-mode reference-arch register <name>');
       return { exitCode: 1 };
     }
-    result = lib.registerPattern({
+    result = legacyReferenceArchitectures.registerPattern({
       name: args.arg,
       category: args.category ?? 'other',
       description: `Custom pattern: ${args.arg}`,
@@ -966,9 +970,9 @@ export function referenceArchImpl(deps: Deps, args: ReferenceArchArgs): CommandR
       deps.logger.error('Usage: jumpstart-mode reference-arch instantiate <pattern-id>');
       return { exitCode: 1 };
     }
-    result = lib.instantiatePattern(args.arg, deps.projectRoot);
+    result = legacyReferenceArchitectures.instantiatePattern(args.arg, deps.projectRoot);
   } else {
-    result = lib.listPatterns();
+    result = legacyReferenceArchitectures.listPatterns();
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Reference arch: ${action}`);
