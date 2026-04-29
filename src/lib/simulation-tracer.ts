@@ -491,13 +491,17 @@ export class SimulationTracer {
       totalCompletionTokens += call.completionTokens;
       totalCost += call.cost;
 
-      if (!byModel[call.model]) {
-        byModel[call.model] = { calls: 0, promptTokens: 0, completionTokens: 0, cost: 0 };
-      }
-      byModel[call.model].calls++;
-      byModel[call.model].promptTokens += call.promptTokens;
-      byModel[call.model].completionTokens += call.completionTokens;
-      byModel[call.model].cost += call.cost;
+      const bucket = byModel[call.model] ?? {
+        calls: 0,
+        promptTokens: 0,
+        completionTokens: 0,
+        cost: 0,
+      };
+      bucket.calls++;
+      bucket.promptTokens += call.promptTokens;
+      bucket.completionTokens += call.completionTokens;
+      bucket.cost += call.cost;
+      byModel[call.model] = bucket;
     }
 
     return {
