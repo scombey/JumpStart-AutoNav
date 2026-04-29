@@ -556,6 +556,7 @@ export async function runHolodeck(
 
   for (let i = 0; i < PHASE_CONFIG.length; i++) {
     const phase = PHASE_CONFIG[i];
+    if (phase === undefined) continue;
     const phaseSrcDir = path.join(scenarioDir, phase.dir);
 
     if (!existsSync(phaseSrcDir)) {
@@ -609,8 +610,9 @@ export async function runHolodeck(
 
       // 5. HANDOFF
       if (i > 0) {
-        const upstream = PHASE_CONFIG[i - 1].name;
-        const upstreamArtifact = PHASE_CONFIG[i - 1].artifacts[0];
+        const prevPhase = PHASE_CONFIG[i - 1];
+        const upstream = prevPhase?.name ?? '';
+        const upstreamArtifact = prevPhase?.artifacts[0] ?? '';
         const upstreamPath = path.join(targetDir, 'specs', upstreamArtifact);
 
         if (existsSync(upstreamPath) && existsSync(handoffsDir)) {

@@ -141,10 +141,13 @@ export function parseArgs(argv: string[]): RunOptions & { help?: boolean } {
   };
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--dir' && argv[i + 1]) {
-      (args.dirs as string[]).push(argv[++i]);
-    } else if (a === '--file' && argv[i + 1]) {
-      (args.files as string[]).push(argv[++i]);
+    const next = argv[i + 1];
+    if (a === '--dir' && next !== undefined) {
+      (args.dirs as string[]).push(next);
+      i++;
+    } else if (a === '--file' && next !== undefined) {
+      (args.files as string[]).push(next);
+      i++;
     } else if (a === '--strict') {
       args.strict = true;
     } else if (a === '--json') {
@@ -200,7 +203,9 @@ export function extractMermaidBlocks(content: string): MermaidBlock[] {
   let body: string[] = [];
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
+    const line = lines[i];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
     if (!inside && /^```mermaid\b/i.test(trimmed)) {
       inside = true;
       startLine = i + 1; // 1-based
@@ -213,7 +218,7 @@ export function extractMermaidBlocks(content: string): MermaidBlock[] {
       });
       inside = false;
     } else if (inside) {
-      body.push(lines[i]);
+      body.push(line);
     }
   }
 
@@ -340,7 +345,7 @@ export function validateBlock(block: MermaidBlock): Issue[] {
 
   // Determine diagram type from first meaningful line
   const bodyLines = trimmedBody.split('\n');
-  const firstLine = bodyLines[0].trim();
+  const firstLine = (bodyLines[0] ?? '').trim();
   const diagramType = detectDiagramType(firstLine);
 
   if (!diagramType) {
@@ -406,25 +411,29 @@ function checkBracketBalance(body: string, baseLineNum: number): Issue[] {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    if (line === undefined) continue;
     // Skip comment lines
     if (line.trim().startsWith('%%')) continue;
     // Skip quoted strings (rough heuristic)
     const unquoted = line.replace(/"[^"]*"/g, '').replace(/'[^']*'/g, '');
 
     for (const ch of unquoted) {
-      if (ch in stacks) {
-        stacks[ch].push(baseLineNum + i);
-      } else if (ch in closers) {
-        const opener = closers[ch];
-        if (stacks[opener].length === 0) {
-          issues.push({
-            level: 'error',
-            message: `Unmatched closing '${ch}'`,
-            line: baseLineNum + i,
-          });
-        } else {
-          stacks[opener].pop();
-        }
+      const opens = stacks[ch];
+      if (opens) {
+        opens.push(baseLineNum + i);
+        continue;
+      }
+      const openerCh = closers[ch];
+      if (openerCh === undefined) continue;
+      const openerStack = stacks[openerCh];
+      if (openerStack === undefined || openerStack.length === 0) {
+        issues.push({
+          level: 'error',
+          message: `Unmatched closing '${ch}'`,
+          line: baseLineNum + i,
+        });
+      } else {
+        openerStack.pop();
       }
     }
   }
@@ -452,7 +461,9 @@ function checkSubgraphEndPairing(body: string, baseLineNum: number): Issue[] {
   const lines = body.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
+    const line = lines[i];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
     if (/^subgraph\b/i.test(trimmed)) {
       depth++;
     } else if (/^end$/i.test(trimmed)) {
@@ -488,7 +499,9 @@ function checkArrowSyntax(body: string, baseLineNum: number): Issue[] {
   const validArrowPattern = /-->|==>|-.->|---->|~~~|---|===|---|--\s|-->/;
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
+    const line = lines[i];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
     if (
       trimmed.startsWith('%%') ||
       trimmed.startsWith('style') ||
@@ -526,7 +539,9 @@ function checkC4Syntax(body: string, baseLineNum: number): Issue[] {
   const funcPattern = /^\s*(\w+)\s*\(/;
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
+    const line = lines[i];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
     if (
       !trimmed ||
       trimmed.startsWith('%%') ||
@@ -541,6 +556,7 @@ function checkC4Syntax(body: string, baseLineNum: number): Issue[] {
     const funcMatch = trimmed.match(funcPattern);
     if (funcMatch) {
       const funcName = funcMatch[1];
+      if (funcName === undefined) continue;
 
       // Check if it's a known C4 function
       if (!C4_FUNCTIONS.includes(funcName)) {
@@ -637,8 +653,8 @@ function checkC4Syntax(body: string, baseLineNum: number): Issue[] {
  */
 function countArgs(line: string): number {
   const match = line.match(/\(([^)]*)\)/);
-  if (!match?.[1].trim()) return 0;
-  const inner = match[1];
+  const inner = match?.[1];
+  if (inner === undefined || !inner.trim()) return 0;
 
   let count = 1;
   let inQuote = false;
@@ -668,7 +684,9 @@ function checkErDiagram(body: string, baseLineNum: number): Issue[] {
   const validCardinality = /(\|\||o\||o\{|\}\||o\}|\{o|\|o|\|\{|\{\||\}o)/;
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
+    const line = lines[i];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith('%%') || trimmed === 'erDiagram') continue;
 
     // Check for entity blocks
@@ -684,7 +702,7 @@ function checkErDiagram(body: string, baseLineNum: number): Issue[] {
         // Check if cardinality symbols look wrong
         const parts = trimmed.split('--');
         if (parts.length === 2) {
-          const leftSide = parts[0].trim();
+          const leftSide = (parts[0] ?? '').trim();
           const leftSymbol = leftSide.split(/\s+/).pop();
           if (leftSymbol && !validCardinality.test(leftSymbol) && !/^\w+$/.test(leftSymbol)) {
             issues.push({
@@ -711,7 +729,9 @@ function checkClassDiagram(body: string, _baseLineNum: number): Issue[] {
   const validRelationships = /(<\|--|--\*|--o|-->|-->|\.\.>|\.\.\|>|--|\.\.)/;
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
+    const line = lines[i];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
     if (
       !trimmed ||
       trimmed.startsWith('%%') ||
@@ -730,7 +750,7 @@ function checkClassDiagram(body: string, _baseLineNum: number): Issue[] {
     }
 
     // Check for class member lines inside a class block (indented)
-    if (/^\s+[+\-#~]/.test(lines[i])) continue;
+    if (/^\s+[+\-#~]/.test(line)) continue;
 
     // Check relationship lines — legacy parity: a future enhancement
     // could verify the relationship has a label; for now we accept any

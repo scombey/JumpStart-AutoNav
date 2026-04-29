@@ -185,21 +185,24 @@ export function extractFrontmatter(content: string): {
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
   if (!match) return { frontmatter: null, body: content };
 
+  const [, frontmatterRaw = '', bodyRaw = content] = match;
   const frontmatter: Frontmatter = {};
-  const lines = match[1].split('\n');
+  const lines = frontmatterRaw.split('\n');
   for (const line of lines) {
     const kv = line.match(/^(\w[\w-]*):\s*(.+)$/);
     if (kv) {
-      const raw = kv[2].trim();
+      const [, key, valueRaw = ''] = kv;
+      if (key === undefined) continue;
+      const raw = valueRaw.trim();
       let value: string | boolean = raw;
       if (raw === 'true') value = true;
       else if (raw === 'false') value = false;
       else if (/^["'].*["']$/.test(raw)) value = raw.slice(1, -1);
-      frontmatter[kv[1]] = value;
+      frontmatter[key] = value;
     }
   }
 
-  return { frontmatter, body: match[2] };
+  return { frontmatter, body: bodyRaw };
 }
 
 /** Extract all markdown sections (## and ### headings) with their content. */
@@ -210,14 +213,16 @@ export function extractSections(body: string): SectionRaw[] {
 
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i];
+    if (m === undefined) continue;
+    const [whole = '', hashes = '', heading = ''] = m;
     const idx = m.index ?? 0;
-    const start = idx + m[0].length;
+    const start = idx + whole.length;
     const next = matches[i + 1];
     const end = next ? (next.index ?? body.length) : body.length;
     const content = body.substring(start, end).trim();
     sections.push({
-      level: m[1].length,
-      heading: m[2].trim(),
+      level: hashes.length,
+      heading: heading.trim(),
       content,
     });
   }
@@ -243,8 +248,10 @@ export function extractUserStories(content: string): UserStory[] {
   const storyRegex = /####\s+(E\d+-S\d+):\s*(.+)/g;
 
   for (const match of content.matchAll(storyRegex)) {
+    const [whole = '', id, title = ''] = match;
+    if (id === undefined) continue;
     const matchIdx = match.index ?? 0;
-    const storyStart = matchIdx + match[0].length;
+    const storyStart = matchIdx + whole.length;
     const nextStoryRegex = /####\s+E\d+-S\d+/g;
     nextStoryRegex.lastIndex = storyStart;
     const nextStory = nextStoryRegex.exec(content);
@@ -255,8 +262,8 @@ export function extractUserStories(content: string): UserStory[] {
 
     const criteriaMatches = storySection.match(/- (?:Given|When|Then|And).+/g);
     stories.push({
-      id: match[1],
-      title: match[2].trim(),
+      id,
+      title: title.trim(),
       acceptance_criteria: criteriaMatches
         ? criteriaMatches.map((c) => c.replace(/^- /, '').trim())
         : [],
@@ -272,8 +279,10 @@ export function extractNFRs(content: string): NFR[] {
   const nfrRegex = /###\s+NFR-(\d+):\s*(.+)/g;
 
   for (const match of content.matchAll(nfrRegex)) {
+    const [whole = '', num, title = ''] = match;
+    if (num === undefined) continue;
     const matchIdx = match.index ?? 0;
-    const nfrStart = matchIdx + match[0].length;
+    const nfrStart = matchIdx + whole.length;
     const nextSection = content.indexOf('\n### ', nfrStart);
     const nfrBody = content
       .substring(nfrStart, nextSection > 0 ? nextSection : nfrStart + 500)
@@ -284,8 +293,8 @@ export function extractNFRs(content: string): NFR[] {
     );
 
     nfrs.push({
-      id: `NFR-${match[1]}`,
-      title: match[2].trim(),
+      id: `NFR-${num}`,
+      title: title.trim(),
       metric: metricMatch ? metricMatch[0].trim() : null,
     });
   }
@@ -303,8 +312,16 @@ export function extractTechStack(content: string): TechStackItem[] {
       .split('|')
       .filter((c) => c.trim())
       .map((c) => c.trim());
-    if (cols.length >= 3 && cols[0].toLowerCase() !== 'layer' && cols[0] !== '---') {
-      stack.push({ layer: cols[0], technology: cols[1], version: cols[2] });
+    const [layer, technology, version] = cols;
+    if (
+      cols.length >= 3 &&
+      layer !== undefined &&
+      technology !== undefined &&
+      version !== undefined &&
+      layer.toLowerCase() !== 'layer' &&
+      layer !== '---'
+    ) {
+      stack.push({ layer, technology, version });
     }
   }
 
@@ -317,15 +334,18 @@ export function extractComponents(content: string): ComponentEntry[] {
   const compRegex = /### Component:\s*(.+)/g;
 
   for (const match of content.matchAll(compRegex)) {
+    const [whole = '', name] = match;
+    if (name === undefined) continue;
     const matchIdx = match.index ?? 0;
-    const compStart = matchIdx + match[0].length;
+    const compStart = matchIdx + whole.length;
     const nextComp = content.indexOf('\n### ', compStart);
     const compBody = content.substring(compStart, nextComp > 0 ? nextComp : compStart + 500);
 
     const purposeMatch = compBody.match(/\*\*Purpose:\*\*\s*(.+)/);
+    const purposeRaw = purposeMatch?.[1];
     components.push({
-      name: match[1].trim(),
-      purpose: purposeMatch ? purposeMatch[1].trim() : 'Not specified',
+      name: name.trim(),
+      purpose: purposeRaw ? purposeRaw.trim() : 'Not specified',
     });
   }
 
@@ -338,10 +358,13 @@ export function extractTasks(content: string): TaskEntry[] {
   const taskRegex = /(M\d+-T\d+)\s*[:-]\s*(.+)/g;
 
   for (const match of content.matchAll(taskRegex)) {
+    const [, id, title = ''] = match;
+    if (id === undefined) continue;
+    const milestone = id.split('-')[0] ?? id;
     tasks.push({
-      id: match[1],
-      title: match[2].trim(),
-      milestone: match[1].split('-')[0],
+      id,
+      title: title.trim(),
+      milestone,
     });
   }
 
@@ -573,8 +596,9 @@ export function renderContextMarkdown(packet: ContextPacket): string {
     lines.push('');
     const milestones: Record<string, TaskEntry[]> = {};
     for (const task of allTasks) {
-      if (!milestones[task.milestone]) milestones[task.milestone] = [];
-      milestones[task.milestone].push(task);
+      const bucket = milestones[task.milestone] ?? [];
+      bucket.push(task);
+      milestones[task.milestone] = bucket;
     }
     for (const [milestone, tasks] of Object.entries(milestones)) {
       lines.push(`### ${milestone}`);
