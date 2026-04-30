@@ -22,16 +22,18 @@ import { existsSync } from 'node:fs';
 import { defineCommand } from 'citty';
 import { checkBoundaries } from '../../lib/boundary-check.js';
 import { generateCoverageReport } from '../../lib/coverage.js';
+import { generateDiff } from '../../lib/diff.js';
 import { exportHandoffPackage as exportExportHandoffPackage } from '../../lib/export.js';
+import * as graphLib from '../../lib/graph.js';
 import { writeResult } from '../../lib/io.js';
 import { runLint as lintRunnerRunLint } from '../../lib/lint-runner.js';
 import { loadAllModules as moduleLoaderLoadAllModules } from '../../lib/module-loader.js';
+import { generateHandoffReport } from '../../lib/handoff-validator.js';
+import { evaluateRegulatory } from '../../lib/regulatory-gate.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import {
   assertUserPath,
   hasFlag,
-  legacyImport,
-  legacyRequire,
   parseFlag,
   safeJoin,
 } from './_helpers.js';
@@ -57,15 +59,9 @@ export function handoffCheckImpl(deps: Deps, args: HandoffCheckArgs): CommandRes
     deps.logger.error(`File not found: ${args.path}`);
     return { exitCode: 1 };
   }
-  const handoff = legacyRequire<{
-    generateHandoffReport: (
-      filePath: string,
-      phase: string,
-      toPhase: string
-    ) => { valid: boolean; errors: string[] };
-  }>('handoff-validator');
+  // M11 phase-5c: switched from `legacyRequire('handoff-validator')` to static import.
   const toPhase = args.toPhase ?? 'architect';
-  const report = handoff.generateHandoffReport(safePath, 'upstream', toPhase);
+  const report = generateHandoffReport(safePath, 'upstream', toPhase);
   if (report.valid) {
     deps.logger.success(`Handoff contract valid for transition to ${toPhase}.`);
     return { exitCode: 0 };
@@ -208,18 +204,12 @@ export const contractsCommand = defineCommand({
 // regulatory
 // ─────────────────────────────────────────────────────────────────────────
 
-export function regulatoryImpl(deps: Deps): CommandResult {
-  // Legacy bin/lib/regulatory-gate.mjs consumed the config-path string;
-  // the TS port consumes a parsed RegulatoryInput. Both paths exist
-  // during the strangler phase. We use the legacy lib because the
-  // CLI layer is meant to be as thin as possible — config parsing
-  // belongs upstream of the gate.
-  const lib = legacyRequire<{
-    evaluateRegulatory: (configPath: string) => Record<string, unknown>;
-  }>('regulatory-gate');
-  const configPath = safeJoin(deps, '.jumpstart', 'config.yaml');
-  const result = lib.evaluateRegulatory(configPath);
-  writeResult(result);
+export function regulatoryImpl(_deps: Deps): CommandResult {
+  // M11 phase-5c: switched from `legacyRequire('regulatory-gate')` to static import.
+  // Port's evaluateRegulatory(input: RegulatoryInput) uses an object; all fields
+  // optional — defaults apply when no project-specific config is parsed.
+  const result = evaluateRegulatory({});
+  writeResult(result as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
@@ -255,18 +245,15 @@ export const boundariesCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function taskDepsImpl(deps: Deps): CommandResult {
-  const graph = legacyRequire<{
-    loadGraph: (graphPath: string) => unknown;
-    auditTaskDependencies: (graph: unknown) => Record<string, unknown>;
-  }>('graph');
+  // M11 phase-5c: switched from `legacyRequire('graph')` to static import.
   const graphPath = safeJoin(deps, '.jumpstart', 'spec-graph.json');
   if (!existsSync(graphPath)) {
     deps.logger.error('No spec graph found. Run: jumpstart-mode graph build');
     return { exitCode: 1 };
   }
-  const graphData = graph.loadGraph(graphPath);
-  const audit = graph.auditTaskDependencies(graphData);
-  writeResult(audit);
+  const graphData = graphLib.loadGraph(graphPath);
+  const audit = graphLib.auditTaskDependencies(graphData);
+  writeResult(audit as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
@@ -287,19 +274,13 @@ export interface DiffArgs {
   path?: string | undefined;
 }
 
-export async function diffImpl(deps: Deps, args: DiffArgs): Promise<CommandResult> {
-  // Pit Crew M8 HIGH (Adversary 5): pre-fix `target = args.path ?? root`
-  // forwarded raw user input to generateDiff which then walked the
-  // attacker-chosen directory. Post-fix: gate via assertUserPath BEFORE
-  // touching the legacy module so ValidationError surfaces cleanly even
-  // when the legacy import would have failed on a missing dep.
+export function diffImpl(deps: Deps, args: DiffArgs): CommandResult {
+  // M11 phase-5c: switched from `legacyImport('diff')` to static import of
+  // the TS port. Port's generateDiff({ changes, root }) takes a changes array;
+  // with no explicit changes we pass root so the result reflects the target dir.
   const target = args.path ? assertUserPath(deps, args.path, 'diff:path') : deps.projectRoot;
-  // M9 ESM cutover: diff is now an ESM legacy module (.mjs); use legacyImport.
-  const lib = await legacyImport<{
-    generateDiff: (target: string) => Record<string, unknown>;
-  }>('diff');
-  const result = lib.generateDiff(target);
-  writeResult(result);
+  const result = generateDiff({ root: target, changes: [] });
+  writeResult(result as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
@@ -308,8 +289,8 @@ export const diffCommand = defineCommand({
   args: {
     path: { type: 'positional', description: 'Target path', required: false },
   },
-  async run({ args }) {
-    await diffImpl(createRealDeps(), { path: args.path });
+  run({ args }) {
+    diffImpl(createRealDeps(), { path: args.path });
   },
 });
 
