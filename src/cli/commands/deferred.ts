@@ -57,6 +57,10 @@ import {
   applyConfigPatches as qsApplyConfigPatches,
   generateQuickstartSummary as qsGenerateSummary,
 } from '../../lib/quickstart.js';
+import {
+  analyzeAndPropose as selfEvolveAnalyze,
+  generateProposalArtifact as selfEvolveGenerateArtifact,
+} from '../../lib/self-evolve.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { asRest, hasFlag, parseFlag, safeJoin } from './_helpers.js';
 
@@ -68,24 +72,13 @@ export interface SelfEvolveArgs {
   artifact?: boolean | undefined;
 }
 
-interface SelfEvolveLib {
-  // biome-ignore lint/suspicious/noExplicitAny: <legacy ESM lib returns dynamic shape — narrowed at call site>
-  analyzeAndPropose: (projectDir: string) => any;
-  // biome-ignore lint/suspicious/noExplicitAny: <legacy ESM lib returns dynamic shape — narrowed at call site>
-  generateProposalArtifact: (result: any) => string;
-}
-
-export async function selfEvolveImpl(deps: Deps, args: SelfEvolveArgs): Promise<CommandResult> {
-  // bin/lib/self-evolve.mjs is ESM (uses `export`), so it must be loaded via
-  // dynamic import — `legacyRequire` would fail with ERR_REQUIRE_ESM.
-  const mod = (await import(
-    path.join(deps.projectRoot, 'bin', 'lib', 'self-evolve.js')
-  )) as SelfEvolveLib;
-  const result = mod.analyzeAndPropose(deps.projectRoot);
+export function selfEvolveImpl(deps: Deps, args: SelfEvolveArgs): CommandResult {
+  // M11 batch7: self-evolve is now a TS port — use direct imports.
+  const result = selfEvolveAnalyze(deps.projectRoot);
   if (args.artifact) {
-    deps.logger.info(mod.generateProposalArtifact(result));
+    deps.logger.info(selfEvolveGenerateArtifact(result));
   } else {
-    writeResult(result as Record<string, unknown>);
+    writeResult(result as unknown as Record<string, unknown>);
   }
   return { exitCode: 0 };
 }
