@@ -51,6 +51,7 @@ import {
   uninstallItem,
   writeInstalled,
 } from '../src/lib/install.js';
+import { expectDefined } from './_helpers.js';
 
 // Type-narrowing helpers — the install module is in transit so we re-import
 // the private extractor by reading the file. Instead of cracking it open
@@ -302,6 +303,7 @@ describe('searchItems', () => {
 
   it('scores exact matches higher', () => {
     const results = searchItems(MOCK_INDEX, 'Ignition');
+    expectDefined(results[0]);
     expect(results[0].id).toBe('skill.ignition');
   });
 
@@ -388,6 +390,7 @@ describe('install tracking', () => {
       },
     });
     const read = readInstalled(tmp);
+    expectDefined(read.items['skill.test']);
     expect(read.items['skill.test'].version).toBe('1.0.0');
     expect(read.items['skill.test'].remappedFiles).toEqual(['.github/agents/test.agent.md']);
   });
@@ -484,6 +487,7 @@ describe('readInstalled shape validation', () => {
 describe('resolveTargetPaths', () => {
   it('uses explicit targetPaths from item', () => {
     const item = MOCK_INDEX.items[0];
+    expectDefined(item);
     expect(resolveTargetPaths(item)).toEqual(['.jumpstart/skills/ignition']);
   });
 
@@ -608,6 +612,7 @@ describe('getStatus', () => {
     });
     const status = getStatus(tmp);
     expect(status.count).toBe(2);
+    expectDefined(status.items['skill.a']);
     expect(status.items['skill.a'].version).toBe('1.0.0');
   });
 });
@@ -626,6 +631,7 @@ describe('checkUpdates', () => {
     });
     const { updates } = checkUpdates(tmp, MOCK_INDEX);
     expect(updates.length).toBe(1);
+    expectDefined(updates[0]);
     expect(updates[0].id).toBe('skill.ignition');
     expect(updates[0].localVersion).toBe('0.9.0');
     expect(updates[0].registryVersion).toBe('1.0.0');

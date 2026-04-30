@@ -46,6 +46,7 @@ import * as roleAppr from '../src/lib/role-approval.js';
 import * as vendor from '../src/lib/vendor-risk.js';
 import * as waiver from '../src/lib/waiver-workflow.js';
 import * as wsOwn from '../src/lib/workstream-ownership.js';
+import { expectDefined } from './_helpers.js';
 
 let tmp: string;
 
@@ -132,6 +133,7 @@ describe('risk-register', () => {
       { stateFile: f }
     );
     const r = risk.generateReport({ stateFile: f });
+    expectDefined(r.top_risks[0]);
     expect(r.top_risks[0].score).toBe(25);
     expect(r.high_risks).toBe(1);
   });
@@ -239,6 +241,7 @@ describe('prompt-governance', () => {
     const ap = promptGov.approveVersion(id, '1.0.0', { stateFile: f, approver: 'me' });
     expect(ap.approved).toBe(true);
     const list = promptGov.listAssets({ stateFile: f });
+    expectDefined(list.assets[0]);
     expect(list.assets[0].latest_approved).toBe('1.0.0');
   });
   it('addVersion bumps current_version', () => {

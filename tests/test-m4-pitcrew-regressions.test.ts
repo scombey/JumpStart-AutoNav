@@ -230,7 +230,8 @@ describe('Pit Crew M4 Reviewer H3 (HIGH) — restoreCheckpoint preserves null re
     // Manually clear the checkpoint's resume_context
     const s = loadState(statePath);
     const cps = s.checkpoints || [];
-    cps[cps.length - 1].resume_context = null;
+    const last = cps[cps.length - 1];
+    if (last !== undefined) last.resume_context = null;
     writeFileSync(statePath, `${JSON.stringify(s, null, 2)}\n`, 'utf8');
     restoreCheckpoint(cp.id, statePath);
     const after = loadState(statePath);

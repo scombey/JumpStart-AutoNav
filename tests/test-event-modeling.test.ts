@@ -27,6 +27,7 @@ import {
   PATTERNS,
   saveState,
 } from '../src/lib/event-modeling.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 let stateFile: string;
@@ -81,6 +82,7 @@ describe('event-modeling — loadState/saveState', () => {
     saveState(s, stateFile);
     const reloaded = loadState(stateFile);
     expect(reloaded.topics).toHaveLength(1);
+    expectDefined(reloaded.topics[0]);
     expect(reloaded.topics[0].name).toBe('orders');
   });
 
@@ -136,6 +138,7 @@ describe('event-modeling — defineTopic', () => {
     defineTopic('orders', { stateFile });
     const reloaded = loadState(stateFile);
     expect(reloaded.topics).toHaveLength(1);
+    expectDefined(reloaded.topics[0]);
     expect(reloaded.topics[0].name).toBe('orders');
   });
 });
@@ -182,7 +185,9 @@ describe('event-modeling — defineSaga', () => {
     expect(r.success).toBe(true);
     if (r.success) {
       expect(r.saga.steps).toHaveLength(3);
+      expectDefined(r.saga.steps[0]);
       expect(r.saga.steps[0].order).toBe(1);
+      expectDefined(r.saga.steps[2]);
       expect(r.saga.steps[2].order).toBe(3);
       expect(r.saga.compensation).toBe('manual'); // default
     }

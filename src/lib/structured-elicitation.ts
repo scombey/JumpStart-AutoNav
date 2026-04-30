@@ -260,8 +260,9 @@ export function generateReport(sessionId: string, options: StateFileOption = {})
   const unanswered = session.questions.filter((q) => !q.answered);
   const byCategory: Record<string, Array<{ question: string; answer: string | null }>> = {};
   for (const q of answered) {
-    if (!byCategory[q.category]) byCategory[q.category] = [];
-    byCategory[q.category].push({ question: q.text, answer: q.answer });
+    const bucket = byCategory[q.category] ?? [];
+    bucket.push({ question: q.text, answer: q.answer });
+    byCategory[q.category] = bucket;
   }
 
   return {

@@ -62,7 +62,7 @@ const SUB_AGENTS_ALLOWLIST = new Set<string>([
 function extractAgentReferences(content: string): Set<string> {
   const refs = new Set<string>();
   for (const m of content.matchAll(/\.jumpstart\/agents\/([\w-]+\.md)/g)) {
-    refs.add(m[1]);
+    if (m[1] !== undefined) refs.add(m[1]);
   }
   return refs;
 }

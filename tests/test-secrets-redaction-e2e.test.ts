@@ -146,7 +146,8 @@ describe('ADR-012 e2e Scenario C — nested auth.token redacts in timeline', () 
     tl.flush();
 
     const data = loadTimeline(tlPath);
-    const ev = data.events[0];
+    const [ev] = data.events;
+    if (ev === undefined) throw new Error('expected timeline event');
     const meta = ev.metadata as { auth?: { token?: string } } | undefined;
     expect(meta?.auth?.token).toContain('[REDACTED:GitHub Token]');
     expect(meta?.auth?.token).not.toContain(FAKE_GH_TOKEN);
@@ -218,7 +219,7 @@ describe('ADR-012 e2e summary — usage.summarizeUsage on a redacted log', () =>
     const summary = summarizeUsage(usageLog);
     expect(summary.total_sessions).toBe(2);
     expect(summary.total_tokens).toBe(500);
-    expect(summary.by_agent.PM.tokens).toBe(500);
+    expect(summary.by_agent.PM?.tokens).toBe(500);
   });
 });
 

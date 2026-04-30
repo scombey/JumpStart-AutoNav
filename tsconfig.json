@@ -16,6 +16,7 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
     "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
 
     "esModuleInterop": true,
     "isolatedModules": true,

@@ -18,6 +18,7 @@ import {
   PERSONA_CATALOG,
   PERSONAS,
 } from '../src/lib/persona-packs.js';
+import { expectDefined } from './_helpers.js';
 
 describe('persona-packs — PERSONAS catalog', () => {
   it('exposes the 7 documented personas', () => {
@@ -34,6 +35,7 @@ describe('persona-packs — PERSONAS catalog', () => {
   it('PERSONA_CATALOG[id] always carries label, focus, artifacts, tools', () => {
     for (const id of PERSONAS) {
       const entry = PERSONA_CATALOG[id];
+      expectDefined(entry);
       expect(entry.label).toBeTypeOf('string');
       expect(Array.isArray(entry.focus)).toBe(true);
       expect(Array.isArray(entry.artifacts)).toBe(true);
@@ -42,6 +44,7 @@ describe('persona-packs — PERSONAS catalog', () => {
   });
 
   it('architect entry matches legacy contents', () => {
+    expectDefined(PERSONA_CATALOG.architect);
     expect(PERSONA_CATALOG.architect.label).toBe('Architect');
     expect(PERSONA_CATALOG.architect.focus).toEqual([
       'system-design',
@@ -72,6 +75,7 @@ describe('persona-packs — listPersonas', () => {
   it('focus_count matches actual focus array length', () => {
     const result = listPersonas();
     const ba = result.personas.find((p) => p.id === 'business-analyst');
+    expectDefined(PERSONA_CATALOG['business-analyst']);
     expect(ba?.focus_count).toBe(PERSONA_CATALOG['business-analyst'].focus.length);
   });
 });

@@ -619,8 +619,8 @@ Be brief and supportive.`;
         }
 
         if (selected.length === 0) {
-          const rec = q.options.find((o) => o.recommended) || q.options[0];
-          selected = [rec.label];
+          const rec = q.options.find((o) => o.recommended) ?? q.options[0];
+          if (rec !== undefined) selected = [rec.label];
         }
 
         answers[q.header] = {

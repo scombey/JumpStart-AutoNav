@@ -112,12 +112,18 @@ export type ApplyPersonaResult = ApplyPersonaResultSuccess | ApplyPersonaResultF
 export function listPersonas(): ListPersonasResult {
   return {
     success: true,
-    personas: PERSONAS.map((p) => ({
-      id: p,
-      label: PERSONA_CATALOG[p].label,
-      focus_count: PERSONA_CATALOG[p].focus.length,
-      tools_count: PERSONA_CATALOG[p].tools.length,
-    })),
+    personas: PERSONAS.flatMap((p) => {
+      const entry = PERSONA_CATALOG[p];
+      if (entry === undefined) return [];
+      return [
+        {
+          id: p,
+          label: entry.label,
+          focus_count: entry.focus.length,
+          tools_count: entry.tools.length,
+        },
+      ];
+    }),
   };
 }
 

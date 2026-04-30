@@ -15,6 +15,7 @@ import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { audit, ISO_UTC_REGEX, now, validate } from '../src/lib/timestamps.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 
@@ -148,6 +149,7 @@ describe('audit() — body Timestamp lines', () => {
     expect(r.entries).toBe(2);
     expect(r.valid).toBe(1);
     expect(r.invalid).toHaveLength(1);
+    expectDefined(r.invalid[0]);
     expect(r.invalid[0].line).toBe(6);
     expect(r.invalid[0].value).toBe('not-a-date');
     expect(r.invalid[0].error).toContain('Invalid ISO 8601 UTC format');
@@ -190,6 +192,7 @@ describe('audit() — frontmatter date fields', () => {
     expect(r.entries).toBe(3);
     expect(r.valid).toBe(2);
     expect(r.invalid).toHaveLength(1);
+    expectDefined(r.invalid[0]);
     expect(r.invalid[0].field).toBe('updated');
     expect(r.invalid[0].value).toBe('not-a-date');
   });

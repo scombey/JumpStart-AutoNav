@@ -30,6 +30,7 @@ import {
   saveManifest,
   verifyAll,
 } from '../src/lib/hashing.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 
@@ -164,6 +165,7 @@ describe('registerArtifact — first time / unchanged / changed', () => {
 
     // Manifest persists the entry.
     const m = loadManifest(manifestPath);
+    expectDefined(m.artifacts['specs/spec.md']);
     expect(m.artifacts['specs/spec.md'].hash).toBe(result.hash);
     expect(m.artifacts['specs/spec.md'].size).toBe('first version'.length);
   });
@@ -218,6 +220,7 @@ describe('verifyAll — clean / tampered / missing', () => {
     const result = verifyAll(manifestPath, tmpDir);
     expect(result.verified).toBe(0);
     expect(result.tampered).toHaveLength(1);
+    expectDefined(result.tampered[0]);
     expect(result.tampered[0].path).toBe('a.md');
     expect(result.tampered[0].expectedHash).toBe(expectedHash);
     expect(result.tampered[0].actualHash).toBe(hashContent('tampered'));

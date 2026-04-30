@@ -25,6 +25,7 @@ import {
   saveState,
   searchPatterns,
 } from '../src/lib/pattern-library.js';
+import { expectDefined } from './_helpers.js';
 
 let tmp: string;
 let stateFile: string;
@@ -157,7 +158,9 @@ describe('pattern-library — searchPatterns', () => {
     registerPattern('jwt', 'auth', { stateFile });
     const r = searchPatterns('Rate', { stateFile });
     expect(r.total).toBe(1);
-    expect(r.patterns[0].name).toBe('rate-limiter');
+    const [first] = r.patterns;
+    expectDefined(first);
+    expect(first.name).toBe('rate-limiter');
   });
 
   it('matches by tag', () => {

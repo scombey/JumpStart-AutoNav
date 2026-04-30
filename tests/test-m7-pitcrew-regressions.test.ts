@@ -21,6 +21,7 @@ import { runRegressionSuite } from '../src/lib/regression.js';
 import { SimulationTracer } from '../src/lib/simulation-tracer.js';
 import { runBuild } from '../src/lib/smoke-tester.js';
 import { createToolBridge } from '../src/lib/tool-bridge.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 
@@ -41,6 +42,7 @@ describe('Pit Crew M7 BLOCKER 1 — context7-setup ClientConfig replaces cliComm
   it('CLIENT_CONFIGS["claude-code"] uses cliArgv (argv array) not cliCommand (shell string)', async () => {
     const mod = await import('../src/lib/context7-setup.js');
     const claudeCode = mod.CLIENT_CONFIGS['claude-code'];
+    expectDefined(claudeCode);
     expect(claudeCode.cliArgv).toBeDefined();
     expect(typeof claudeCode.cliArgv).toBe('function');
     // The legacy cliCommand field MUST be gone — keeping it would let
@@ -52,6 +54,7 @@ describe('Pit Crew M7 BLOCKER 1 — context7-setup ClientConfig replaces cliComm
   it('cliArgv produces a malicious-key-safe argv (apiKey is one element, not interpolated)', async () => {
     const mod = await import('../src/lib/context7-setup.js');
     const claudeCode = mod.CLIENT_CONFIGS['claude-code'];
+    expectDefined(claudeCode);
     const maliciousKey = 'ctx7sk-trailing-shell-metachars';
     const argv = claudeCode.cliArgv?.(maliciousKey) ?? [];
     // The key is the LAST element of the argv array — never a substring
@@ -229,6 +232,7 @@ describe('Pit Crew M7 HIGH — regression.runRegressionSuite no longer false-pos
       actualGenerator: () => '## Section A\n\nbody\n',
     });
     expect(r.results.length).toBe(1);
+    expectDefined(r.results[0]);
     expect(r.results[0].similarity).toBe(100);
     expect(r.results[0].pass).toBe(true);
   });
@@ -245,6 +249,7 @@ describe('Pit Crew M7 HIGH — regression.runRegressionSuite no longer false-pos
       threshold: 90,
     });
     expect(r.results.length).toBe(1);
+    expectDefined(r.results[0]);
     expect(r.results[0].pass).toBe(false);
     expect(r.results[0].similarity).toBeLessThan(90);
   });

@@ -175,7 +175,7 @@ export function customizeForRole(
     qa: ['specs', 'getting_started', 'risks'],
   };
 
-  const focus = roleFocus[role] || roleFocus.engineer;
+  const focus = roleFocus[role] ?? roleFocus.engineer ?? [];
 
   return {
     success: true,

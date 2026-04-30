@@ -53,6 +53,7 @@ import {
   saveState,
   updateState,
 } from '../src/lib/state-store.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpRoot: string;
 let statePath: string;
@@ -90,7 +91,9 @@ describe('state-store — load/save/update', () => {
     const s = loadState(statePath);
     expect(s.current_phase).toBe(1);
     expect(s.phase_history.length).toBe(1);
-    expect(s.phase_history[0].phase).toBe(0);
+    const [first] = s.phase_history;
+    expectDefined(first);
+    expect(first.phase).toBe(0);
   });
   it('updateState dedupes approved_artifacts', () => {
     updateState({ approved_artifact: 'specs/prd.md' }, statePath);
@@ -117,7 +120,9 @@ describe('state-store — checkpoints', () => {
     createCheckpoint('first', { statePath });
     createCheckpoint('second', { statePath });
     const list = listCheckpoints(statePath);
-    expect(list[0].label).toBe('second');
+    const [first] = list;
+    expectDefined(first);
+    expect(first.label).toBe('second');
   });
   it('restoreCheckpoint restores phase + step + agent', () => {
     updateState({ phase: 0, agent: 'challenger' }, statePath);

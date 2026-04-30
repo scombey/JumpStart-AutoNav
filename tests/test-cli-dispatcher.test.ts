@@ -21,6 +21,7 @@ import versionTagCommand, {
 } from '../src/cli/commands/version-tag.js';
 import { type CliLogger, createRealDeps, createTestDeps } from '../src/cli/deps.js';
 import { main } from '../src/cli/main.js';
+import { expectDefined } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Deps seam
@@ -149,10 +150,10 @@ describe('src/cli/commands/version-tag.ts — seed command pure runImpl', () => 
       throw new Error('expected args definition on version-tag command');
     }
     const def = argsDef as Record<string, { type: string; required?: boolean }>;
-    expect(def['artifact-name']).toBeDefined();
+    expectDefined(def['artifact-name']);
     expect(def['artifact-name'].type).toBe('positional');
     expect(def['artifact-name'].required).toBe(true);
-    expect(def.version).toBeDefined();
+    expectDefined(def.version);
     expect(def.version.type).toBe('positional');
     expect(def.version.required).toBe(true);
   });

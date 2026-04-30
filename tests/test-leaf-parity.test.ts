@@ -100,7 +100,7 @@ describe('diff — TS↔JS parity (no fs reads)', () => {
     const tsModule = await import('../src/lib/diff.js');
     // @ts-expect-error legacy JS, no .d.ts (parity test imports raw runtime export — see tests/test-leaf-parity.test.ts header)
     const jsModule = (await import('../bin/lib/diff.mjs')) as any;
-    const cases = [
+    const cases: [string, string, string][] = [
       ['', '', 'empty.txt'],
       ['a\nb\nc', 'a\nB\nc', 'mid-edit.txt'],
       ['x\ny\nz', 'x\ny\nz', 'unchanged.txt'],
@@ -172,6 +172,7 @@ describe('artifact-comparison — TS↔JS parity', () => {
       ['# A\nthing\n## B\ngone', '# A\nthing'],
     ];
     for (const [a, b] of cases) {
+      if (a === undefined || b === undefined) continue;
       // The legacy returns changes in insertion order from a Set
       // iteration; compare as sets to avoid order-dependence.
       const ts = tsModule.compareArtifacts(a, b);
@@ -256,6 +257,7 @@ describe('versioning — TS↔JS parity (git-free)', () => {
       ['challenger-brief', '0.0.1-rc.1'],
     ];
     for (const [name, ver] of cases) {
+      if (name === undefined || ver === undefined) continue;
       expect(tsModule.generateTag(name, ver)).toBe(jsModule.generateTag(name, ver));
     }
   });

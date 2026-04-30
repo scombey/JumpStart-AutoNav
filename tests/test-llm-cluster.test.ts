@@ -40,6 +40,7 @@ import {
   TASK_TYPES,
 } from '../src/lib/model-router.js';
 import { logUsage, summarizeUsage } from '../src/lib/usage.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 
@@ -59,6 +60,7 @@ describe('mock-responses — createMockRegistry', () => {
   it('returns canned defaults for known headers', () => {
     const reg = createMockRegistry();
     const r = reg.getAskQuestionsResponse({ questions: [{ header: 'TechPrefs' }] });
+    expectDefined(r.answers.TechPrefs);
     expect(r.answers.TechPrefs.selected).toEqual(['Node.js with Express']);
   });
   it('falls back to recommended option when header unknown', () => {
@@ -71,11 +73,13 @@ describe('mock-responses — createMockRegistry', () => {
         },
       ],
     });
+    expectDefined(r.answers.UnknownHeader);
     expect(r.answers.UnknownHeader.selected).toEqual(['B']);
   });
   it('falls back to "Approved" when no options exist', () => {
     const reg = createMockRegistry();
     const r = reg.getAskQuestionsResponse({ questions: [{ header: 'Bare' }] });
+    expectDefined(r.answers.Bare);
     expect(r.answers.Bare.freeText).toBe('Approved');
   });
   it('honors setAskQuestionsResponse override', () => {
@@ -86,6 +90,7 @@ describe('mock-responses — createMockRegistry', () => {
       skipped: false,
     });
     const r = reg.getAskQuestionsResponse({ questions: [{ header: 'TechPrefs' }] });
+    expectDefined(r.answers.TechPrefs);
     expect(r.answers.TechPrefs.selected).toEqual(['Custom']);
   });
   it('tracks call count', () => {
@@ -102,12 +107,15 @@ describe('mock-responses — createPersonaRegistry', () => {
     const r = reg.getAskQuestionsResponse({
       questions: [{ header: 'TechPrefs' }, { header: 'Database' }],
     });
+    expectDefined(r.answers.TechPrefs);
     expect(r.answers.TechPrefs.selected).toEqual(['Java with Spring Boot']);
+    expectDefined(r.answers.Database);
     expect(r.answers.Database.selected).toEqual(['Oracle']);
   });
   it('unknown persona falls through to defaults', () => {
     const reg = createPersonaRegistry('does-not-exist');
     const r = reg.getAskQuestionsResponse({ questions: [{ header: 'TechPrefs' }] });
+    expectDefined(r.answers.TechPrefs);
     expect(r.answers.TechPrefs.selected).toEqual(['Node.js with Express']);
   });
 });
@@ -257,6 +265,7 @@ describe('llm-provider — mock provider', () => {
     const p = createProvider({ mode: 'mock', model: 'openai/gpt-4o' });
     expect(p.mode).toBe('mock');
     const r = await p.completion([{ role: 'user', content: 'hi' }]);
+    expectDefined(r.choices[0]);
     expect(r.choices[0].message.content).toContain('mock');
     expect(p.getUsage().calls).toBe(1);
     expect(p.getUsage().totalTokens).toBeGreaterThan(0);
@@ -271,6 +280,7 @@ describe('llm-provider — mock provider', () => {
     };
     const p = createProvider({ mode: 'mock', mockResponses: customReg });
     const r = await p.completion([{ role: 'user', content: 'hi' }]);
+    expectDefined(r.choices[0]);
     expect(r.choices[0].message.content).toBe('CUSTOM');
   });
 });
@@ -304,6 +314,7 @@ describe('usage — logUsage round-trip', () => {
     });
     const summary = summarizeUsage(log);
     expect(summary.total_sessions).toBe(1);
+    expectDefined(summary.by_agent.Architect);
     expect(summary.by_agent.Architect.tokens).toBe(5000);
   });
 });

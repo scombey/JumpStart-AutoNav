@@ -26,6 +26,7 @@ import {
   saveState,
   TEMPLATE_TYPES,
 } from '../src/lib/platform-engineering.js';
+import { expectDefined } from './_helpers.js';
 
 let tmp: string;
 let stateFile: string;
@@ -156,7 +157,9 @@ describe('platform-engineering — listTemplates', () => {
     registerTemplate('b', 'frontend', { stateFile });
     const r = listTemplates({ stateFile, type: 'service' });
     expect(r.total).toBe(1);
-    expect(r.templates[0].name).toBe('a');
+    const [first] = r.templates;
+    expectDefined(first);
+    expect(first.name).toBe('a');
   });
 
   it('returns 0 when no templates registered', () => {

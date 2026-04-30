@@ -61,7 +61,7 @@ describe('zod-codegen pipeline', () => {
     for (const stem of stems) {
       const pascal = stem
         .split(/[-_]/)
-        .map((p) => (p.length === 0 ? '' : p[0].toUpperCase() + p.slice(1)))
+        .map((p) => (p.length === 0 ? '' : (p[0] ?? '').toUpperCase() + p.slice(1)))
         .join('');
       expect(idx[`${pascal}Schema`]).toBeDefined();
     }

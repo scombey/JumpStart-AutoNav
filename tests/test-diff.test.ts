@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { generateDiff, unifiedDiff } from '../src/lib/diff.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 
@@ -66,11 +67,13 @@ describe('generateDiff — create', () => {
     expect(result.summary.modified).toBe(0);
     expect(result.summary.deleted).toBe(0);
     expect(result.diffs).toHaveLength(1);
-    expect(result.diffs[0].diff).toContain('--- /dev/null');
-    expect(result.diffs[0].diff).toContain('+++ b/new.txt');
-    expect(result.diffs[0].diff).toContain('+one');
-    expect(result.diffs[0].diff).toContain('+two');
-    expect(result.diffs[0].diff).toContain('+three');
+    const [diff0] = result.diffs;
+    expectDefined(diff0);
+    expect(diff0.diff).toContain('--- /dev/null');
+    expect(diff0.diff).toContain('+++ b/new.txt');
+    expect(diff0.diff).toContain('+one');
+    expect(diff0.diff).toContain('+two');
+    expect(diff0.diff).toContain('+three');
   });
 
   it('handles empty content (1 line — the empty trailing string from split)', () => {
@@ -79,8 +82,10 @@ describe('generateDiff — create', () => {
       root: tmpDir,
     });
     expect(result.summary.lines_added).toBe(1);
-    if (result.diffs[0].type === 'create') {
-      expect(result.diffs[0].lines).toBe(1);
+    const [emptyDiff] = result.diffs;
+    expectDefined(emptyDiff);
+    if (emptyDiff.type === 'create') {
+      expect(emptyDiff.lines).toBe(1);
     }
   });
 });
@@ -92,8 +97,10 @@ describe('generateDiff — modify', () => {
       root: tmpDir,
     });
     expect(result.summary.modified).toBe(1);
-    expect(result.diffs[0].diff).toContain('-two');
-    expect(result.diffs[0].diff).toContain('+TWO');
+    const [modDiff0] = result.diffs;
+    expectDefined(modDiff0);
+    expect(modDiff0.diff).toContain('-two');
+    expect(modDiff0.diff).toContain('+TWO');
   });
 
   it('falls back to reading the current file content when change.old is absent', () => {
@@ -103,8 +110,10 @@ describe('generateDiff — modify', () => {
       changes: [{ type: 'modify', path: 'a.txt', new: 'on disk\nNEW' }],
       root: tmpDir,
     });
-    expect(result.diffs[0].diff).toContain('-old');
-    expect(result.diffs[0].diff).toContain('+NEW');
+    const [fbDiff0] = result.diffs;
+    expectDefined(fbDiff0);
+    expect(fbDiff0.diff).toContain('-old');
+    expect(fbDiff0.diff).toContain('+NEW');
   });
 
   it('counts net lines added/removed via Math.max(0, ...)', () => {
@@ -128,7 +137,9 @@ describe('generateDiff — modify', () => {
       changes: [{ type: 'modify', path: 'a.txt', old: 'old', content: 'new-via-content' }],
       root: tmpDir,
     });
-    expect(result.diffs[0].diff).toContain('+new-via-content');
+    const [cntDiff0] = result.diffs;
+    expectDefined(cntDiff0);
+    expect(cntDiff0.diff).toContain('+new-via-content');
   });
 });
 
@@ -142,11 +153,13 @@ describe('generateDiff — delete', () => {
     });
     expect(result.summary.deleted).toBe(1);
     expect(result.summary.lines_removed).toBe(3);
-    expect(result.diffs[0].diff).toContain('--- a/gone.txt');
-    expect(result.diffs[0].diff).toContain('+++ /dev/null');
-    expect(result.diffs[0].diff).toContain('-a');
-    expect(result.diffs[0].diff).toContain('-b');
-    expect(result.diffs[0].diff).toContain('-c');
+    const [delDiff0] = result.diffs;
+    expectDefined(delDiff0);
+    expect(delDiff0.diff).toContain('--- a/gone.txt');
+    expect(delDiff0.diff).toContain('+++ /dev/null');
+    expect(delDiff0.diff).toContain('-a');
+    expect(delDiff0.diff).toContain('-b');
+    expect(delDiff0.diff).toContain('-c');
   });
 
   it('handles deletion of a non-existent file gracefully', () => {
@@ -155,8 +168,10 @@ describe('generateDiff — delete', () => {
       root: tmpDir,
     });
     expect(result.summary.deleted).toBe(1);
-    if (result.diffs[0].type === 'delete') {
-      expect(result.diffs[0].lines).toBe(1); // empty string splits to one empty line
+    const [nonExistDiff] = result.diffs;
+    expectDefined(nonExistDiff);
+    if (nonExistDiff.type === 'delete') {
+      expect(nonExistDiff.lines).toBe(1); // empty string splits to one empty line
     }
   });
 });

@@ -33,6 +33,7 @@ import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { _extractZipSafely_TEST_ONLY } from '../src/lib/install.js';
+import { expectDefined } from './_helpers.js';
 
 const FIXTURES_DIR = path.join(__dirname, 'fixtures', 'zipslip');
 const LEGITIMATE_ZIP = path.join(FIXTURES_DIR, 'legitimate.zip');
@@ -128,9 +129,13 @@ describe('T4.5.4 — byte-identical install-output regression', () => {
 
     expect(snapA.length).toBe(snapB.length);
     for (let i = 0; i < snapA.length; i++) {
-      expect(snapA[i].relPath).toBe(snapB[i].relPath);
+      const entryA = snapA[i];
+      const entryB = snapB[i];
+      expectDefined(entryA);
+      expectDefined(entryB);
+      expect(entryA.relPath).toBe(entryB.relPath);
       // Buffer.equals: byte-identical comparison.
-      expect(snapA[i].bytes.equals(snapB[i].bytes)).toBe(true);
+      expect(entryA.bytes.equals(entryB.bytes)).toBe(true);
     }
   });
 
