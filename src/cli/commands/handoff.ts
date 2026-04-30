@@ -23,6 +23,7 @@ import { defineCommand } from 'citty';
 import { writeResult } from '../../lib/io.js';
 import { generateCoverageReport } from '../../lib/coverage.js';
 import { checkBoundaries } from '../../lib/boundary-check.js';
+import { runLint as lintRunnerRunLint } from '../../lib/lint-runner.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import {
   assertUserPath,
@@ -154,20 +155,18 @@ export interface LintArgs {
   targetDir?: string | undefined;
 }
 
-export async function lintImpl(deps: Deps, args: LintArgs): Promise<CommandResult> {
-  const { runLint } = legacyRequire<{
-    runLint: (dir: string) => Promise<Record<string, unknown> & { ok?: boolean; pass?: boolean }>;
-  }>('lint-runner');
+export function lintImpl(deps: Deps, args: LintArgs): CommandResult {
+  // M11 batch7: lint-runner is now a TS port — use direct import.
   // Pit Crew M8 HIGH (Adversary 5 + Reviewer 2): containment on
   // user-supplied targetDir.
   const safeDir = args.targetDir
     ? assertUserPath(deps, args.targetDir, 'lint:targetDir')
     : deps.projectRoot;
-  const result = await runLint(safeDir);
-  writeResult(result);
+  const result = lintRunnerRunLint(safeDir);
+  writeResult(result as unknown as Record<string, unknown>);
   // Pit Crew M8 MED (Reviewer 5): pre-fix discarded result; lint
   // failures invisible to CI exit code. Post-fix: respect ok/pass.
-  const passed = result.ok !== false && result.pass !== false;
+  const passed = result.pass !== false;
   return { exitCode: passed ? 0 : 1 };
 }
 
