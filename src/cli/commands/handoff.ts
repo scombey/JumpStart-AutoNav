@@ -21,6 +21,7 @@
 import { existsSync } from 'node:fs';
 import { defineCommand } from 'citty';
 import { writeResult } from '../../lib/io.js';
+import { generateCoverageReport } from '../../lib/coverage.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import {
   assertUserPath,
@@ -99,10 +100,7 @@ export function coverageImpl(deps: Deps, args: CoverageArgs): CommandResult {
   // Pit Crew M8 BLOCKER (Adversary 2): containment on both user paths.
   const safePrd = assertUserPath(deps, args.prdPath, 'coverage:prd');
   const safePlan = assertUserPath(deps, args.planPath, 'coverage:plan');
-  const coverageMod = legacyRequire<{
-    generateCoverageReport: (prdPath: string, planPath: string) => string;
-  }>('coverage');
-  deps.logger.info(coverageMod.generateCoverageReport(safePrd, safePlan));
+  deps.logger.info(generateCoverageReport(safePrd, safePlan));
   return { exitCode: 0 };
 }
 
