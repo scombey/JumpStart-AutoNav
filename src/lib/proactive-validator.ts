@@ -46,6 +46,13 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, basename as pathBasename } from 'node:path';
 import { validateCrossRefs } from './crossref.js';
+import {
+  runAllChecks as specTesterRunAllChecks,
+  checkGWTFormat as specTesterCheckGWT,
+  checkMetricCoverage as specTesterCheckMetrics,
+  checkGuessingLanguage as specTesterCheckGuessing,
+} from './spec-tester.js';
+import { computeCoverage as coverageComputeCoverage } from './coverage.js';
 import { detectSmells } from './smell-detector.js';
 import { checkSpecDrift } from './spec-drift.js';
 import { buildNFRMap } from './traceability.js';
@@ -95,19 +102,29 @@ interface CoverageModule {
   };
 }
 
-let _specTester: SpecTesterModule | null = null;
+// M11 batch7: spec-tester and coverage are now TS ports -- wire directly.
 function loadSpecTester(): SpecTesterModule {
-  if (_specTester) return _specTester;
-  // The legacy CJS module has no TS port; we load via createRequire.
-  _specTester = require('../../bin/lib/spec-tester.js') as SpecTesterModule;
-  return _specTester;
+  return {
+    checkAmbiguity: (content) => specTesterRunAllChecks(content).ambiguity,
+    checkPassiveVoice: (content) => specTesterRunAllChecks(content).passive_voice,
+    checkGWTFormat: (content) => {
+      const r = specTesterCheckGWT(content);
+      return { issues: r.issues.map(i => ({ line: i.line, criterion: i.context })), count: r.issues.length };
+    },
+    checkMetricCoverage: (content) => {
+      const r = specTesterCheckMetrics(content);
+      return { gaps: r.gaps.map(g => ({ requirement: g })), coverage: r.coverage_pct };
+    },
+    checkGuessingLanguage: (content) => {
+      const r = specTesterCheckGuessing(content);
+      return { issues: r.issues, count: r.count };
+    },
+    runAllChecks: (content, options) => specTesterRunAllChecks(content, options) as unknown as { score: number; [key: string]: unknown },
+  };
 }
 
-let _coverage: CoverageModule | null = null;
 function loadCoverage(): CoverageModule {
-  if (_coverage) return _coverage;
-  _coverage = require('../../bin/lib/coverage.js') as CoverageModule;
-  return _coverage;
+  return { computeCoverage: coverageComputeCoverage };
 }
 
 // ─── Diagnostic codes ────────────────────────────────────────────────────────

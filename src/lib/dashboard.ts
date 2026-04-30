@@ -40,6 +40,8 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { buildFromSpecs, getCoverage } from './graph.js';
+import { runAllChecks as specTesterRunAllChecks } from './spec-tester.js';
+import { computeCoverage as coverageComputeCoverage } from './coverage.js';
 import { loadState } from './state-store.js';
 import { getTimelineSummary } from './timeline.js';
 import { summarizeUsage } from './usage.js';
@@ -211,11 +213,8 @@ async function loadNextPhaseSibling(): Promise<NextPhaseModule | null> {
 }
 
 function loadSpecTesterSibling(): SpecTesterModule | null {
-  try {
-    return require('../../bin/lib/spec-tester.js') as SpecTesterModule;
-  } catch {
-    return null;
-  }
+  // M11 batch7: spec-tester is now a TS port -- return a thin wrapper.
+  return { runAllChecks: (content) => specTesterRunAllChecks(content) };
 }
 
 interface CoverageModule {
@@ -231,11 +230,8 @@ interface CoverageModule {
 }
 
 function loadCoverageSibling(): CoverageModule | null {
-  try {
-    return require('../../bin/lib/coverage.js') as CoverageModule;
-  } catch {
-    return null;
-  }
+  // M11 batch7: coverage is now a TS port -- return a thin wrapper.
+  return { computeCoverage: coverageComputeCoverage };
 }
 
 // Data Gathering

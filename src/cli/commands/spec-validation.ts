@@ -31,6 +31,7 @@ import { generateReport as generateInvariantsReport } from '../../lib/invariants
 import { shouldShard, extractEpics, generateShard, generateIndex } from '../../lib/sharder.js';
 import { check as simplicityCheck } from '../../lib/simplicity-gate.js';
 import { checkForChanges as templateCheckForChanges } from '../../lib/template-watcher.js';
+import { runAllChecks as specTesterRunAllChecks, generateReport as specTesterGenerateReport } from '../../lib/spec-tester.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -435,21 +436,13 @@ export function checklistImpl(deps: Deps, args: ChecklistArgs): CommandResult {
     deps.logger.error(`File not found: ${args.path}`);
     return { exitCode: 1 };
   }
-  const specTester = legacyRequire<{
-    runAllChecks: (content: string, opts: { specsDir: string }) => { pass?: boolean } | unknown;
-    generateReport: (filePath: string) => string;
-  }>('spec-tester');
   const content = readFileSync(safePath, 'utf8');
   // Pit Crew M8 HIGH (Reviewer 4): pre-fix `void specTester.runAllChecks(...)`
-  // discarded the result — exit code was always 0 even when checks failed.
+  // discarded the result -- exit code was always 0 even when checks failed.
   // Post-fix: capture result, exit non-zero on `pass === false`.
-  const result = specTester.runAllChecks(content, { specsDir: safeJoin(deps, 'specs') });
-  deps.logger.info(specTester.generateReport(safePath));
-  const passed =
-    typeof result === 'object' && result !== null && 'pass' in result
-      ? (result as { pass: boolean }).pass !== false
-      : true;
-  return { exitCode: passed ? 0 : 1 };
+  const result = specTesterRunAllChecks(content, { specsDir: safeJoin(deps, 'specs') });
+  deps.logger.info(specTesterGenerateReport(safePath));
+  return { exitCode: result.pass ? 0 : 1 };
 }
 
 export const checklistCommand = defineCommand({
