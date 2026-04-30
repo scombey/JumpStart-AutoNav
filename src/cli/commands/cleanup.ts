@@ -29,10 +29,47 @@
  */
 
 import { defineCommand } from 'citty';
+import * as guidedHandoff from '../../lib/guided-handoff.js';
+import * as portfolioReporting from '../../lib/portfolio-reporting.js';
+import * as requirementsBaseline from '../../lib/requirements-baseline.js';
 import * as legacyRevert from '../../lib/revert.js';
+import * as rootCauseAnalysis from '../../lib/root-cause-analysis.js';
+import * as runtimeDebugger from '../../lib/runtime-debugger.js';
+import * as scanner from '../../lib/scanner.js';
+import * as semanticDiff from '../../lib/semantic-diff.js';
+import * as slaSlo from '../../lib/sla-slo.js';
+import * as specComments from '../../lib/spec-comments.js';
+import * as specMaturity from '../../lib/spec-maturity.js';
+import * as sreIntegration from '../../lib/sre-integration.js';
+import * as telemetryFeedback from '../../lib/telemetry-feedback.js';
+import * as testGenerator from '../../lib/test-generator.js';
 import * as legacyTimestamps from '../../lib/timestamps.js';
+import * as toolGuardrails from '../../lib/tool-guardrails.js';
+import * as transcriptIngestion from '../../lib/transcript-ingestion.js';
+import * as webDashboard from '../../lib/web-dashboard.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
+
+/** Static import map for M11 batch-6 TS ports (replaces legacyRequire for these 16). */
+// biome-ignore lint/suspicious/noExplicitAny: <TS port modules have mixed return shapes>
+const TS_PORTS: Record<string, Record<string, any>> = {
+  'guided-handoff': guidedHandoff,
+  'portfolio-reporting': portfolioReporting,
+  'requirements-baseline': requirementsBaseline,
+  'root-cause-analysis': rootCauseAnalysis,
+  'runtime-debugger': runtimeDebugger,
+  scanner: scanner,
+  'semantic-diff': semanticDiff,
+  'sla-slo': slaSlo,
+  'spec-comments': specComments,
+  'spec-maturity': specMaturity,
+  'sre-integration': sreIntegration,
+  'telemetry-feedback': telemetryFeedback,
+  'test-generator': testGenerator,
+  'tool-guardrails': toolGuardrails,
+  'transcript-ingestion': transcriptIngestion,
+  'web-dashboard': webDashboard,
+};
 
 // biome-ignore lint/suspicious/noExplicitAny: <legacy lib runtime shapes>
 type LegacyLib = Record<string, any>;
@@ -308,7 +345,10 @@ function thinWrapper(cfg: ThinWrapperConfig): {
   command: any;
 } {
   const impl = (deps: Deps, args: ThinWrapperArgs): CommandResult => {
-    const lib = legacyRequire<LegacyLib>(cfg.legacyLib);
+    // M11 batch-6: prefer static TS port; fall back to legacyRequire for
+    // any module not yet ported (the ?? branch is effectively dead for the
+    // 16 modules wired in TS_PORTS, but kept for soft-fail safety).
+    const lib: LegacyLib = TS_PORTS[cfg.legacyLib] ?? legacyRequire<LegacyLib>(cfg.legacyLib);
     const action = args.action ?? cfg.defaultAction;
     const methodCandidates = cfg.actions[action] ?? cfg.actions[cfg.defaultAction] ?? [];
     let result: unknown = {};
