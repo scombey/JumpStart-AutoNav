@@ -12,17 +12,14 @@
 
 import { describe, it, expect } from 'vitest';
 import path from 'path';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const {
-  loadSchema,
+import {
+  checkApproval,
   extractFrontmatter,
+  loadSchema,
   validate,
   validateArtifact,
   validateMarkdownStructure,
-  checkApproval
-} = require('../bin/lib/validator');
+} from '../src/lib/validator.js';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A-Z]:)/, '$1');
 const SCHEMAS_DIR = path.join(__dirname, '..', '.jumpstart', 'schemas');

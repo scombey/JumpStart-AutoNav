@@ -57,7 +57,7 @@ describe('checkpointing', () => {
   });
 
   async function loadStateStore() {
-    return await import('../bin/lib/state-store.mjs');
+    return await import('../src/lib/state-store.js');
   }
 
   describe('createCheckpoint', () => {
