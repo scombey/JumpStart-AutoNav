@@ -38,6 +38,7 @@ import * as smokeTester from '../src/lib/smoke-tester.js';
 import { createToolBridge } from '../src/lib/tool-bridge.js';
 import { getToolByName, getToolsForPhase } from '../src/lib/tool-schemas.js';
 import * as verifyDiagrams from '../src/lib/verify-diagrams.js';
+import { expectDefined } from './_helpers.js';
 
 let tmp: string;
 beforeEach(() => {
@@ -146,6 +147,7 @@ describe('simulation-tracer — public surface', () => {
     t.endPhase('scout', 'PASS');
     const r = t.getReport();
     expect(Array.isArray(r.phases)).toBe(true);
+    expectDefined(r.phases[0]);
     expect(r.phases[0].name).toBe('scout');
     expect(r.phases[0].status).toBe('PASS');
   });
@@ -342,7 +344,9 @@ describe('verify-diagrams — public surface', () => {
     ].join('\n');
     const blocks = verifyDiagrams.extractMermaidBlocks(content);
     expect(blocks).toHaveLength(2);
+    expectDefined(blocks[0]);
     expect(blocks[0].body).toContain('graph TD');
+    expectDefined(blocks[1]);
     expect(blocks[1].body).toContain('sequenceDiagram');
   });
 
@@ -350,6 +354,7 @@ describe('verify-diagrams — public surface', () => {
     const content = '```mermaid\ngraph TD\nA --> B\n';
     const blocks = verifyDiagrams.extractMermaidBlocks(content);
     expect(blocks).toHaveLength(1);
+    expectDefined(blocks[0]);
     expect(blocks[0].unclosed).toBe(true);
   });
 
@@ -360,6 +365,7 @@ describe('verify-diagrams — public surface', () => {
       body: 'graph TD\nA --> B',
       unclosed: true,
     });
+    expectDefined(issues[0]);
     expect(issues[0].level).toBe('error');
     expect(issues[0].message).toMatch(/Unclosed/);
   });

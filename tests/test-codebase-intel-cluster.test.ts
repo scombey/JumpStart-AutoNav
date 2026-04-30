@@ -54,6 +54,7 @@ import {
   validateRename,
 } from '../src/lib/safe-rename.js';
 import { detectTypeChecker, parseTypeErrors, runTypeCheck } from '../src/lib/type-checker.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpRoot: string;
 
@@ -79,7 +80,9 @@ describe('ast-edit-engine', () => {
 
   it('SUPPORTED_LANGUAGES + STRUCTURE_PATTERNS catalog parity', () => {
     expect(SUPPORTED_LANGUAGES).toEqual(['javascript', 'typescript', 'json', 'yaml', 'markdown']);
+    expectDefined(STRUCTURE_PATTERNS.javascript);
     expect(STRUCTURE_PATTERNS.javascript.function_decl).toBeInstanceOf(RegExp);
+    expectDefined(STRUCTURE_PATTERNS.typescript);
     expect(STRUCTURE_PATTERNS.typescript.interface_decl).toBeInstanceOf(RegExp);
   });
 
@@ -135,10 +138,15 @@ describe('codebase-retrieval', () => {
 
     const r = indexProject(tmpRoot);
     expect(r.success).toBe(true);
+    expectDefined(r.index.adrs);
     expect(r.index.adrs.length).toBeGreaterThanOrEqual(1);
+    expectDefined(r.index.specs);
     expect(r.index.specs.length).toBeGreaterThanOrEqual(1);
+    expectDefined(r.index.implementations);
     expect(r.index.implementations.length).toBeGreaterThanOrEqual(1);
+    expectDefined(r.index.configs);
     expect(r.index.configs.length).toBeGreaterThanOrEqual(1);
+    expectDefined(r.index['test-patterns']);
     expect(r.index['test-patterns'].length).toBeGreaterThanOrEqual(1);
   });
 
@@ -371,6 +379,7 @@ describe('type-checker', () => {
       `src/main.py:20: error: Incompatible types  [assignment]\n`;
     const findings = parseTypeErrors(tsOut, 'TypeScript');
     expect(findings.length).toBeGreaterThanOrEqual(2);
+    expectDefined(findings[0]);
     expect(findings[0].code).toBe('TS2322');
     expect(findings[0].line).toBe(10);
   });

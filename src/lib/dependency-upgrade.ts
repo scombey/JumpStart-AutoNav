@@ -266,6 +266,6 @@ export function generateReport(options: StateFileOption = {}): ReportResult {
     total_plans: state.upgrade_plans.length,
     total_scans: state.scans.length,
     plans: state.upgrade_plans,
-    last_scan: state.scans.length > 0 ? state.scans[state.scans.length - 1] : null,
+    last_scan: state.scans.length > 0 ? (state.scans[state.scans.length - 1] ?? null) : null,
   };
 }

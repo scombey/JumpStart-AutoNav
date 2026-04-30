@@ -15,6 +15,7 @@ import {
   scanFile,
   VAGUE_TERMS,
 } from '../src/lib/ambiguity-heatmap.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 
@@ -59,6 +60,7 @@ describe('scanAmbiguity', () => {
     const r = scanAmbiguity('The system must be fast and secure.');
     const hits = r.findings?.filter((f) => f.type === 'missing_constraint') ?? [];
     expect(hits.length).toBeGreaterThan(0);
+    expectDefined(hits[0]);
     expect(hits[0].severity).toBe('high');
     expect(typeof hits[0].suggestion).toBe('string');
   });
@@ -106,6 +108,7 @@ describe('scanFile + generateHeatmap', () => {
     const r = generateHeatmap(tmpDir);
     expect(r.success).toBe(true);
     expect(r.files_scanned).toBe(2);
+    expectDefined(r.results[0]);
     expect(r.results[0].file).toBe('high.md');
     expect(r.overall.highest_density_file).toBe('high.md');
   });

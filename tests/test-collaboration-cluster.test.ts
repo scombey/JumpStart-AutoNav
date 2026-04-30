@@ -30,6 +30,7 @@ import * as domainOnt from '../src/lib/domain-ontology.js';
 import * as eaReview from '../src/lib/ea-review-packet.js';
 import * as playback from '../src/lib/playback-summaries.js';
 import * as structElicit from '../src/lib/structured-elicitation.js';
+import { expectDefined } from './_helpers.js';
 
 let tmp: string;
 
@@ -81,6 +82,7 @@ describe('structured-elicitation', () => {
     const f = file('elicit.json');
     const start = structElicit.startElicitation('healthcare', { stateFile: f });
     expect(start.success).toBe(true);
+    expectDefined(start.session?.questions[0]);
     const qid = start.session?.questions[0].id || '';
     const a = structElicit.answerQuestion(start.session?.id || '', qid, 'yes', { stateFile: f });
     expect(a.success).toBe(true);
@@ -117,6 +119,7 @@ describe('contract-checker', () => {
     const md = `### Entity: User\n\n| \`id\` | string |\n| \`name\` | string |\n`;
     const ents = contractChk.extractModelEntities(md);
     expect(ents.length).toBe(1);
+    expectDefined(ents[0]);
     expect(ents[0].name).toBe('User');
   });
   it('validateContracts returns error for missing files', () => {
@@ -252,6 +255,7 @@ describe('dependency-upgrade', () => {
       { stateFile: file('upg.json') }
     );
     expect(ok.success).toBe(true);
+    expectDefined(ok.plan?.upgrades[0]);
     expect(ok.plan?.upgrades[0].risk).toBe('medium');
   });
   it('generateReport summarises plans and scans', () => {
@@ -343,6 +347,7 @@ describe('domain-ontology', () => {
     const r = domainOnt.generateReport({ stateFile: f });
     expect(r.success).toBe(true);
     expect(r.total_domains).toBe(1);
+    expectDefined(r.domains.orders);
     expect(r.domains.orders.by_type.aggregate).toBe(1);
   });
 });
@@ -369,7 +374,9 @@ describe('ea-review-packet', () => {
       '# Architecture\n## Overview\n```mermaid\nflowchart TD\n```\n'
     );
     const r = eaReview.generatePacket(tmp);
+    expectDefined(r.sections.diagrams);
     expect(r.sections.diagrams.present).toBe(true);
+    expectDefined(r.sections['architecture-overview']);
     expect(r.sections['architecture-overview'].present).toBe(true);
   });
   it('generatePacket counts ADR files in specs/decisions', () => {
@@ -379,6 +386,7 @@ describe('ea-review-packet', () => {
     writeFileSync(path.join(decDir, 'adr-002.md'), '# ADR 2\n');
     const r = eaReview.generatePacket(tmp);
     const ds = r.sections['decision-summary'];
+    expectDefined(ds);
     expect(ds.present).toBe(true);
     expect(ds.total_adrs).toBe(2);
   });

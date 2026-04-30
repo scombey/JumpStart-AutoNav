@@ -286,7 +286,9 @@ export function deleteMemory(id: string, options: MemoryFileOptions = {}): Delet
   const [removed] = store.entries.splice(idx, 1);
   saveMemoryStore(store, memoryFile);
 
-  return { success: true, removed, total: store.entries.length };
+  const result: DeleteMemoryResult = { success: true, total: store.entries.length };
+  if (removed !== undefined) result.removed = removed;
+  return result;
 }
 
 /** Aggregated memory statistics grouped by type. */

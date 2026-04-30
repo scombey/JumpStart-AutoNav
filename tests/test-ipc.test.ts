@@ -18,6 +18,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { JumpstartError, ValidationError } from '../src/lib/errors.js';
 import { isDirectRun, runIpc } from '../src/lib/ipc.js';
+import { expectDefined } from './_helpers.js';
 
 const ORIGINAL_IS_TTY = process.stdin.isTTY;
 
@@ -84,7 +85,7 @@ describe('isDirectRun', () => {
   });
 
   it('returns false when argv[1] is undefined', () => {
-    const original = process.argv[1];
+    const original = process.argv[1] ?? '';
     process.argv[1] = '';
     try {
       expect(isDirectRun('file:///anything.ts')).toBe(false);
@@ -108,6 +109,7 @@ describe('runIpc — v0 envelope (no version field)', () => {
     });
 
     expect(exitCalls).toEqual([{ code: 0 }]);
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.ok).toBe(true);
     expect(parsed.doubled).toBe(42);
@@ -124,6 +126,7 @@ describe('runIpc — v0 envelope (no version field)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(exitCalls[0]);
     expect(exitCalls[0].code).toBe(0);
   });
 });
@@ -142,7 +145,9 @@ describe('runIpc — v1 envelope', () => {
       /* exit spy throws — expected */
     });
 
+    expectDefined(exitCalls[0]);
     expect(exitCalls[0].code).toBe(0);
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.ok).toBe(true);
     expect(parsed.version).toBe(1);
@@ -162,7 +167,9 @@ describe('runIpc — typed-error → exit-code translation (ADR-006)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(exitCalls[0]);
     expect(exitCalls[0].code).toBe(2);
+    expectDefined(stderr[0]);
     const parsed = JSON.parse(stderr[0]);
     expect(parsed.error.code).toBe('VALIDATION');
     expect(parsed.error.message).toBe('bad input');
@@ -179,6 +186,7 @@ describe('runIpc — typed-error → exit-code translation (ADR-006)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(exitCalls[0]);
     expect(exitCalls[0].code).toBe(99);
   });
 
@@ -196,6 +204,7 @@ describe('runIpc — typed-error → exit-code translation (ADR-006)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(exitCalls[0]);
     expect(exitCalls[0].code).toBe(7);
   });
 
@@ -210,7 +219,9 @@ describe('runIpc — typed-error → exit-code translation (ADR-006)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(exitCalls[0]);
     expect(exitCalls[0].code).toBe(99);
+    expectDefined(stderr[0]);
     const parsed = JSON.parse(stderr[0]);
     expect(parsed.error.message).toBe('plain js error');
   });
@@ -229,6 +240,7 @@ describe('runIpc — envelope byte order (Pit Crew M2-Final QA F2)', () => {
     // Streaming-JSON consumers and grep-on-leading-bytes pipelines
     // depend on this prefix. toEqual is key-order-insensitive so
     // string-prefix is the right assertion.
+    expectDefined(stdout[0]);
     expect(stdout[0].startsWith('{"version":1,"ok":true,')).toBe(true);
   });
 
@@ -241,6 +253,7 @@ describe('runIpc — envelope byte order (Pit Crew M2-Final QA F2)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(stdout[0]);
     expect(stdout[0].startsWith('{"ok":true,')).toBe(true);
     expect(stdout[0]).not.toContain('"version"');
   });
@@ -256,6 +269,7 @@ describe('runIpc — handler return-value edge cases (F4)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.result).toBeNull();
     expect(parsed.ok).toBe(true);
@@ -270,6 +284,7 @@ describe('runIpc — handler return-value edge cases (F4)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.result).toBe('hello');
   });
@@ -283,6 +298,7 @@ describe('runIpc — handler return-value edge cases (F4)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.version).toBe(1);
     expect(parsed.result).toBeNull();
@@ -300,6 +316,7 @@ describe('runIpc — multi-chunk stdin + post-end error (F5)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(stdout[0]);
     expect(JSON.parse(stdout[0]).doubled).toBe(42);
   });
 });
@@ -314,6 +331,7 @@ describe('runIpc — v1 envelope edge cases (F9)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.version).toBeUndefined();
     // v0 semantics: whole payload (incl. string "1" version + input) is the input.
@@ -330,7 +348,9 @@ describe('runIpc — v1 envelope edge cases (F9)', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(exitCalls[0]);
     expect(exitCalls[0].code).toBe(2);
+    expectDefined(stderr[0]);
     expect(JSON.parse(stderr[0]).error.code).toBe('VALIDATION');
   });
 });
@@ -346,7 +366,9 @@ describe('runIpc — Zod schema validation', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(exitCalls[0]);
     expect(exitCalls[0].code).toBe(2);
+    expectDefined(stderr[0]);
     const parsed = JSON.parse(stderr[0]);
     expect(parsed.error.code).toBe('VALIDATION');
     expect(Array.isArray(parsed.error.issues)).toBe(true);
@@ -367,8 +389,10 @@ describe('runIpc — Zod schema validation', () => {
     await p.catch(() => {
       /* exit spy throws — expected */
     });
+    expectDefined(exitCalls[0]);
     expect(exitCalls[0].code).toBe(0);
     expect(receivedCount).toBe(42);
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.received).toBe(42);
   });

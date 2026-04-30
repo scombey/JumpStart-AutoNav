@@ -22,6 +22,7 @@ import { writeFrameworkManifest } from '../src/lib/framework-manifest.js';
 import * as integrate from '../src/lib/integrate.js';
 import * as registry from '../src/lib/registry.js';
 import * as upgrade from '../src/lib/upgrade.js';
+import { expectDefined } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Test scaffolding
@@ -141,6 +142,7 @@ describe('integrate.scanInstalledSkills', () => {
     );
     const skills = integrate.scanInstalledSkills(tmp);
     expect(skills.length).toBe(1);
+    expectDefined(skills[0]);
     expect(skills[0].id).toBe('skill.my-skill');
     expect(skills[0].displayName).toBe('My Demo Skill');
     expect(skills[0].version).toBe('1.2.3');
@@ -662,6 +664,7 @@ describe('upgrade.listUpgradeBackups', () => {
     );
     const backups = upgrade.listUpgradeBackups(tmp);
     expect(backups.length).toBe(1);
+    expectDefined(backups[0]);
     expect(backups[0].fromVersion).toBe('1.0.0');
     expect(backups[0].toVersion).toBe('2.0.0');
   });

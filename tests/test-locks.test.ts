@@ -31,7 +31,11 @@ function singleLockFilename(): string {
   if (files.length !== 1) {
     throw new Error(`expected 1 lock file in ${locksDir}, got ${files.length}`);
   }
-  return files[0];
+  const [name] = files;
+  if (name === undefined) {
+    throw new Error(`unexpected empty filename in ${locksDir}`);
+  }
+  return name;
 }
 
 describe('acquireLock', () => {

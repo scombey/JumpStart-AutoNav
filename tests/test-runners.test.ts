@@ -28,6 +28,7 @@ import * as handoffValidator from '../src/lib/handoff-validator.js';
 import { AGENT_PHASES, DEFAULT_CONFIG } from '../src/lib/headless-runner.js';
 import * as holodeck from '../src/lib/holodeck.js';
 import { SimulationTracer } from '../src/lib/simulation-tracer.js';
+import { expectDefined } from './_helpers.js';
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const HANDOFFS_DIR = path.join(REPO_ROOT, '.jumpstart', 'handoffs');
@@ -123,7 +124,9 @@ describe('handoff-validator — public surface', () => {
     ) as handoffValidator.PmToArchitectPayload;
     expect(Array.isArray(payload.user_stories)).toBe(true);
     expect(payload.user_stories.length).toBeGreaterThan(0);
-    expect(payload.user_stories[0].id).toMatch(/^E\d+-S\d+$/);
+    const [story] = payload.user_stories;
+    expectDefined(story);
+    expect(story.id).toMatch(/^E\d+-S\d+$/);
   });
 
   it('extractHandoffPayload throws for missing artifact', () => {

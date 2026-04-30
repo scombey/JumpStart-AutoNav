@@ -59,6 +59,7 @@ import {
   extractTasks,
   extractValidationCriteria,
 } from '../src/lib/traceability.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 
@@ -212,6 +213,7 @@ describe('graph — auditTaskDependencies', () => {
     const audit = auditTaskDependencies(graph);
     expect(audit.task_count).toBe(3);
     expect(audit.inversions.length).toBe(1);
+    expectDefined(audit.inversions[0]);
     expect(audit.inversions[0].task).toBe('M1-T02');
     expect(audit.has_issues).toBe(true);
   });
@@ -377,7 +379,7 @@ describe('bidirectional-trace — scanTraceLinks', () => {
     writeAt('tests/auth.test.ts', '// covers E1-S1\n');
     writeAt('specs/prd.md', 'NFR-P01 here\n');
     const tm = scanTraceLinks(tmpDir);
-    expect(tm.forward_map['E1-S1']).toBeDefined();
+    expectDefined(tm.forward_map['E1-S1']);
     expect(tm.forward_map['E1-S1'].length).toBeGreaterThanOrEqual(2);
     expect(tm.stats.total_spec_ids).toBeGreaterThan(0);
   });
@@ -519,10 +521,12 @@ describe('adr-index — buildIndex / searchIndex', () => {
 
     const byTag = searchIndex(tmpDir, { tag: 'postgres' });
     expect(byTag.total).toBe(1);
+    expectDefined(byTag.results[0]);
     expect(byTag.results[0].id).toBe('adr-001');
 
     const byStatus = searchIndex(tmpDir, { status: 'Proposed' });
     expect(byStatus.total).toBe(1);
+    expectDefined(byStatus.results[0]);
     expect(byStatus.results[0].id).toBe('adr-002');
 
     const byQuery = searchIndex(tmpDir, { query: 'database' });

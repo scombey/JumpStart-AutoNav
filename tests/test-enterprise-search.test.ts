@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { indexProject, SEARCHABLE_TYPES, searchProject } from '../src/lib/enterprise-search.js';
+import { expectDefined } from './_helpers.js';
 
 let tmp: string;
 
@@ -100,6 +101,7 @@ describe('enterprise-search — indexProject', () => {
     const result = indexProject(tmp);
     const codeEntries = result.index.entries.filter((e) => e.type === 'code');
     expect(codeEntries.length).toBe(1);
+    expectDefined(codeEntries[0]);
     expect(codeEntries[0].path).toBe('src/real.ts');
   });
 
@@ -107,6 +109,7 @@ describe('enterprise-search — indexProject', () => {
     mkdirSync(path.join(tmp, 'specs'), { recursive: true });
     writeFileSync(path.join(tmp, 'specs', 'a.md'), 'hello', 'utf8');
     const result = indexProject(tmp);
+    expectDefined(result.index.entries[0]);
     expect(result.index.entries[0].size).toBe(5);
   });
 });
@@ -134,8 +137,10 @@ describe('enterprise-search — searchProject', () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.total_results).toBe(1);
+      expectDefined(result.results[0]);
       expect(result.results[0].path).toBe('specs/prd.md');
       expect(result.results[0].preview.length).toBe(1);
+      expectDefined(result.results[0].preview[0]);
       expect(result.results[0].preview[0].text).toContain('rate-limiting');
     }
   });
@@ -152,6 +157,7 @@ describe('enterprise-search — searchProject', () => {
     writeFileSync(path.join(tmp, 'specs', 'a.md'), 'foo\nfoo\nfoo\nfoo\nfoo\n', 'utf8');
     const result = searchProject(tmp, 'foo');
     if (result.success) {
+      expectDefined(result.results[0]);
       expect(result.results[0].preview.length).toBe(3);
     }
   });

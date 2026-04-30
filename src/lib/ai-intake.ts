@@ -185,7 +185,7 @@ export function createIntake(intake: IntakeInput, options: StateOptions = {}): C
     data_types: dataTypes,
     model_type: intake.model_type || null,
     risk_tier: riskTier,
-    risk_label: RISK_TIERS[riskTier - 1].label,
+    risk_label: RISK_TIERS[riskTier - 1]?.label ?? 'Unknown',
     status: 'draft',
     sections_completed: [],
     created_at: new Date().toISOString(),

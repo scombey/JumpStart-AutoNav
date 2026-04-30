@@ -225,7 +225,13 @@ export function classifyAsset(asset: AssetInput, options: StateOptions = {}): Cl
     type: asset.type || 'system',
     data_types: dataTypes,
     classification: level,
-    handling: HANDLING_REQUIREMENTS[level],
+    handling: HANDLING_REQUIREMENTS[level] ??
+      HANDLING_REQUIREMENTS.public ?? {
+        encryption_at_rest: false,
+        encryption_in_transit: false,
+        access_logging: false,
+        retention_policy: false,
+      },
     description: asset.description || '',
     classified_at: new Date().toISOString(),
   };

@@ -21,6 +21,7 @@ import {
   estimateTokens,
   MODEL_CONTEXT_LIMITS,
 } from '../src/lib/context-chunker.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 
@@ -42,8 +43,11 @@ describe('estimateTokens', () => {
 
 describe('MODEL_CONTEXT_LIMITS', () => {
   it('exports the canonical model budgets', () => {
+    expectDefined(MODEL_CONTEXT_LIMITS['gpt-4']);
     expect(MODEL_CONTEXT_LIMITS['gpt-4'].tokens).toBe(8192);
+    expectDefined(MODEL_CONTEXT_LIMITS['claude-3-opus']);
     expect(MODEL_CONTEXT_LIMITS['claude-3-opus'].tokens).toBe(200000);
+    expectDefined(MODEL_CONTEXT_LIMITS.default);
     expect(MODEL_CONTEXT_LIMITS.default.tokens).toBe(32000);
   });
 });
@@ -92,6 +96,7 @@ describe('chunkContent — v1.1.14 forward-progress invariants', () => {
   it('the last chunk ends at content.length (no truncation)', () => {
     const result = chunkContent('x'.repeat(10_000));
     const last = result.chunk_details[result.chunk_details.length - 1];
+    expectDefined(last);
     expect(last.end).toBe(10_000);
   });
 });
@@ -105,6 +110,7 @@ describe('chunkContent — natural-boundary preference', () => {
     const content = chunk1 + chunk2;
     const result = chunkContent(content, { max_tokens: 16 }); // 64 chars per chunk
     // First chunk should end at the newline (51) since 51 > 64 * 0.5.
+    expectDefined(result.chunk_details[0]);
     expect(result.chunk_details[0].end).toBe(51);
   });
 });

@@ -27,6 +27,7 @@ import {
   MIGRATION_STRATEGIES,
   saveState,
 } from '../src/lib/migration-planner.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpDir: string;
 let stateFile: string;
@@ -96,7 +97,9 @@ describe('migration-planner — loadState/saveState', () => {
     saveState(s, stateFile);
     const reloaded = loadState(stateFile);
     expect(reloaded.migrations).toHaveLength(1);
-    expect(reloaded.migrations[0].id).toBe('MIG-001');
+    const [first] = reloaded.migrations;
+    expectDefined(first);
+    expect(first.id).toBe('MIG-001');
     expect(reloaded.last_updated).not.toBeNull();
   });
 
@@ -169,7 +172,9 @@ describe('migration-planner — advancePhase', () => {
     if (r.success) {
       expect(r.phase).toBe('planning');
     }
-    expect(loadState(stateFile).migrations[0].current_phase).toBe('planning');
+    const [migration] = loadState(stateFile).migrations;
+    expectDefined(migration);
+    expect(migration.current_phase).toBe('planning');
   });
 
   it('rejects unknown phase', () => {

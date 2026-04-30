@@ -20,6 +20,7 @@ import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigLoaderInputSchema, deepMerge, loadConfig } from '../src/lib/config-loader.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpRoot: string;
 
@@ -261,6 +262,7 @@ describe('runIpc(loadConfig, ConfigLoaderInputSchema) — e2e wiring (Pit Crew M
       /* exit spy throws — expected */
     });
     expect(exitCalls[0]).toBe(2);
+    expectDefined(stderr[0]);
     const env = JSON.parse(stderr[0]);
     expect(env.error.code).toBe('VALIDATION');
     expect(env.error.schemaId).toBe('runIpc.input');
@@ -301,6 +303,7 @@ describe('runIpc(loadConfig, ConfigLoaderInputSchema) — e2e wiring (Pit Crew M
       /* exit spy throws — expected */
     });
     expect(exitCalls[0]).toBe(0);
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.ok).toBe(true);
     expect(parsed.config).toBeDefined();

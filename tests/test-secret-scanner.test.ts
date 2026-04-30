@@ -26,6 +26,7 @@ import {
   scanForSecrets,
   shouldSkip,
 } from '../src/lib/secret-scanner.js';
+import { expectDefined } from './_helpers.js';
 
 // Test fixtures: realistic-looking but obviously-fake secrets so they
 // trip the patterns without ever being a real key.
@@ -85,7 +86,9 @@ describe('compileCustomPatterns', () => {
       { name: 'X', pattern: 'CUSTOM_[A-Z]+', severity: 'high' },
     ]);
     expect(compiled).toHaveLength(1);
-    expect(compiled[0].pattern).toBeInstanceOf(RegExp);
+    const [first] = compiled;
+    expectDefined(first);
+    expect(first.pattern).toBeInstanceOf(RegExp);
   });
   it('drops invalid regex', () => {
     expect(compileCustomPatterns([{ pattern: '[unclosed' }])).toEqual([]);

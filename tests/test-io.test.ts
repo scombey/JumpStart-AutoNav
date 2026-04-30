@@ -21,6 +21,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { JumpstartError } from '../src/lib/errors.js';
 import { parseToolArgs, readStdin, wrapTool, writeError, writeResult } from '../src/lib/io.js';
+import { expectDefined } from './_helpers.js';
 
 interface CapturedIO {
   stdout: string[];
@@ -67,6 +68,7 @@ describe('writeResult — byte-identical envelope vs legacy bin/lib/io.js', () =
     const { stdout } = captureIO();
     writeResult({ x: 1, y: 'two' });
     expect(stdout).toHaveLength(1);
+    expectDefined(stdout[0]);
     const line = stdout[0];
     expect(line.endsWith('\n')).toBe(true);
     const parsed = JSON.parse(line);
@@ -82,6 +84,7 @@ describe('writeResult — byte-identical envelope vs legacy bin/lib/io.js', () =
   it('honors pretty=true by indenting with 2 spaces', () => {
     const { stdout } = captureIO();
     writeResult({ x: 1 }, { pretty: true });
+    expectDefined(stdout[0]);
     expect(stdout[0]).toContain('\n  "ok": true,');
     expect(stdout[0].endsWith('}\n')).toBe(true);
   });
@@ -91,6 +94,7 @@ describe('writeResult — byte-identical envelope vs legacy bin/lib/io.js', () =
     // Spreading after ok+timestamp means caller fields override —
     // matches legacy `{ ok: true, timestamp: ..., ...result }`.
     writeResult({ ok: false } as Record<string, unknown>);
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.ok).toBe(false);
   });
@@ -102,6 +106,7 @@ describe('writeError — byte-identical envelope vs legacy bin/lib/io.js', () =>
     writeError('VALIDATION', 'bad input', { field: 'root' });
     expect(stdout).toHaveLength(0);
     expect(stderr).toHaveLength(1);
+    expectDefined(stderr[0]);
     const parsed = JSON.parse(stderr[0]);
     expect(parsed.ok).toBe(false);
     expect(typeof parsed.timestamp).toBe('string');
@@ -111,6 +116,7 @@ describe('writeError — byte-identical envelope vs legacy bin/lib/io.js', () =>
   it('terminates with a single newline (not two, not zero)', () => {
     const { stderr } = captureIO();
     writeError('X', 'y');
+    expectDefined(stderr[0]);
     expect(stderr[0].endsWith('\n')).toBe(true);
     expect(stderr[0].endsWith('\n\n')).toBe(false);
   });
@@ -203,6 +209,7 @@ describe('wrapTool — error contract divergence vs legacy', () => {
     }));
     setTTY(true);
     await tool({ name: 'Samuel' });
+    expectDefined(stdout[0]);
     const parsed = JSON.parse(stdout[0]);
     expect(parsed.ok).toBe(true);
     expect(parsed.greeting).toBe('hi Samuel');
@@ -222,6 +229,7 @@ describe('wrapTool — error contract divergence vs legacy', () => {
     await expect(tool({})).rejects.toBeInstanceOf(JumpstartError);
     expect(stdout).toHaveLength(0);
     expect(stderr).toHaveLength(1);
+    expectDefined(stderr[0]);
     const parsed = JSON.parse(stderr[0]);
     expect(parsed.ok).toBe(false);
     expect(parsed.error.code).toBe('TOOL_ERROR');
@@ -261,6 +269,7 @@ describe('wrapTool — error contract divergence vs legacy', () => {
       throw 'string-boom';
     });
     await expect(tool({})).rejects.toBeInstanceOf(JumpstartError);
+    expectDefined(stderr[0]);
     const parsed = JSON.parse(stderr[0]);
     expect(parsed.error.message).toBe('string-boom');
   });
@@ -297,6 +306,7 @@ describe('writeError — Adv-9 envelope shadow guard', () => {
     });
     // Pre-fix: details.code='OK' shadowed code='REAL_FAILURE'.
     writeError('REAL_FAILURE', 'real msg', { code: 'OK', message: 'wrong', extra: 'kept' });
+    expectDefined(stderr[0]);
     const parsed = JSON.parse(stderr[0]);
     expect(parsed.error.code).toBe('REAL_FAILURE');
     expect(parsed.error.message).toBe('real msg');

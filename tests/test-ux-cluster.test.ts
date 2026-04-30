@@ -42,6 +42,7 @@ import { answerStep, getWizardStatus, startWizard, WIZARDS } from '../src/lib/pr
 import { generateRoleSummary, generateView, listRoles, ROLES } from '../src/lib/role-views.js';
 import { createTimeline, EVENT_TYPES, loadTimeline, queryTimeline } from '../src/lib/timeline.js';
 import { captureInsight, startSession, WORKSHOP_TYPES } from '../src/lib/workshop-mode.js';
+import { expectDefined } from './_helpers.js';
 
 let tmpRoot: string;
 
@@ -85,6 +86,7 @@ describe('dashboard — findClarifications', () => {
     writeAt('specs/prd.md', '# PRD\n\n[NEEDS CLARIFICATION: define MVP scope]\n');
     const r = findClarifications(path.join(tmpRoot, 'specs'));
     expect(r.length).toBeGreaterThanOrEqual(1);
+    expectDefined(r[0]);
     expect(r[0].file).toContain('prd.md');
   });
 });
@@ -146,6 +148,7 @@ describe('timeline — createTimeline + recordEvent + persist', () => {
     expect(existsSync(tlPath)).toBe(true);
     const data = loadTimeline(tlPath);
     expect(data.events.length).toBe(1);
+    expectDefined(data.events[0]);
     expect(data.events[0].event_type).toBe('phase_start');
   });
 });
@@ -179,6 +182,7 @@ describe('timeline — ADR-012 redaction wiring', () => {
     });
     tl.flush();
     const data = loadTimeline(tlPath);
+    expectDefined(data.events[0]);
     expect(data.events[0].metadata).toMatchObject({ step: 'init', count: 3 });
   });
 });
@@ -298,6 +302,7 @@ describe('role-views — ROLES + generateView', () => {
   });
   it('generateView returns a result for a known role', () => {
     writeAt('specs/prd.md', '# PRD\n');
+    expectDefined(ROLES[0]);
     const view = generateView(tmpRoot, ROLES[0]);
     expect(view).toBeDefined();
   });
@@ -319,11 +324,13 @@ describe('promptless-mode — WIZARDS + startWizard', () => {
   });
   it('startWizard returns initial state', () => {
     const file = path.join(tmpRoot, 'wizard.json');
+    expectDefined(WIZARDS[0]);
     const r = startWizard(WIZARDS[0], { stateFile: file });
     expect(r).toBeDefined();
   });
   it('answerStep returns a result envelope', () => {
     const file = path.join(tmpRoot, 'wizard.json');
+    expectDefined(WIZARDS[0]);
     startWizard(WIZARDS[0], { stateFile: file });
     const r = answerStep(WIZARDS[0], 'an answer', { stateFile: file });
     expect(r).toBeDefined();
