@@ -42,6 +42,7 @@ import { join, resolve } from 'node:path';
 import { buildFromSpecs, getCoverage } from './graph.js';
 import { runAllChecks as specTesterRunAllChecks } from './spec-tester.js';
 import { computeCoverage as coverageComputeCoverage } from './coverage.js';
+import { isArtifactApproved as handoffIsArtifactApproved } from './handoff.js';
 import { loadState } from './state-store.js';
 import { getTimelineSummary } from './timeline.js';
 import { summarizeUsage } from './usage.js';
@@ -191,14 +192,8 @@ interface SpecTesterModule {
 // the catch now rebinds via a debug-only logger so a regression surfaces
 // when DEBUG=1.
 async function loadHandoffSibling(): Promise<HandoffModule | null> {
-  try {
-    // @ts-expect-error legacy ESM module without .d.mts companion (M11 cleanup)
-    const mod = (await import('../../bin/lib/handoff.mjs')) as HandoffModule;
-    return mod;
-  } catch (err) {
-    if (process.env.DEBUG) console.error('[dashboard] handoff sibling unavailable:', err);
-    return null;
-  }
+  // M11 batch7: handoff is now a TS port -- return a thin wrapper.
+  return { isArtifactApproved: (content) => handoffIsArtifactApproved(content) };
 }
 
 async function loadNextPhaseSibling(): Promise<NextPhaseModule | null> {
