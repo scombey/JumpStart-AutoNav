@@ -52,6 +52,11 @@ import {
   renderMarkdown as renderTimelineMarkdown,
   type TimelineFilters,
 } from '../../lib/timeline.js';
+import {
+  buildQuickstartConfig as qsBuildConfig,
+  applyConfigPatches as qsApplyConfigPatches,
+  generateQuickstartSummary as qsGenerateSummary,
+} from '../../lib/quickstart.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { asRest, hasFlag, parseFlag, safeJoin } from './_helpers.js';
 
@@ -361,32 +366,6 @@ export interface QuickstartArgs {
   ceremony?: string | undefined;
 }
 
-interface QuickstartLib {
-  DOMAIN_OPTIONS: { value: string; title: string; description: string }[];
-  CEREMONY_OPTIONS: { value: string; title: string; description: string }[];
-  buildQuickstartConfig: (answers: {
-    projectName?: string | null | undefined;
-    projectType?: string | undefined;
-    domain?: string | undefined;
-    customDomain?: string | null | undefined;
-    ceremony?: string | undefined;
-    targetDir?: string | undefined;
-  }) => {
-    targetDir: string;
-    projectName: string | null;
-    projectType: string;
-    domain: string;
-    ceremony: string;
-    [key: string]: unknown;
-  };
-  generateQuickstartSummary: (config: unknown) => {
-    lines: string[];
-    firstCommand: string;
-    firstMessage: string;
-  };
-  applyConfigPatches: (content: string, config: unknown) => string;
-}
-
 const VALID_QUICKSTART_TYPES = new Set(['greenfield', 'brownfield']);
 const VALID_QUICKSTART_CEREMONIES = new Set(['light', 'standard', 'rigorous']);
 
@@ -430,11 +409,8 @@ export async function quickstartImpl(deps: Deps, args: QuickstartArgs): Promise<
     return { exitCode: 1 };
   }
 
-  const lib = (await import(
-    path.join(deps.projectRoot, 'bin', 'lib', 'quickstart.js')
-  )) as QuickstartLib;
-
-  const qsConfig = lib.buildQuickstartConfig({
+  // M11 batch7: quickstart is now a TS port — use direct imports.
+  const qsConfig = qsBuildConfig({
     projectName: args.name,
     projectType: args.type,
     domain: args.domain,
@@ -447,11 +423,11 @@ export async function quickstartImpl(deps: Deps, args: QuickstartArgs): Promise<
   const configPath = safeJoin(deps, '.jumpstart', 'config.yaml');
   if (existsSync(configPath)) {
     const content = readFileSync(configPath, 'utf8');
-    const patched = lib.applyConfigPatches(content, qsConfig);
+    const patched = qsApplyConfigPatches(content, qsConfig);
     writeFileSync(configPath, patched, 'utf8');
   }
 
-  const summary = lib.generateQuickstartSummary(qsConfig);
+  const summary = qsGenerateSummary(qsConfig);
   deps.logger.success('JumpStart initialized!');
   for (const line of summary.lines) deps.logger.info(`  ${line}`);
   deps.logger.info(`  ▶ Type ${summary.firstCommand} to begin!`);
