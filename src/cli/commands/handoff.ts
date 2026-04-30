@@ -24,6 +24,7 @@ import { writeResult } from '../../lib/io.js';
 import { generateCoverageReport } from '../../lib/coverage.js';
 import { checkBoundaries } from '../../lib/boundary-check.js';
 import { runLint as lintRunnerRunLint } from '../../lib/lint-runner.js';
+import { loadAllModules as moduleLoaderLoadAllModules } from '../../lib/module-loader.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import {
   assertUserPath,
@@ -316,12 +317,10 @@ export const diffCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function modulesImpl(deps: Deps): CommandResult {
-  const { loadAllModules } = legacyRequire<{
-    loadAllModules: (dir: string) => Record<string, unknown>;
-  }>('module-loader');
+  // M11 batch7: module-loader is now a TS port — use direct import.
   const modulesDir = safeJoin(deps, '.jumpstart', 'modules');
-  const result = loadAllModules(modulesDir);
-  writeResult(result);
+  const result = moduleLoaderLoadAllModules(modulesDir);
+  writeResult(result as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
