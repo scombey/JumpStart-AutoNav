@@ -22,6 +22,7 @@ import { existsSync } from 'node:fs';
 import { defineCommand } from 'citty';
 import { writeResult } from '../../lib/io.js';
 import { generateCoverageReport } from '../../lib/coverage.js';
+import { checkBoundaries } from '../../lib/boundary-check.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import {
   assertUserPath,
@@ -234,12 +235,9 @@ export const regulatoryCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function boundariesImpl(deps: Deps): CommandResult {
-  const { checkBoundaries } = legacyRequire<{
-    checkBoundaries: (specsDir: string) => Record<string, unknown>;
-  }>('boundary-check');
-  const specsDir = safeJoin(deps, 'specs');
-  const result = checkBoundaries(specsDir);
-  writeResult(result);
+  const root = deps.projectRoot;
+  const result = checkBoundaries({ root });
+  writeResult(result as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
