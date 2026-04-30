@@ -29,56 +29,136 @@
  */
 
 import { defineCommand } from 'citty';
+import * as adrIndex from '../../lib/adr-index.js';
+import * as aiEvaluation from '../../lib/ai-evaluation.js';
+import * as artifactComparison from '../../lib/artifact-comparison.js';
+import * as backlogSync from '../../lib/backlog-sync.js';
+import * as bcdrPlanning from '../../lib/bcdr-planning.js';
+import * as branchWorkflow from '../../lib/branch-workflow.js';
+import * as cabOutput from '../../lib/cab-output.js';
+import * as chatIntegration from '../../lib/chat-integration.js';
+import * as ciCdIntegration from '../../lib/ci-cd-integration.js';
+import * as collaboration from '../../lib/collaboration.js';
+import * as compliancePacks from '../../lib/compliance-packs.js';
+import * as contextOnboarding from '../../lib/context-onboarding.js';
+import * as credentialBoundary from '../../lib/credential-boundary.js';
+import * as dataClassification from '../../lib/data-classification.js';
+import * as dataContracts from '../../lib/data-contracts.js';
+import * as dbEvolution from '../../lib/db-evolution.js';
+import * as decisionConflicts from '../../lib/decision-conflicts.js';
+import * as deliveryConfidence from '../../lib/delivery-confidence.js';
+import * as dependencyUpgrade from '../../lib/dependency-upgrade.js';
+import * as designSystem from '../../lib/design-system.js';
+import * as diagramStudio from '../../lib/diagram-studio.js';
+import * as eaReviewPacket from '../../lib/ea-review-packet.js';
+import * as estimationStudio from '../../lib/estimation-studio.js';
+import * as evidenceCollector from '../../lib/evidence-collector.js';
+import * as governanceDashboard from '../../lib/governance-dashboard.js';
 import * as guidedHandoff from '../../lib/guided-handoff.js';
+import * as incidentFeedback from '../../lib/incident-feedback.js';
+import { writeResult as ioWriteResult } from '../../lib/io.js';
+import * as opsOwnership from '../../lib/ops-ownership.js';
+import * as playbackSummaries from '../../lib/playback-summaries.js';
+import * as policyEngine from '../../lib/policy-engine.js';
 import * as portfolioReporting from '../../lib/portfolio-reporting.js';
+import * as raciMatrix from '../../lib/raci-matrix.js';
+import * as repoGraph from '../../lib/repo-graph.js';
 import * as requirementsBaseline from '../../lib/requirements-baseline.js';
 import * as legacyRevert from '../../lib/revert.js';
+import * as riskRegister from '../../lib/risk-register.js';
+import * as roleApproval from '../../lib/role-approval.js';
+import * as roleViews from '../../lib/role-views.js';
 import * as rootCauseAnalysis from '../../lib/root-cause-analysis.js';
 import * as runtimeDebugger from '../../lib/runtime-debugger.js';
+import * as safeRename from '../../lib/safe-rename.js';
 import * as scanner from '../../lib/scanner.js';
 import * as semanticDiff from '../../lib/semantic-diff.js';
 import * as slaSlo from '../../lib/sla-slo.js';
 import * as specComments from '../../lib/spec-comments.js';
 import * as specMaturity from '../../lib/spec-maturity.js';
 import * as sreIntegration from '../../lib/sre-integration.js';
+import * as structuredElicitation from '../../lib/structured-elicitation.js';
 import * as telemetryFeedback from '../../lib/telemetry-feedback.js';
 import * as testGenerator from '../../lib/test-generator.js';
 import * as legacyTimestamps from '../../lib/timestamps.js';
 import * as toolGuardrails from '../../lib/tool-guardrails.js';
 import * as transcriptIngestion from '../../lib/transcript-ingestion.js';
+import * as vendorRisk from '../../lib/vendor-risk.js';
+import * as waiverWorkflow from '../../lib/waiver-workflow.js';
 import * as webDashboard from '../../lib/web-dashboard.js';
+import * as workshopMode from '../../lib/workshop-mode.js';
+import * as workstreamOwnership from '../../lib/workstream-ownership.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { assertUserPath, legacyImport, legacyRequire, safeJoin } from './_helpers.js';
+import { assertUserPath, safeJoin } from './_helpers.js';
 
-/** Static import map for M11 batch-6 TS ports (replaces legacyRequire for these 16). */
+/** Static import map for all TS-ported cleanup-cluster modules. */
 // biome-ignore lint/suspicious/noExplicitAny: <TS port modules have mixed return shapes>
 const TS_PORTS: Record<string, Record<string, any>> = {
+  'adr-index': adrIndex,
+  'ai-evaluation': aiEvaluation,
+  'artifact-comparison': artifactComparison,
+  'backlog-sync': backlogSync,
+  'bcdr-planning': bcdrPlanning,
+  'branch-workflow': branchWorkflow,
+  'cab-output': cabOutput,
+  'chat-integration': chatIntegration,
+  'ci-cd-integration': ciCdIntegration,
+  collaboration: collaboration,
+  'compliance-packs': compliancePacks,
+  'context-onboarding': contextOnboarding,
+  'credential-boundary': credentialBoundary,
+  'data-classification': dataClassification,
+  'data-contracts': dataContracts,
+  'db-evolution': dbEvolution,
+  'decision-conflicts': decisionConflicts,
+  'delivery-confidence': deliveryConfidence,
+  'dependency-upgrade': dependencyUpgrade,
+  'design-system': designSystem,
+  'diagram-studio': diagramStudio,
+  'ea-review-packet': eaReviewPacket,
+  'estimation-studio': estimationStudio,
+  'evidence-collector': evidenceCollector,
+  'governance-dashboard': governanceDashboard,
   'guided-handoff': guidedHandoff,
+  'incident-feedback': incidentFeedback,
+  'ops-ownership': opsOwnership,
+  'playback-summaries': playbackSummaries,
+  'policy-engine': policyEngine,
   'portfolio-reporting': portfolioReporting,
+  'raci-matrix': raciMatrix,
+  'repo-graph': repoGraph,
   'requirements-baseline': requirementsBaseline,
+  'risk-register': riskRegister,
+  'role-approval': roleApproval,
+  'role-views': roleViews,
   'root-cause-analysis': rootCauseAnalysis,
   'runtime-debugger': runtimeDebugger,
+  'safe-rename': safeRename,
   scanner: scanner,
   'semantic-diff': semanticDiff,
   'sla-slo': slaSlo,
   'spec-comments': specComments,
   'spec-maturity': specMaturity,
   'sre-integration': sreIntegration,
+  'structured-elicitation': structuredElicitation,
   'telemetry-feedback': telemetryFeedback,
   'test-generator': testGenerator,
   'tool-guardrails': toolGuardrails,
   'transcript-ingestion': transcriptIngestion,
+  'vendor-risk': vendorRisk,
+  'waiver-workflow': waiverWorkflow,
   'web-dashboard': webDashboard,
+  'workshop-mode': workshopMode,
+  'workstream-ownership': workstreamOwnership,
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: <legacy lib runtime shapes>
 type LegacyLib = Record<string, any>;
 
-/** Helper: write result via legacy io.writeResult when --json mode is on. */
+/** Helper: write result via io.writeResult when --json mode is on. */
 function maybeJson(_deps: Deps, json: boolean | undefined, result: unknown): void {
   if (!json) return;
-  const io = legacyRequire<{ writeResult: (r: unknown) => void }>('io');
-  io.writeResult(result);
+  ioWriteResult(result as Record<string, unknown>);
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -92,18 +172,16 @@ export interface AdrArgs {
   json?: boolean | undefined;
 }
 
-export async function adrImpl(deps: Deps, args: AdrArgs): Promise<CommandResult> {
-  // M9 ESM cutover: adr-index is now an ESM legacy module
-  // (`bin/lib/adr-index.mjs`). require() can't load .mjs synchronously,
-  // so this impl uses the async `legacyImport` variant.
-  const lib = await legacyImport<LegacyLib>('adr-index');
+export function adrImpl(deps: Deps, args: AdrArgs): CommandResult {
+  // M11 phase-5c: switched from `legacyImport('adr-index')` to the static
+  // TS port import. `searchIndex(root, criteria)` supersedes the old
+  // `searchIndex(index, query, {tag})` shape.
   const action = args.action ?? 'build';
   let result: unknown;
   if (action === 'search') {
-    const index = lib.buildIndex(deps.projectRoot);
-    result = lib.searchIndex(index, args.query ?? '', { tag: args.tag });
+    result = adrIndex.searchIndex(deps.projectRoot, { query: args.query, tag: args.tag });
   } else {
-    result = lib.buildIndex(deps.projectRoot);
+    result = adrIndex.buildIndex(deps.projectRoot);
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`ADR Index: ${action}`);
@@ -118,8 +196,8 @@ export const adrCommand = defineCommand({
     tag: { type: 'string', required: false, description: 'filter by tag' },
     json: { type: 'boolean', required: false, description: 'JSON output' },
   },
-  async run({ args }) {
-    const r = await adrImpl(createRealDeps(), {
+  run({ args }) {
+    const r = adrImpl(createRealDeps(), {
       action: args.action,
       query: args.query,
       tag: args.tag,
@@ -140,20 +218,22 @@ export interface AiEvaluationArgs {
 }
 
 export function aiEvaluationImpl(deps: Deps, args: AiEvaluationArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('ai-evaluation');
+  // M11 phase-5c: switched from `legacyRequire('ai-evaluation')` to static import.
+  // M11 phase-5c: switched from `legacyRequire('ai-evaluation')` to static import.
+  // Port API: evaluate(name, scores, options) / generateReport(options).
+  // Legacy called runEvaluation/addTestCase/listEvaluations (phantom methods) —
+  // adapted: all paths now use generateReport to list/status; no write-path exposed.
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'ai-evaluation.json');
   const action = args.action ?? 'list';
   let result: unknown;
-  if (action === 'run') {
-    result = lib.runEvaluation?.(deps.projectRoot, { stateFile });
-  } else if (action === 'add') {
-    if (!args.arg) {
+  if (action === 'run' || action === 'add') {
+    if (action === 'add' && !args.arg) {
       deps.logger.error('Usage: jumpstart-mode ai-evaluation add <name>');
       return { exitCode: 1 };
     }
-    result = lib.addTestCase?.({ name: args.arg }, { stateFile });
+    result = aiEvaluation.generateReport({ stateFile });
   } else {
-    result = lib.listEvaluations?.({ stateFile }) ?? lib.list?.({ stateFile });
+    result = aiEvaluation.generateReport({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`AI evaluation: ${action}`);
@@ -189,7 +269,7 @@ export interface ArtifactComparisonArgs {
 }
 
 export function artifactComparisonImpl(deps: Deps, args: ArtifactComparisonArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('artifact-comparison');
+  // M11 phase-5c: switched from `legacyRequire('artifact-comparison')` to static import.
   const action = args.action ?? 'compare';
   let result: unknown;
   if (action === 'compare') {
@@ -199,9 +279,9 @@ export function artifactComparisonImpl(deps: Deps, args: ArtifactComparisonArgs)
     }
     const safeA = assertUserPath(deps, args.a, 'artifact-comparison:a');
     const safeB = assertUserPath(deps, args.b, 'artifact-comparison:b');
-    result = lib.compareArtifacts?.(safeA, safeB) ?? lib.compare?.(safeA, safeB);
+    result = artifactComparison.compareArtifacts(safeA, safeB);
   } else {
-    result = lib.list?.(deps.projectRoot) ?? {};
+    result = artifactComparison.getArtifactHistory(deps.projectRoot, '');
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Artifact comparison: ${action}`);
@@ -238,14 +318,15 @@ export interface BacklogSyncArgs {
 }
 
 export function backlogSyncImpl(deps: Deps, args: BacklogSyncArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('backlog-sync');
-  const stateFile = safeJoin(deps, '.jumpstart', 'state', 'backlog-sync.json');
+  // M11 phase-5c: switched from `legacyRequire('backlog-sync')` to static import.
+  // Port exports: extractBacklog, exportBacklog, formatForTarget.
+  // Legacy called syncBacklog/getBacklogStatus — adapted to port API.
   const action = args.action ?? 'status';
   let result: unknown;
   if (action === 'sync') {
-    result = lib.syncBacklog?.(deps.projectRoot, { stateFile });
+    result = backlogSync.extractBacklog(deps.projectRoot);
   } else {
-    result = lib.getBacklogStatus?.({ stateFile }) ?? lib.status?.({ stateFile });
+    result = backlogSync.extractBacklog(deps.projectRoot);
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Backlog sync: ${action}`);
@@ -281,17 +362,17 @@ export interface BranchWorkflowArgs {
 }
 
 export function branchWorkflowImpl(deps: Deps, args: BranchWorkflowArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('branch-workflow');
+  // M11 phase-5c: switched from `legacyRequire('branch-workflow')` to static import.
   const action = args.action ?? 'status';
   let result: unknown;
   if (action === 'track') {
-    result = lib.trackBranch?.(deps.projectRoot, {
+    result = branchWorkflow.trackBranch(deps.projectRoot, {
       pr_number: args.pr ? parseInt(args.pr, 10) : undefined,
     });
   } else if (action === 'sync') {
-    result = lib.listTrackedBranches?.();
+    result = branchWorkflow.listTrackedBranches();
   } else {
-    result = lib.getBranchStatus?.(deps.projectRoot, { branch: args.branch });
+    result = branchWorkflow.getBranchStatus(deps.projectRoot, { branch: args.branch });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Branch workflow: ${action}`);
@@ -345,10 +426,9 @@ function thinWrapper(cfg: ThinWrapperConfig): {
   command: any;
 } {
   const impl = (deps: Deps, args: ThinWrapperArgs): CommandResult => {
-    // M11 batch-6: prefer static TS port; fall back to legacyRequire for
-    // any module not yet ported (the ?? branch is effectively dead for the
-    // 16 modules wired in TS_PORTS, but kept for soft-fail safety).
-    const lib: LegacyLib = TS_PORTS[cfg.legacyLib] ?? legacyRequire<LegacyLib>(cfg.legacyLib);
+    // M11 phase-5c: all cluster modules now have TS ports wired in TS_PORTS.
+    // biome-ignore lint/style/noNonNullAssertion: TS_PORTS covers every legacyLib used below
+    const lib: LegacyLib = TS_PORTS[cfg.legacyLib]!;
     const action = args.action ?? cfg.defaultAction;
     const methodCandidates = cfg.actions[action] ?? cfg.actions[cfg.defaultAction] ?? [];
     let result: unknown = {};
