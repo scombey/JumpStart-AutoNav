@@ -30,6 +30,7 @@ import { generateAuditReport } from '../../lib/freshness-gate.js';
 import { generateReport as generateInvariantsReport } from '../../lib/invariants-check.js';
 import { shouldShard, extractEpics, generateShard, generateIndex } from '../../lib/sharder.js';
 import { check as simplicityCheck } from '../../lib/simplicity-gate.js';
+import { checkForChanges as templateCheckForChanges } from '../../lib/template-watcher.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -314,21 +315,15 @@ export const invariantsCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function templateCheckImpl(deps: Deps): CommandResult {
-  const watcher = legacyRequire<{
-    checkForChanges: (
-      templatesDir: string,
-      snapshotPath: string
-    ) => { template: string; changeType: string }[];
-  }>('template-watcher');
   const templatesDir = safeJoin(deps, '.jumpstart', 'templates');
   const snapshotPath = safeJoin(deps, '.jumpstart', 'state', 'template-snapshot.json');
-  const changes = watcher.checkForChanges(templatesDir, snapshotPath);
-  if (changes.length === 0) {
+  const result = templateCheckForChanges(templatesDir, snapshotPath);
+  if (!result.changed) {
     deps.logger.success('All templates unchanged.');
     return { exitCode: 0 };
   }
-  deps.logger.warn(`${changes.length} template(s) changed:`);
-  for (const c of changes) deps.logger.warn(`  ${c.template}: ${c.changeType}`);
+  deps.logger.warn(`${result.warnings.length} template(s) changed:`);
+  for (const w of result.warnings) deps.logger.warn(`  ${w}`);
   return { exitCode: 0 };
 }
 
