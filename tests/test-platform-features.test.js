@@ -18,9 +18,16 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
+import * as bidirectionalTraceLib from '../src/lib/bidirectional-trace.js';
+import * as branchWorkflowLib from '../src/lib/branch-workflow.js';
+import * as impactAnalysisLib from '../src/lib/impact-analysis.js';
+import * as multiRepoLib from '../src/lib/multi-repo.js';
+import * as parallelAgentsLib from '../src/lib/parallel-agents.js';
+import * as policyEngineLib from '../src/lib/policy-engine.js';
+import * as prPackageLib from '../src/lib/pr-package.js';
+import * as projectMemoryLib from '../src/lib/project-memory.js';
+import * as repoGraphLib from '../src/lib/repo-graph.js';
+import * as roleApprovalLib from '../src/lib/role-approval.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -48,7 +55,7 @@ describe('multi-repo', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/multi-repo');
+  const lib = () => multiRepoLib;
 
   it('initProgram creates a new program', () => {
     const r = lib().initProgram('MyProgram', opts);
@@ -151,7 +158,7 @@ describe('bidirectional-trace', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/bidirectional-trace');
+  const lib = () => bidirectionalTraceLib;
 
   it('scanTraceLinks finds forward and reverse maps', () => {
     const result = lib().scanTraceLinks(tmp);
@@ -220,7 +227,7 @@ describe('impact-analysis', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/impact-analysis');
+  const lib = () => impactAnalysisLib;
 
   it('analyzeImpact returns success for a file target', () => {
     const r = lib().analyzeImpact(tmp, { file: 'src/auth.service.js' });
@@ -284,7 +291,7 @@ describe('repo-graph', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/repo-graph');
+  const lib = () => repoGraphLib;
 
   it('buildRepoGraph returns node and edge counts', () => {
     const graphFile = path.join(tmp, '.jumpstart', 'state', 'repo-graph.json');
@@ -366,7 +373,7 @@ describe('project-memory', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/project-memory');
+  const lib = () => projectMemoryLib;
 
   it('addMemory creates an entry', () => {
     const r = lib().addMemory({ type: 'decision', title: 'Use REST', content: 'We chose REST over gRPC.' }, opts);
@@ -455,7 +462,7 @@ describe('policy-engine', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/policy-engine');
+  const lib = () => policyEngineLib;
 
   it('addPolicy creates a rule', () => {
     const r = lib().addPolicy({
@@ -551,7 +558,7 @@ describe('branch-workflow', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/branch-workflow');
+  const lib = () => branchWorkflowLib;
 
   it('trackBranch creates a branch entry', () => {
     const r = lib().trackBranch(tmp, { branch: 'feature/test', ...opts });
@@ -615,7 +622,7 @@ describe('pr-package', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/pr-package');
+  const lib = () => prPackageLib;
 
   it('createPRPackage creates a markdown file', () => {
     const r = lib().createPRPackage({
@@ -693,7 +700,7 @@ describe('parallel-agents', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/parallel-agents');
+  const lib = () => parallelAgentsLib;
 
   it('scheduleRun creates a run with all default agents', () => {
     const r = lib().scheduleRun([], { root: tmp }, opts);
@@ -781,7 +788,7 @@ describe('role-approval', () => {
   });
   afterEach(() => rmTmpDir(tmp));
 
-  const lib = () => require('../bin/lib/role-approval');
+  const lib = () => roleApprovalLib;
 
   it('assignApprovers creates a workflow', () => {
     const r = lib().assignApprovers('specs/prd.md', [

@@ -7,9 +7,75 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
+import {
+  evaluate,
+  configureBenchmark,
+  EVAL_DIMENSIONS,
+  generateReport as aiReport,
+} from '../src/lib/ai-evaluation.js';
+import {
+  registerContract,
+  validateCompatibility,
+  trackLineage,
+  generateReport as contractReport,
+  COMPATIBILITY_MODES,
+} from '../src/lib/data-contracts.js';
+import {
+  defineElement,
+  queryOntology,
+  generateReport as ontologyReport,
+  ELEMENT_TYPES,
+} from '../src/lib/domain-ontology.js';
+import { indexProject, searchProject, SEARCHABLE_TYPES } from '../src/lib/enterprise-search.js';
+import {
+  defineTopic,
+  defineEvent,
+  defineSaga,
+  generateReport as eventReport,
+  EVENT_TYPES,
+} from '../src/lib/event-modeling.js';
+import {
+  addNode,
+  addEdge,
+  queryGraph,
+  generateReport as kgReport,
+  NODE_TYPES,
+  EDGE_TYPES,
+} from '../src/lib/knowledge-graph.js';
+import {
+  registerPattern,
+  searchPatterns,
+  listPatterns,
+  PATTERN_CATEGORIES,
+} from '../src/lib/pattern-library.js';
+import {
+  registerTemplate,
+  listTemplates,
+  instantiateTemplate,
+  generateReport as platformReport,
+  TEMPLATE_TYPES,
+} from '../src/lib/platform-engineering.js';
+import {
+  registerAsset,
+  addVersion,
+  approveVersion,
+  listAssets,
+  ASSET_TYPES,
+} from '../src/lib/prompt-governance.js';
+import {
+  generateMonitor,
+  generateAlert,
+  generateRunbook,
+  configureErrorBudget,
+  MONITOR_TYPES,
+  ALERT_SEVERITIES,
+} from '../src/lib/sre-integration.js';
+import {
+  ingestMetric,
+  analyzeMetrics,
+  generateFeedbackReport,
+  METRIC_TYPES,
+} from '../src/lib/telemetry-feedback.js';
 
 function createTempProject() {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jumpstart-enterprise-'));
@@ -22,61 +88,6 @@ function createTempProject() {
 function cleanup(tmpDir) {
   fs.rmSync(tmpDir, { recursive: true, force: true });
 }
-
-// --- Module imports ---
-const {
-  addNode, addEdge, queryGraph, generateReport: kgReport,
-  NODE_TYPES, EDGE_TYPES
-} = require('../bin/lib/knowledge-graph');
-
-const {
-  registerPattern, searchPatterns, listPatterns,
-  PATTERN_CATEGORIES
-} = require('../bin/lib/pattern-library');
-
-const {
-  defineElement, queryOntology, generateReport: ontologyReport,
-  ELEMENT_TYPES
-} = require('../bin/lib/domain-ontology');
-
-const {
-  registerContract, validateCompatibility, trackLineage,
-  generateReport: contractReport, COMPATIBILITY_MODES
-} = require('../bin/lib/data-contracts');
-
-const {
-  defineTopic, defineEvent, defineSaga,
-  generateReport: eventReport, EVENT_TYPES
-} = require('../bin/lib/event-modeling');
-
-const {
-  registerTemplate, listTemplates, instantiateTemplate,
-  generateReport: platformReport, TEMPLATE_TYPES
-} = require('../bin/lib/platform-engineering');
-
-const {
-  evaluate, generateReport: aiReport, configureBenchmark,
-  EVAL_DIMENSIONS
-} = require('../bin/lib/ai-evaluation');
-
-const {
-  registerAsset, addVersion, approveVersion, listAssets,
-  ASSET_TYPES
-} = require('../bin/lib/prompt-governance');
-
-const {
-  generateMonitor, generateAlert, generateRunbook, configureErrorBudget,
-  MONITOR_TYPES, ALERT_SEVERITIES
-} = require('../bin/lib/sre-integration');
-
-const {
-  ingestMetric, analyzeMetrics, generateFeedbackReport,
-  METRIC_TYPES
-} = require('../bin/lib/telemetry-feedback');
-
-const {
-  indexProject, searchProject, SEARCHABLE_TYPES
-} = require('../bin/lib/enterprise-search');
 
 // ============================================================
 // Item 81 — Knowledge Graph

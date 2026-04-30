@@ -20,9 +20,18 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
+import * as ambiguityHeatmapLib from '../src/lib/ambiguity-heatmap.js';
+import * as artifactComparisonLib from '../src/lib/artifact-comparison.js';
+import * as chatIntegrationLib from '../src/lib/chat-integration.js';
+import * as contextOnboardingLib from '../src/lib/context-onboarding.js';
+import * as designSystemLib from '../src/lib/design-system.js';
+import * as diagramStudioLib from '../src/lib/diagram-studio.js';
+import * as estimationStudioLib from '../src/lib/estimation-studio.js';
+import * as guidedHandoffLib from '../src/lib/guided-handoff.js';
+import * as personaPacksLib from '../src/lib/persona-packs.js';
+import * as promptlessModeLib from '../src/lib/promptless-mode.js';
+import * as transcriptIngestionLib from '../src/lib/transcript-ingestion.js';
+import * as workstreamOwnershipLib from '../src/lib/workstream-ownership.js';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -51,7 +60,7 @@ describe('design-system', () => {
   });
   afterEach(() => cleanupTempDir(tmp));
 
-  const lib = () => require('../bin/lib/design-system');
+  const lib = () => designSystemLib;
 
   it('registerTokens stores tokens for a valid category', () => {
     const tokens = { primary: '#0066cc', secondary: '#ff9900' };
@@ -90,7 +99,7 @@ describe('design-system', () => {
 // ─── 2. Diagram Studio (Item 70) ───────────────────────────────────────────
 
 describe('diagram-studio', () => {
-  const lib = () => require('../bin/lib/diagram-studio');
+  const lib = () => diagramStudioLib;
 
   it('generateDiagram returns a template for a known type', () => {
     const r = lib().generateDiagram('sequence');
@@ -140,7 +149,7 @@ describe('ambiguity-heatmap', () => {
   beforeEach(() => { tmp = createTempDir(); });
   afterEach(() => cleanupTempDir(tmp));
 
-  const lib = () => require('../bin/lib/ambiguity-heatmap');
+  const lib = () => ambiguityHeatmapLib;
 
   it('scanAmbiguity finds vague language', () => {
     const text = 'The system should be robust and scalable.\nIt must handle large scale traffic.';
@@ -187,7 +196,7 @@ describe('estimation-studio', () => {
   });
   afterEach(() => cleanupTempDir(tmp));
 
-  const lib = () => require('../bin/lib/estimation-studio');
+  const lib = () => estimationStudioLib;
 
   it('estimateFeature creates an estimate with ROM cost', () => {
     const r = lib().estimateFeature('Login Page', 'M', opts);
@@ -223,7 +232,7 @@ describe('estimation-studio', () => {
 // ─── 5. Guided Handoff (Item 73) ───────────────────────────────────────────
 
 describe('guided-handoff', () => {
-  const lib = () => require('../bin/lib/guided-handoff');
+  const lib = () => guidedHandoffLib;
 
   it('generateHandoff creates a handoff package with missing items', () => {
     const r = lib().generateHandoff('product-to-engineering', '/tmp');
@@ -269,7 +278,7 @@ describe('transcript-ingestion', () => {
   });
   afterEach(() => cleanupTempDir(tmp));
 
-  const lib = () => require('../bin/lib/transcript-ingestion');
+  const lib = () => transcriptIngestionLib;
 
   it('ingestTranscript extracts actions and decisions', () => {
     const text = [
@@ -320,7 +329,7 @@ describe('chat-integration', () => {
   });
   afterEach(() => cleanupTempDir(tmp));
 
-  const lib = () => require('../bin/lib/chat-integration');
+  const lib = () => chatIntegrationLib;
 
   it('configure sets up a platform integration', () => {
     const r = lib().configure('slack', { channel: '#dev', ...opts });
@@ -362,7 +371,7 @@ describe('context-onboarding', () => {
   beforeEach(() => { tmp = createTempDir(); });
   afterEach(() => cleanupTempDir(tmp));
 
-  const lib = () => require('../bin/lib/context-onboarding');
+  const lib = () => contextOnboardingLib;
 
   it('generateOnboarding creates an onboarding package', () => {
     fs.writeFileSync(path.join(tmp, 'specs', 'decisions', 'adr-001.md'), '# ADR-001');
@@ -411,7 +420,7 @@ describe('promptless-mode', () => {
   });
   afterEach(() => cleanupTempDir(tmp));
 
-  const lib = () => require('../bin/lib/promptless-mode');
+  const lib = () => promptlessModeLib;
 
   it('startWizard creates a session with steps', () => {
     const r = lib().startWizard('new-project', opts);
@@ -457,7 +466,7 @@ describe('artifact-comparison', () => {
   beforeEach(() => { tmp = createTempDir(); });
   afterEach(() => cleanupTempDir(tmp));
 
-  const lib = () => require('../bin/lib/artifact-comparison');
+  const lib = () => artifactComparisonLib;
 
   it('compareArtifacts detects added and removed sections', () => {
     const a = '# Overview\nFirst version.\n# Scope\nSmall scope.';
@@ -509,7 +518,7 @@ describe('workstream-ownership', () => {
   });
   afterEach(() => cleanupTempDir(tmp));
 
-  const lib = () => require('../bin/lib/workstream-ownership');
+  const lib = () => workstreamOwnershipLib;
 
   it('defineWorkstream creates a named workstream', () => {
     const r = lib().defineWorkstream('Auth Service', { team: 'Platform', owner: 'alice', ...opts });
@@ -550,7 +559,7 @@ describe('workstream-ownership', () => {
 // ─── 12. Persona Packs (Item 80) ───────────────────────────────────────────
 
 describe('persona-packs', () => {
-  const lib = () => require('../bin/lib/persona-packs');
+  const lib = () => personaPacksLib;
 
   it('listPersonas returns all enterprise personas', () => {
     const r = lib().listPersonas();
