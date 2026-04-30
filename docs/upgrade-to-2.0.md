@@ -1,19 +1,21 @@
-# Upgrading to jumpstart-mode 2.0
+# Upgrading to @scombey/jumpstart-mode 2.0
 
 This guide covers the 1.x → 2.0 upgrade path. The 2.0 release is a TypeScript rewrite executed as a strangler-fig migration — every 1.x feature is preserved by name and behavior; only the underlying language, runtime, and module system change.
 
-> **Status**: this document is **provisional** while 2.0 is in late-stage development. The bullet shapes are stable; the version pins (e.g., 2.0.0-rc.1) are placeholders until M9 ships. See [T6.4 in implementation-plan.md](../specs/implementation-plan.md).
+> **Status**: 2.0.0-rc.1 is shipping under the `next` dist-tag. The `latest` tag promotes after a ≥14-day soak window with zero filed issues. Until then, install with `@next` to opt in. See [#12 RC Soak](https://github.com/scombey/JumpStart-AutoNav/issues/12) for the promotion criteria.
+>
+> **Package name change (1.x → 2.0)**: published as `@scombey/jumpstart-mode` per [ADR-008 path (c)](../specs/decisions/adr-008-package-publishing-strategy.md). The 1.x line under the bare `jumpstart-mode` name continues to receive security patches.
 
 ## Quick checklist
 
 ```
 ✓ Node.js ≥24.0.0 installed (Active LTS through 2028-04-30)
-✓ ESM-aware tooling — your project either uses "type": "module" already or invokes the CLI directly (npx jumpstart-mode ...)
+✓ ESM-aware tooling — your project either uses "type": "module" already or invokes the CLI directly (npx @scombey/jumpstart-mode ...)
 ✓ No deep imports of bin/lib/*.js (those move under dist/lib/* — see "Breaking changes" below)
-✓ Updated lockfile (npm install jumpstart-mode@latest after 2.0 promotion)
+✓ Updated lockfile (npm install @scombey/jumpstart-mode@latest after 2.0 promotion)
 ```
 
-If all four are green, the upgrade is `npm install jumpstart-mode@latest` and re-run.
+If all four are green, the upgrade is `npm install @scombey/jumpstart-mode@next` (or `@latest` after promotion) and re-run.
 
 ## What changed (high level)
 
@@ -36,7 +38,7 @@ If all four are green, the upgrade is `npm install jumpstart-mode@latest` and re
 
 ### Library surface
 
-- `bin/lib/*.js` (legacy CommonJS) → `dist/lib/*.js` (ESM, .d.mts emitted).
+- `bin/lib/*.js` (legacy CommonJS) → `dist/lib/*.mjs` (ESM, .d.mts emitted).
 - Public exports preserved by name. The only external consumer-visible change is `import` syntax:
 
   ```js
@@ -44,10 +46,11 @@ If all four are green, the upgrade is `npm install jumpstart-mode@latest` and re
   const { validateArtifact } = require('jumpstart-mode/lib/validator');
 
   // 2.0 (ESM)
-  import { validateArtifact } from 'jumpstart-mode/lib/validator';
+  import { validateArtifact } from '@scombey/jumpstart-mode/lib/validator';
   ```
 
-- The `exports` map in `package.json` controls visibility. Submodule paths that worked in 1.x via folder-walk no longer work in 2.0 — use the documented `exports` keys (e.g., `jumpstart-mode/lib/validator`, `jumpstart-mode/lib/install`, `jumpstart-mode/cli`).
+- The `exports` map in `package.json` controls visibility. Submodule paths that worked in 1.x via folder-walk no longer work in 2.0 — use the documented `exports` keys (e.g., `@scombey/jumpstart-mode/lib/validator`, `@scombey/jumpstart-mode/lib/install`, `@scombey/jumpstart-mode/cli`).
+- **Strict TypeScript flags ON by default**: 2.0 enables `exactOptionalPropertyTypes` AND `noUncheckedIndexedAccess` (per [#31](https://github.com/scombey/JumpStart-AutoNav/issues/31)). Consumers who only invoke the CLI never see this. Library consumers using the typed exports get stricter narrowing — every `arr[i]` returns `T | undefined`, every optional field's absence vs `undefined` is preserved. If you fork the codebase, your own files compile under the same flags.
 
 ### IPC (subprocess) surface
 
@@ -90,10 +93,10 @@ const validator = require('jumpstart-mode/bin/lib/validator');
 
 **2.0**:
 ```js
-import { validateArtifact } from 'jumpstart-mode/lib/validator';
+import { validateArtifact } from '@scombey/jumpstart-mode/lib/validator';
 ```
 
-Undocumented deep paths (e.g., `jumpstart-mode/bin/lib/some-internal-helper`) MAY fail. The `exports` map enumerates the supported public surface — see `package.json`.
+Undocumented deep paths (e.g., `@scombey/jumpstart-mode/bin/lib/some-internal-helper`) MAY fail. The `exports` map enumerates the supported public surface — see `package.json`.
 
 ### 2. CommonJS `require()` → ESM `import`
 
@@ -101,7 +104,7 @@ If your project is still CommonJS (no `"type": "module"` in your `package.json`)
 
 ```js
 // CommonJS consumer of an ESM package
-const { validateArtifact } = await import('jumpstart-mode/lib/validator');
+const { validateArtifact } = await import('@scombey/jumpstart-mode/lib/validator');
 ```
 
 Or migrate your project to ESM (recommended — Node 24 has full ESM support).
@@ -116,7 +119,7 @@ If your code intercepted `process.exit` or relied on a specific non-zero exit co
 
 ### 4. Node 24 only
 
-Running `npx jumpstart-mode@2.0` on Node ≤22 fails immediately with a clear `engines` mismatch message. This is enforced by `package.json` `engines.node: ">=24.0.0"` AND a runtime check at the CLI entry. If you need to stay on a lower Node version, pin `jumpstart-mode@1` (security patches continue for 6 months post-2.0).
+Running `npx @scombey/jumpstart-mode@2.0` on Node ≤22 fails immediately with a clear `engines` mismatch message. This is enforced by `package.json` `engines.node: ">=24.0.0"` AND a runtime check at the CLI entry. If you need to stay on a lower Node version, pin `jumpstart-mode@1` (security patches continue for 6 months post-2.0 promotion).
 
 ### 5. Removed (or moved) modules
 
@@ -124,21 +127,26 @@ The following 1.x internal modules are NOT part of the documented `exports` map.
 
 - `bin/lib/_smoke.js` (test fixture only)
 - `bin/lib/mock-responses.js` (test fixture only)
-- The 5,359-line `bin/cli.js` monolith (decomposed into `dist/cli.js` + `dist/cli/commands/*.js`; only the CLI binary entry is supported)
+- The 5,359-line `bin/cli.js` monolith (decomposed into `dist/cli.js` + `dist/cli/commands/*.js`; only the CLI binary entry is supported). The legacy file is removed in M11 strangler-cleanup ([#34](https://github.com/scombey/JumpStart-AutoNav/issues/34)) post-rc.1; if you accidentally deep-imported it, switch to the documented CLI binary or to a typed `lib/*` export.
+- Whole `bin/lib/*.{js,mjs}` tree is removed in M11 — superseded by the typed `src/lib/*.ts` ports compiled to `dist/lib/*.mjs`. All public exports preserved by name + signature shape; check the `exports` map in `package.json` for the canonical paths.
 
 If you depended on any of these, file an issue at https://github.com/scombey/JumpStart-AutoNav/issues with the use case — we'll add it to the `exports` map if appropriate.
+
+### 6. Bootstrap install with conflict-merge
+
+The `npx jumpstart-mode . --conflict merge` flow that merged AGENTS.md / CLAUDE.md content with existing user files lives in `bin/cli.js` in 1.x. In 2.0 this is moving under `npx @scombey/jumpstart-mode init` with the same `--conflict skip|overwrite|merge` semantics; the actual port lands as part of M11 strangler-cleanup. During the soak window, install the 1.x line for first-time merge into a project with existing AGENTS.md content, then upgrade after.
 
 ## After upgrade — verify
 
 ```
 # Check installed version
-npx jumpstart-mode --version
+npx @scombey/jumpstart-mode --version
 # → expect: 2.0.0 (or 2.0.0-rc.X during the soak window)
 
 # Smoke-test the canonical commands
-npx jumpstart-mode --help
-npx jumpstart-mode status
-npx jumpstart-mode validate specs/prd.md   # if your project has a PRD
+npx @scombey/jumpstart-mode --help
+npx @scombey/jumpstart-mode status
+npx @scombey/jumpstart-mode validate specs/prd.md   # if your project has a PRD
 
 # Re-run any of your CI gates
 node scripts/verify-baseline.mjs  # if you adopted our 12-gate ratchet
@@ -153,6 +161,8 @@ If 2.0 doesn't work for you:
 ```sh
 npm install jumpstart-mode@1
 ```
+
+(Note: rollback installs the bare `jumpstart-mode` 1.x package, not `@scombey/jumpstart-mode@1`. The 1.x line stays under the original publish coordinates.)
 
 The 1.x line continues to receive security patches through 2027-Q1 (≈12 months post-2.0 promotion). Filing an issue with the regression you hit is the highest-value contribution you can make.
 
