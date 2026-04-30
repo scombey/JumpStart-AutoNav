@@ -37,6 +37,7 @@ import {
   renderApprovalResult,
   renderRejectionResult,
 } from '../../lib/approve.js';
+import { setupContext7 } from '../../lib/context7-setup.js';
 import {
   buildFocusConfig,
   clearFocusFromConfig,
@@ -503,6 +504,47 @@ export const initCommand = defineCommand({
       json: Boolean(args.json),
     });
     if (r.exitCode !== 0) throw new Error(r.message ?? 'init failed');
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// context7-setup
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Replaces the legacy `bin/context7-setup.js` standalone script. Wraps the
+ * existing `setupContext7()` library function with a citty entry point so
+ * users invoke it as `npx @scombey/jumpstart-mode context7-setup` rather
+ * than running the legacy file directly.
+ */
+export const context7SetupCommand = defineCommand({
+  meta: {
+    name: 'context7-setup',
+    description: 'Configure the Context7 MCP integration for your AI assistant',
+  },
+  args: {
+    dryRun: {
+      type: 'boolean',
+      description: 'Show what would be configured without writing files',
+      required: false,
+    },
+    targetDir: {
+      type: 'string',
+      description: 'Target project directory (defaults to cwd)',
+      required: false,
+    },
+  },
+  async run({ args }) {
+    const targetDir = args.targetDir ?? process.cwd();
+    const outcome = await setupContext7({
+      targetDir,
+      dryRun: Boolean(args.dryRun),
+    });
+    if (!outcome.installed && !args.dryRun) {
+      // The setup flow exited early (user opted out, prompts unavailable, etc.).
+      // Not a failure — just nothing was written.
+      return;
+    }
   },
 });
 

@@ -147,6 +147,9 @@ const subCommands: Record<string, () => Promise<CommandDef>> = {
   ),
   focus: lazy(() => import('./commands/lifecycle.js').then((m) => m.focusCommand)),
   init: lazy(() => import('./commands/lifecycle.js').then((m) => m.initCommand)),
+  'context7-setup': lazy(() =>
+    import('./commands/lifecycle.js').then((m) => m.context7SetupCommand)
+  ),
   lock: lazy(() => import('./commands/lifecycle.js').then((m) => m.lockCommand)),
   memory: lazy(() => import('./commands/lifecycle.js').then((m) => m.memoryCommand)),
   rewind: lazy(() => import('./commands/lifecycle.js').then((m) => m.rewindCommand)),
