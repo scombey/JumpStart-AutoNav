@@ -57,8 +57,10 @@ jobs:
       - name: Layer 3 — Unit Tests for English
         run: npx vitest run tests/test-spec-quality.test.js --reporter=verbose
 
-      - name: Layer 5 — Regression Golden Masters
-        run: npx vitest run tests/test-regression.test.js --reporter=verbose
+      # Layer 5 - Regression Golden Masters - is exercised by the
+      # holodeck baseline scenario in .github/workflows/e2e.yml plus the
+      # cluster harnesses below. The legacy standalone regression test
+      # was removed in M11 phase 5e (issue 34).
 
       - name: Vitest full suite
         if: always()
