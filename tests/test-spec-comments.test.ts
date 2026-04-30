@@ -6,19 +6,23 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  COMMENT_STATUSES,
   addComment,
   assignComment,
+  COMMENT_STATUSES,
   defaultState,
   listComments,
   loadState,
   resolveComment,
-  saveState,
 } from '../src/lib/spec-comments.js';
 
 let tmpDir: string;
-beforeEach(() => { tmpDir = join(tmpdir(), `test-speccomm-${Date.now()}`); mkdirSync(tmpDir, { recursive: true }); });
-afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
+beforeEach(() => {
+  tmpDir = join(tmpdir(), `test-speccomm-${Date.now()}`);
+  mkdirSync(tmpDir, { recursive: true });
+});
+afterEach(() => {
+  rmSync(tmpDir, { recursive: true, force: true });
+});
 
 describe('defaultState', () => {
   it('returns empty comments array', () => {
@@ -42,14 +46,20 @@ describe('loadState', () => {
 
   it('rejects __proto__ pollution key', () => {
     const f = join(tmpDir, 'polluted.json');
-    writeFileSync(f, '{"__proto__":{"evil":true},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"comments":[]}');
+    writeFileSync(
+      f,
+      '{"__proto__":{"evil":true},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"comments":[]}'
+    );
     const s = loadState(f);
     expect(s.comments).toEqual([]);
   });
 
   it('rejects prototype pollution key', () => {
     const f = join(tmpDir, 'polluted2.json');
-    writeFileSync(f, '{"prototype":{},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"comments":[]}');
+    writeFileSync(
+      f,
+      '{"prototype":{},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"comments":[]}'
+    );
     const s = loadState(f);
     expect(s.comments).toEqual([]);
   });
@@ -95,7 +105,7 @@ describe('resolveComment', () => {
   it('resolves an existing comment', () => {
     const f = join(tmpDir, 's.json');
     const added = addComment('prd.md', null, 'Fix this', { stateFile: f });
-    const id = added.comment!.id;
+    const id = added.comment?.id ?? '';
     const resolved = resolveComment(id, 'Fixed it', { stateFile: f });
     expect(resolved.success).toBe(true);
     expect(resolved.comment?.status).toBe('resolved');
@@ -123,7 +133,7 @@ describe('listComments', () => {
   it('filters by status', () => {
     const f = join(tmpDir, 's.json');
     const added = addComment('a.md', null, 'c1', { stateFile: f });
-    resolveComment(added.comment!.id, 'done', { stateFile: f });
+    resolveComment(added.comment?.id ?? '', 'done', { stateFile: f });
     const r = listComments({ stateFile: f, status: 'resolved' });
     expect(r.total).toBe(1);
   });
@@ -139,7 +149,7 @@ describe('assignComment', () => {
   it('assigns comment to reviewer', () => {
     const f = join(tmpDir, 's.json');
     const added = addComment('prd.md', null, 'review needed', { stateFile: f });
-    const r = assignComment(added.comment!.id, 'alice', { stateFile: f });
+    const r = assignComment(added.comment?.id ?? '', 'alice', { stateFile: f });
     expect(r.success).toBe(true);
     expect(r.comment?.assignee).toBe('alice');
   });

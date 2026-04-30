@@ -53,7 +53,10 @@ export interface LogAnalysisResult {
   error?: string | undefined;
 }
 
-export function analyzeLogs(logContent: string, _options: Record<string, unknown> = {}): LogAnalysisResult {
+export function analyzeLogs(
+  logContent: string,
+  _options: Record<string, unknown> = {}
+): LogAnalysisResult {
   const lines = logContent.split('\n');
   const findings: LogFinding[] = [];
 
@@ -74,18 +77,21 @@ export function analyzeLogs(logContent: string, _options: Record<string, unknown
 
   const summary: LogSummary = {
     total_lines: lines.length,
-    errors: findings.filter(f => f.type === 'error').length,
-    warnings: findings.filter(f => f.type === 'warning').length,
-    exceptions: findings.filter(f => f.type === 'exception').length,
-    timeouts: findings.filter(f => f.type === 'timeout').length,
-    oom: findings.filter(f => f.type === 'oom').length,
-    connection_issues: findings.filter(f => f.type === 'connection').length,
+    errors: findings.filter((f) => f.type === 'error').length,
+    warnings: findings.filter((f) => f.type === 'warning').length,
+    exceptions: findings.filter((f) => f.type === 'exception').length,
+    timeouts: findings.filter((f) => f.type === 'timeout').length,
+    oom: findings.filter((f) => f.type === 'oom').length,
+    connection_issues: findings.filter((f) => f.type === 'connection').length,
   };
 
   return { success: true, findings, summary, total_findings: findings.length };
 }
 
-export function analyzeLogFile(filePath: string, options: Record<string, unknown> = {}): LogAnalysisResult {
+export function analyzeLogFile(
+  filePath: string,
+  options: Record<string, unknown> = {}
+): LogAnalysisResult {
   if (!existsSync(filePath)) {
     return { success: false, error: `Log file not found: ${filePath}` };
   }
@@ -137,7 +143,7 @@ export function correlateWithSource(findings: LogFinding[], root: string): Corre
     success: true,
     correlations,
     total: correlations.length,
-    actionable: correlations.filter(c => c.file_exists).length,
+    actionable: correlations.filter((c) => c.file_exists).length,
   };
 }
 
@@ -157,21 +163,42 @@ export interface HypothesesResult {
 export function generateHypotheses(analysis: LogAnalysisResult): HypothesesResult {
   const hypotheses: HypothesisEntry[] = [];
   const summary = analysis.summary ?? {
-    total_lines: 0, errors: 0, warnings: 0, exceptions: 0,
-    timeouts: 0, oom: 0, connection_issues: 0,
+    total_lines: 0,
+    errors: 0,
+    warnings: 0,
+    exceptions: 0,
+    timeouts: 0,
+    oom: 0,
+    connection_issues: 0,
   };
 
   if (summary.oom > 0) {
-    hypotheses.push({ hypothesis: 'Memory leak or insufficient heap allocation', confidence: 'high', action: 'Check for unbounded data structures or increase memory limits' });
+    hypotheses.push({
+      hypothesis: 'Memory leak or insufficient heap allocation',
+      confidence: 'high',
+      action: 'Check for unbounded data structures or increase memory limits',
+    });
   }
   if (summary.timeouts > 0) {
-    hypotheses.push({ hypothesis: 'Network connectivity or slow dependency', confidence: 'medium', action: 'Check network configuration, increase timeouts, or add retries' });
+    hypotheses.push({
+      hypothesis: 'Network connectivity or slow dependency',
+      confidence: 'medium',
+      action: 'Check network configuration, increase timeouts, or add retries',
+    });
   }
   if (summary.connection_issues > 0) {
-    hypotheses.push({ hypothesis: 'Service dependency unavailable', confidence: 'high', action: 'Verify dependent services are running and network rules allow connection' });
+    hypotheses.push({
+      hypothesis: 'Service dependency unavailable',
+      confidence: 'high',
+      action: 'Verify dependent services are running and network rules allow connection',
+    });
   }
   if (summary.exceptions > 0) {
-    hypotheses.push({ hypothesis: 'Unhandled exception in application code', confidence: 'high', action: 'Review stack traces and add error handling' });
+    hypotheses.push({
+      hypothesis: 'Unhandled exception in application code',
+      confidence: 'high',
+      action: 'Review stack traces and add error handling',
+    });
   }
 
   return { success: true, hypotheses, total: hypotheses.length, summary };

@@ -3,9 +3,9 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+  generateHandoff,
   HANDOFF_CHECKLISTS,
   HANDOFF_TYPES,
-  generateHandoff,
   listHandoffTypes,
   validateHandoff,
 } from '../src/lib/guided-handoff.js';
@@ -46,7 +46,7 @@ describe('generateHandoff', () => {
 
   it('marks provided items as provided', () => {
     const result = generateHandoff('product-to-engineering', '/tmp', { user_stories: true });
-    const item = result.items?.find(i => i.name === 'user_stories');
+    const item = result.items?.find((i) => i.name === 'user_stories');
     expect(item?.status).toBe('provided');
   });
 
@@ -141,8 +141,8 @@ describe('validateHandoff', () => {
 
   it('coverage_pct is between 0 and 100', () => {
     const result = validateHandoff('ops-to-support', ['known_issues']);
-    expect((result.coverage_pct ?? 0)).toBeGreaterThanOrEqual(0);
-    expect((result.coverage_pct ?? 0)).toBeLessThanOrEqual(100);
+    expect(result.coverage_pct ?? 0).toBeGreaterThanOrEqual(0);
+    expect(result.coverage_pct ?? 0).toBeLessThanOrEqual(100);
   });
 
   // Pollution key tests

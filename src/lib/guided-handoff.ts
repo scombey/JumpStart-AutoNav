@@ -39,7 +39,13 @@ export interface HandoffChecklist {
 export const HANDOFF_CHECKLISTS: Record<HandoffType, HandoffChecklist> = {
   'product-to-engineering': {
     label: 'Product → Engineering',
-    required: ['user_stories', 'acceptance_criteria', 'wireframes', 'priorities', 'scope_boundaries'],
+    required: [
+      'user_stories',
+      'acceptance_criteria',
+      'wireframes',
+      'priorities',
+      'scope_boundaries',
+    ],
     optional: ['competitive_analysis', 'analytics_requirements', 'feature_flags'],
   },
   'engineering-to-qa': {
@@ -49,7 +55,13 @@ export const HANDOFF_CHECKLISTS: Record<HandoffType, HandoffChecklist> = {
   },
   'engineering-to-ops': {
     label: 'Engineering → Ops',
-    required: ['deployment_guide', 'runbooks', 'monitoring_config', 'rollback_procedures', 'dependencies'],
+    required: [
+      'deployment_guide',
+      'runbooks',
+      'monitoring_config',
+      'rollback_procedures',
+      'dependencies',
+    ],
     optional: ['load_test_results', 'capacity_planning', 'dr_procedures'],
   },
   'ops-to-support': {
@@ -97,7 +109,7 @@ export interface ValidateHandoffResult {
 export function generateHandoff(
   type: string,
   _root: string,
-  options: Record<string, unknown> = {},
+  options: Record<string, unknown> = {}
 ): HandoffResult {
   if (!HANDOFF_TYPES.includes(type as HandoffType)) {
     return {
@@ -117,7 +129,7 @@ export function generateHandoff(
     items.push({ name: opt, required: false, status: options[opt] ? 'provided' : 'not_provided' });
   }
 
-  const missing = items.filter(i => i.required && i.status === 'missing');
+  const missing = items.filter((i) => i.required && i.status === 'missing');
 
   return {
     success: true,
@@ -125,7 +137,7 @@ export function generateHandoff(
     label: checklist.label,
     items,
     complete: missing.length === 0,
-    missing_required: missing.map(i => i.name),
+    missing_required: missing.map((i) => i.name),
     generated_at: new Date().toISOString(),
   };
 }
@@ -136,7 +148,7 @@ export function generateHandoff(
 export function listHandoffTypes(): ListHandoffTypesResult {
   return {
     success: true,
-    types: HANDOFF_TYPES.map(t => ({
+    types: HANDOFF_TYPES.map((t) => ({
       id: t,
       label: HANDOFF_CHECKLISTS[t].label,
       required_count: HANDOFF_CHECKLISTS[t].required.length,
@@ -151,7 +163,7 @@ export function listHandoffTypes(): ListHandoffTypesResult {
 export function validateHandoff(
   type: string,
   provided: string[] | undefined | null,
-  _options: Record<string, unknown> = {},
+  _options: Record<string, unknown> = {}
 ): ValidateHandoffResult {
   if (!HANDOFF_TYPES.includes(type as HandoffType)) {
     return { success: false, error: `Unknown handoff type: ${type}` };
@@ -160,12 +172,10 @@ export function validateHandoff(
   const handoffType = type as HandoffType;
   const checklist = HANDOFF_CHECKLISTS[handoffType];
   const providedSet = new Set(provided ?? []);
-  const missing = checklist.required.filter(r => !providedSet.has(r));
+  const missing = checklist.required.filter((r) => !providedSet.has(r));
   const coverage =
     checklist.required.length > 0
-      ? Math.round(
-          ((checklist.required.length - missing.length) / checklist.required.length) * 100,
-        )
+      ? Math.round(((checklist.required.length - missing.length) / checklist.required.length) * 100)
       : 100;
 
   return {

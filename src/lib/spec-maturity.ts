@@ -26,11 +26,31 @@ export interface MaturityLevel {
 }
 
 export const MATURITY_LEVELS: MaturityLevel[] = [
-  { level: 1, name: 'Draft', min_score: 0, description: 'Initial capture, may contain placeholders and gaps' },
+  {
+    level: 1,
+    name: 'Draft',
+    min_score: 0,
+    description: 'Initial capture, may contain placeholders and gaps',
+  },
   { level: 2, name: 'Reviewed', min_score: 30, description: 'Peer-reviewed, major gaps addressed' },
-  { level: 3, name: 'Approved', min_score: 55, description: 'Stakeholder-approved, phase gate passed' },
-  { level: 4, name: 'Implementation-Ready', min_score: 75, description: 'Detailed enough for developers to implement' },
-  { level: 5, name: 'Production-Ready', min_score: 90, description: 'Complete, validated, enterprise-ready' },
+  {
+    level: 3,
+    name: 'Approved',
+    min_score: 55,
+    description: 'Stakeholder-approved, phase gate passed',
+  },
+  {
+    level: 4,
+    name: 'Implementation-Ready',
+    min_score: 75,
+    description: 'Detailed enough for developers to implement',
+  },
+  {
+    level: 5,
+    name: 'Production-Ready',
+    min_score: 90,
+    description: 'Complete, validated, enterprise-ready',
+  },
 ];
 
 export interface CriterionDef {
@@ -71,7 +91,7 @@ export const MATURITY_CRITERIA: Record<string, CriteriaCategory> = {
     ],
   },
   quality: {
-    weight: 0.20,
+    weight: 0.2,
     checks: [
       { id: 'has_acceptance_criteria', description: 'Acceptance criteria defined' },
       { id: 'has_diagrams', description: 'Diagrams included (Mermaid/images)' },
@@ -88,7 +108,7 @@ export const MATURITY_CRITERIA: Record<string, CriteriaCategory> = {
     ],
   },
   enterprise: {
-    weight: 0.10,
+    weight: 0.1,
     checks: [
       { id: 'has_nfrs', description: 'Non-functional requirements addressed' },
       { id: 'has_security', description: 'Security considerations' },
@@ -103,10 +123,10 @@ export function runMaturityChecks(content: string): MaturityChecks {
   const results: MaturityChecks = {};
   const lines = content.split('\n');
 
-  results['has_frontmatter'] = content.startsWith('---');
-  results['has_toc'] = /table of contents|## contents|## toc/i.test(content);
-  const headings = lines.filter(l => /^#{1,4}\s+/.test(l));
-  results['has_sections'] = headings.length >= 3;
+  results.has_frontmatter = content.startsWith('---');
+  results.has_toc = /table of contents|## contents|## toc/i.test(content);
+  const headings = lines.filter((l) => /^#{1,4}\s+/.test(l));
+  results.has_sections = headings.length >= 3;
 
   let emptyCount = 0;
   let currentHeading: string | null = null;
@@ -120,43 +140,57 @@ export function runMaturityChecks(content: string): MaturityChecks {
       hasContentAfterHeading = true;
     }
   }
-  results['no_empty_sections'] = emptyCount === 0;
+  results.no_empty_sections = emptyCount === 0;
 
-  results['no_placeholders'] = !/\[TODO\]|\[TBD\]|\[PLACEHOLDER\]/i.test(content);
-  results['no_clarifications'] = !/\[NEEDS CLARIFICATION/i.test(content);
-  results['sufficient_length'] = content.length > 1000;
+  results.no_placeholders = !/\[TODO\]|\[TBD\]|\[PLACEHOLDER\]/i.test(content);
+  results.no_clarifications = !/\[NEEDS CLARIFICATION/i.test(content);
+  results.sufficient_length = content.length > 1000;
 
-  const paragraphs = content.split(/\n\n+/).filter(p => p.trim().length > 0 && !/^#/.test(p.trim()));
+  const paragraphs = content
+    .split(/\n\n+/)
+    .filter((p) => p.trim().length > 0 && !/^#/.test(p.trim()));
   const avgWords =
     paragraphs.length > 0
       ? paragraphs.reduce((sum, p) => sum + p.split(/\s+/).length, 0) / paragraphs.length
       : 0;
-  results['has_detail'] = avgWords > 20;
+  results.has_detail = avgWords > 20;
 
-  results['has_requirement_ids'] = /\b(REQ-\d+|E\d+-S\d+|NFR-\d+|UC-\d+|FR-\d+|AC-\d+|M\d+-T\d+)\b/.test(content);
-  results['has_cross_refs'] = /\[.*\]\(.*\.md\)/.test(content);
-  results['has_version'] = /version[:\s]+\d+/i.test(content) || /^version:/m.test(content);
+  results.has_requirement_ids =
+    /\b(REQ-\d+|E\d+-S\d+|NFR-\d+|UC-\d+|FR-\d+|AC-\d+|M\d+-T\d+)\b/.test(content);
+  results.has_cross_refs = /\[.*\]\(.*\.md\)/.test(content);
+  results.has_version = /version[:\s]+\d+/i.test(content) || /^version:/m.test(content);
 
-  results['has_acceptance_criteria'] = /acceptance\s+criteria/i.test(content);
-  results['has_diagrams'] = /```mermaid|flowchart|sequenceDiagram|classDiagram|\!\[.*\]\(.*\)/i.test(content);
-  results['has_examples'] = /```\w+/.test(content) || /example[:\s]/i.test(content);
+  results.has_acceptance_criteria = /acceptance\s+criteria/i.test(content);
+  results.has_diagrams = /```mermaid|flowchart|sequenceDiagram|classDiagram|!\[.*\]\(.*\)/i.test(
+    content
+  );
+  results.has_examples = /```\w+/.test(content) || /example[:\s]/i.test(content);
 
-  const ambiguousTerms = ['should', 'might', 'could', 'may', 'possibly', 'potentially', 'TBD', 'TBA'];
+  const ambiguousTerms = [
+    'should',
+    'might',
+    'could',
+    'may',
+    'possibly',
+    'potentially',
+    'TBD',
+    'TBA',
+  ];
   let ambiguousCount = 0;
   for (const term of ambiguousTerms) {
     const pattern = new RegExp(`\\b${term}\\b`, 'gi');
     ambiguousCount += (content.match(pattern) ?? []).length;
   }
   const wordCount = content.split(/\s+/).length;
-  results['low_ambiguity'] = wordCount > 0 ? ambiguousCount / wordCount < 0.02 : true;
+  results.low_ambiguity = wordCount > 0 ? ambiguousCount / wordCount < 0.02 : true;
 
-  results['has_approval'] = /Phase Gate Approval/i.test(content);
-  results['is_approved'] = /- \[x\]/i.test(content) && /Approved by[:\s]+(?!Pending)/i.test(content);
-  results['has_dates'] = /\d{4}-\d{2}-\d{2}/.test(content);
+  results.has_approval = /Phase Gate Approval/i.test(content);
+  results.is_approved = /- \[x\]/i.test(content) && /Approved by[:\s]+(?!Pending)/i.test(content);
+  results.has_dates = /\d{4}-\d{2}-\d{2}/.test(content);
 
-  results['has_nfrs'] = /non-functional|NFR|performance|scalab|availab/i.test(content);
-  results['has_security'] = /security|auth|encryption|OWASP/i.test(content);
-  results['has_compliance'] = /compliance|regulatory|GDPR|HIPAA|SOC|audit/i.test(content);
+  results.has_nfrs = /non-functional|NFR|performance|scalab|availab/i.test(content);
+  results.has_security = /security|auth|encryption|OWASP/i.test(content);
+  results.has_compliance = /compliance|regulatory|GDPR|HIPAA|SOC|audit/i.test(content);
 
   return results;
 }
@@ -182,31 +216,41 @@ export interface MaturityResult {
   maturity_description?: string | undefined;
   category_scores?: Record<string, CategoryScore> | undefined;
   gaps?: Gap[] | undefined;
-  next_level?: {
-    level: number;
-    name: string;
-    points_needed: number;
-    description: string;
-  } | null | undefined;
+  next_level?:
+    | {
+        level: number;
+        name: string;
+        points_needed: number;
+        description: string;
+      }
+    | null
+    | undefined;
   total_checks?: number | undefined;
   checks_passed?: number | undefined;
   file?: string | undefined;
   error?: string | undefined;
 }
 
-export function assessMaturity(content: string, _options: Record<string, unknown> = {}): MaturityResult {
+export function assessMaturity(
+  content: string,
+  _options: Record<string, unknown> = {}
+): MaturityResult {
   const checkResults = runMaturityChecks(content);
   const categoryScores: Record<string, CategoryScore> = {};
   let totalWeightedScore = 0;
   const gaps: Gap[] = [];
 
   for (const [category, config] of Object.entries(MATURITY_CRITERIA)) {
-    const passed = config.checks.filter(c => checkResults[c.id]);
-    const score = config.checks.length > 0
-      ? Math.round((passed.length / config.checks.length) * 100)
-      : 0;
+    const passed = config.checks.filter((c) => checkResults[c.id]);
+    const score =
+      config.checks.length > 0 ? Math.round((passed.length / config.checks.length) * 100) : 0;
 
-    categoryScores[category] = { score, passed: passed.length, total: config.checks.length, weight: config.weight };
+    categoryScores[category] = {
+      score,
+      passed: passed.length,
+      total: config.checks.length,
+      weight: config.weight,
+    };
     totalWeightedScore += score * config.weight;
 
     for (const check of config.checks) {
@@ -217,10 +261,16 @@ export function assessMaturity(content: string, _options: Record<string, unknown
   }
 
   const overallScore = Math.round(totalWeightedScore);
+  const fallbackLevel: MaturityLevel = MATURITY_LEVELS[0] ?? {
+    level: 1,
+    name: 'Unknown',
+    min_score: 0,
+    description: 'Unknown maturity',
+  };
   const maturityLevel =
-    [...MATURITY_LEVELS].reverse().find(l => overallScore >= l.min_score) ?? MATURITY_LEVELS[0]!;
+    [...MATURITY_LEVELS].reverse().find((l) => overallScore >= l.min_score) ?? fallbackLevel;
 
-  const nextLevel = MATURITY_LEVELS.find(l => l.min_score > overallScore);
+  const nextLevel = MATURITY_LEVELS.find((l) => l.min_score > overallScore);
 
   return {
     success: true,
@@ -231,17 +281,25 @@ export function assessMaturity(content: string, _options: Record<string, unknown
     category_scores: categoryScores,
     gaps,
     next_level: nextLevel
-      ? { level: nextLevel.level, name: nextLevel.name, points_needed: nextLevel.min_score - overallScore, description: nextLevel.description }
+      ? {
+          level: nextLevel.level,
+          name: nextLevel.name,
+          points_needed: nextLevel.min_score - overallScore,
+          description: nextLevel.description,
+        }
       : null,
     total_checks: Object.values(MATURITY_CRITERIA).reduce((sum, c) => sum + c.checks.length, 0),
     checks_passed: Object.values(MATURITY_CRITERIA).reduce(
-      (sum, c) => sum + c.checks.filter(ck => checkResults[ck.id]).length,
-      0,
+      (sum, c) => sum + c.checks.filter((ck) => checkResults[ck.id]).length,
+      0
     ),
   };
 }
 
-export function assessFile(filePath: string, options: Record<string, unknown> = {}): MaturityResult {
+export function assessFile(
+  filePath: string,
+  options: Record<string, unknown> = {}
+): MaturityResult {
   if (!existsSync(filePath)) {
     return { success: false, error: `File not found: ${filePath}` };
   }
@@ -261,22 +319,33 @@ export interface ProjectMaturityResult {
   project_maturity?: string | undefined;
   project_level?: number | undefined;
   artifacts?: ArtifactMaturityResult[] | undefined;
-  summary?: {
-    artifacts_assessed: number;
-    average_score: number;
-    production_ready: number;
-    draft: number;
-  } | undefined;
+  summary?:
+    | {
+        artifacts_assessed: number;
+        average_score: number;
+        production_ready: number;
+        draft: number;
+      }
+    | undefined;
   error?: string | undefined;
 }
 
-export function assessProject(root: string, options: Record<string, unknown> = {}): ProjectMaturityResult {
+export function assessProject(
+  root: string,
+  options: Record<string, unknown> = {}
+): ProjectMaturityResult {
   const specsDir = join(root, 'specs');
   if (!existsSync(specsDir)) {
     return { success: false, error: 'specs/ directory not found' };
   }
 
-  const artifacts = ['challenger-brief.md', 'product-brief.md', 'prd.md', 'architecture.md', 'implementation-plan.md'];
+  const artifacts = [
+    'challenger-brief.md',
+    'product-brief.md',
+    'prd.md',
+    'architecture.md',
+    'implementation-plan.md',
+  ];
   const results: ArtifactMaturityResult[] = [];
 
   for (const artifact of artifacts) {
@@ -292,8 +361,14 @@ export function assessProject(root: string, options: Record<string, unknown> = {
       ? Math.round(results.reduce((sum, r) => sum + (r.overall_score ?? 0), 0) / results.length)
       : 0;
 
+  const avgFallback: MaturityLevel = MATURITY_LEVELS[0] ?? {
+    level: 1,
+    name: 'Unknown',
+    min_score: 0,
+    description: 'Unknown maturity',
+  };
   const avgLevel =
-    [...MATURITY_LEVELS].reverse().find(l => avgScore >= l.min_score) ?? MATURITY_LEVELS[0]!;
+    [...MATURITY_LEVELS].reverse().find((l) => avgScore >= l.min_score) ?? avgFallback;
 
   return {
     success: true,
@@ -304,8 +379,8 @@ export function assessProject(root: string, options: Record<string, unknown> = {
     summary: {
       artifacts_assessed: results.length,
       average_score: avgScore,
-      production_ready: results.filter(r => (r.maturity_level ?? 0) >= 5).length,
-      draft: results.filter(r => (r.maturity_level ?? 0) <= 1).length,
+      production_ready: results.filter((r) => (r.maturity_level ?? 0) >= 5).length,
+      draft: results.filter((r) => (r.maturity_level ?? 0) <= 1).length,
     },
   };
 }

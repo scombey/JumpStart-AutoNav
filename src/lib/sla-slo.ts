@@ -26,7 +26,14 @@ import { dirname, join } from 'node:path';
 
 const DEFAULT_STATE_FILE = join('.jumpstart', 'state', 'sla-slo.json');
 
-export const SLO_TYPES = ['availability', 'latency', 'throughput', 'error-rate', 'durability', 'freshness'] as const;
+export const SLO_TYPES = [
+  'availability',
+  'latency',
+  'throughput',
+  'error-rate',
+  'durability',
+  'freshness',
+] as const;
 export type SloType = (typeof SLO_TYPES)[number];
 
 export interface SloTemplate {
@@ -120,7 +127,7 @@ export function saveState(state: SlaState, stateFile?: string): void {
   const dir = dirname(fp);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   state.last_updated = new Date().toISOString();
-  writeFileSync(fp, JSON.stringify(state, null, 2) + '\n', 'utf8');
+  writeFileSync(fp, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
 }
 
 export interface DefineSLOInput {
@@ -141,7 +148,7 @@ export interface DefineSLOResult {
 
 export function defineSLO(
   slo: DefineSLOInput,
-  options: { stateFile?: string | undefined } = {},
+  options: { stateFile?: string | undefined } = {}
 ): DefineSLOResult {
   if (!slo?.name || !slo.service || slo.target === undefined) {
     return { success: false, error: 'name, service, and target are required' };
@@ -184,27 +191,38 @@ export interface ApplyTemplateResult {
 export function applyTemplate(
   serviceName: string,
   templateType: string,
-  options: { stateFile?: string | undefined } = {},
+  options: { stateFile?: string | undefined } = {}
 ): ApplyTemplateResult {
   const template = DEFAULT_SLO_TEMPLATES[templateType];
   if (!template) {
-    return { success: false, error: `Unknown template: ${templateType}. Available: ${Object.keys(DEFAULT_SLO_TEMPLATES).join(', ')}` };
+    return {
+      success: false,
+      error: `Unknown template: ${templateType}. Available: ${Object.keys(DEFAULT_SLO_TEMPLATES).join(', ')}`,
+    };
   }
 
   const results: DefineSLOResult[] = [];
   for (const t of template) {
-    const result = defineSLO({
-      name: `${serviceName} ${t.type}`,
-      service: serviceName,
-      type: t.type,
-      target: t.target,
-      unit: t.unit,
-      window: t.window,
-    }, options);
+    const result = defineSLO(
+      {
+        name: `${serviceName} ${t.type}`,
+        service: serviceName,
+        type: t.type,
+        target: t.target,
+        unit: t.unit,
+        window: t.window,
+      },
+      options
+    );
     results.push(result);
   }
 
-  return { success: true, service: serviceName, template: templateType, slos_created: results.length };
+  return {
+    success: true,
+    service: serviceName,
+    template: templateType,
+    slos_created: results.length,
+  };
 }
 
 export interface CoverageResult {
@@ -218,7 +236,7 @@ export interface CoverageResult {
 
 export function checkSLOCoverage(
   root: string,
-  options: { stateFile?: string | undefined } = {},
+  options: { stateFile?: string | undefined } = {}
 ): CoverageResult {
   const stateFile = options.stateFile ?? join(root, DEFAULT_STATE_FILE);
   const state = loadState(stateFile);
@@ -233,14 +251,18 @@ export function checkSLOCoverage(
     try {
       const content = readFileSync(archFile, 'utf8');
       archHasSLO = /\bSL[OA]\b|service.level|availability|latency.target/i.test(content);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   if (existsSync(prdFile)) {
     try {
       const content = readFileSync(prdFile, 'utf8');
       prdHasSLO = /\bSL[OA]\b|service.level|availability|uptime/i.test(content);
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   return {
@@ -249,7 +271,8 @@ export function checkSLOCoverage(
     architecture_mentions_slo: archHasSLO,
     prd_mentions_slo: prdHasSLO,
     coverage: state.slos.length > 0 ? 'defined' : 'missing',
-    recommendations: state.slos.length === 0 ? ['Define SLOs using `jumpstart-mode sla-slo define`'] : [],
+    recommendations:
+      state.slos.length === 0 ? ['Define SLOs using `jumpstart-mode sla-slo define`'] : [],
   };
 }
 
@@ -275,7 +298,7 @@ export function generateReport(options: { stateFile?: string | undefined } = {})
     total_slas: state.slas.length,
     by_service: state.slos.reduce<Record<string, SloEntry[]>>((acc, s) => {
       acc[s.service] = acc[s.service] ?? [];
-      acc[s.service]!.push(s);
+      acc[s.service]?.push(s);
       return acc;
     }, {}),
     by_type: state.slos.reduce<Record<string, number>>((acc, s) => {

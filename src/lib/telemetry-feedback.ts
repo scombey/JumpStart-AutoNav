@@ -21,7 +21,14 @@ import { dirname, join } from 'node:path';
 
 const DEFAULT_STATE_FILE = join('.jumpstart', 'state', 'telemetry-feedback.json');
 
-export const METRIC_TYPES = ['latency', 'error-rate', 'throughput', 'availability', 'saturation', 'cost'] as const;
+export const METRIC_TYPES = [
+  'latency',
+  'error-rate',
+  'throughput',
+  'availability',
+  'saturation',
+  'cost',
+] as const;
 export type MetricType = (typeof METRIC_TYPES)[number];
 
 export interface Metric {
@@ -71,7 +78,7 @@ export function saveState(state: TelemetryState, stateFile?: string): void {
   const dir = dirname(fp);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   state.last_updated = new Date().toISOString();
-  writeFileSync(fp, JSON.stringify(state, null, 2) + '\n', 'utf8');
+  writeFileSync(fp, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
 }
 
 export interface IngestResult {
@@ -84,7 +91,11 @@ export function ingestMetric(
   name: string,
   type: string,
   value: unknown,
-  options: { stateFile?: string | undefined; unit?: string | undefined; service?: string | undefined } = {},
+  options: {
+    stateFile?: string | undefined;
+    unit?: string | undefined;
+    service?: string | undefined;
+  } = {}
 ): IngestResult {
   if (!name || !type) return { success: false, error: 'name and type are required' };
   if (!METRIC_TYPES.includes(type as MetricType)) {
@@ -129,7 +140,7 @@ export function analyzeMetrics(options: { stateFile?: string | undefined } = {})
   const byType: Record<string, unknown[]> = {};
   for (const m of state.metrics) {
     byType[m.type] = byType[m.type] ?? [];
-    byType[m.type]!.push(m.value);
+    byType[m.type]?.push(m.value);
   }
 
   const analysis: Record<string, MetricStats> = {};
@@ -157,13 +168,15 @@ export interface FeedbackReport {
   recommendations: string[];
 }
 
-export function generateFeedbackReport(options: { stateFile?: string | undefined } = {}): FeedbackReport {
+export function generateFeedbackReport(
+  options: { stateFile?: string | undefined } = {}
+): FeedbackReport {
   const stateFile = options.stateFile ?? DEFAULT_STATE_FILE;
   const state = loadState(stateFile);
   const { analysis } = analyzeMetrics(options);
 
   const recommendations: string[] = [];
-  const latencyStats = analysis['latency'];
+  const latencyStats = analysis.latency;
   const errorStats = analysis['error-rate'];
   if (latencyStats && latencyStats.avg > 500) {
     recommendations.push('High average latency detected — consider caching or query optimization');

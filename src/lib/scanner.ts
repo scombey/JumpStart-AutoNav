@@ -15,10 +15,19 @@
  * @see bin/lib/scanner.mjs (legacy reference)
  */
 
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 
-const DEFAULT_IGNORE = ['node_modules', '.git', 'dist', 'build', '.next', 'coverage', '__pycache__', '.venv'];
+const DEFAULT_IGNORE = [
+  'node_modules',
+  '.git',
+  'dist',
+  'build',
+  '.next',
+  'coverage',
+  '__pycache__',
+  '.venv',
+];
 
 export interface StackInfo {
   language: string | null;
@@ -71,7 +80,7 @@ export interface ScanResult {
 export function scanDir(
   dir: string,
   ignore: string[],
-  root: string,
+  root: string
 ): { files: string[]; dirs: string[] } {
   const files: string[] = [];
   const dirs: string[] = [];
@@ -121,9 +130,9 @@ export function detectStack(root: string, files: string[]): StackInfo {
       };
       const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
 
-      if (allDeps['typescript'] || files.some(f => f.endsWith('.ts') || f.endsWith('.tsx'))) {
+      if (allDeps.typescript || files.some((f) => f.endsWith('.ts') || f.endsWith('.tsx'))) {
         stack.language = 'TypeScript';
-        stack.language_version = allDeps['typescript'] ?? 'detected';
+        stack.language_version = allDeps.typescript ?? 'detected';
       } else {
         stack.language = 'JavaScript';
       }
@@ -188,17 +197,17 @@ export function detectStack(root: string, files: string[]): StackInfo {
     }
   }
 
-  if (files.some(f => f === 'requirements.txt' || f === 'pyproject.toml' || f === 'setup.py')) {
+  if (files.some((f) => f === 'requirements.txt' || f === 'pyproject.toml' || f === 'setup.py')) {
     stack.language = stack.language ?? 'Python';
     stack.runtime = stack.runtime ?? 'Python';
   }
 
-  if (files.some(f => f === 'go.mod')) {
+  if (files.some((f) => f === 'go.mod')) {
     stack.language = stack.language ?? 'Go';
     stack.runtime = stack.runtime ?? 'Go';
   }
 
-  if (files.some(f => f === 'Cargo.toml')) {
+  if (files.some((f) => f === 'Cargo.toml')) {
     stack.language = stack.language ?? 'Rust';
     stack.runtime = stack.runtime ?? 'Rust';
   }
@@ -207,8 +216,16 @@ export function detectStack(root: string, files: string[]): StackInfo {
 }
 
 export function countDebtMarkers(root: string, files: string[]): DebtMarkers {
-  const markers: { TODO: DebtDetail[]; FIXME: DebtDetail[]; HACK: DebtDetail[]; XXX: DebtDetail[] } = {
-    TODO: [], FIXME: [], HACK: [], XXX: [],
+  const markers: {
+    TODO: DebtDetail[];
+    FIXME: DebtDetail[];
+    HACK: DebtDetail[];
+    XXX: DebtDetail[];
+  } = {
+    TODO: [],
+    FIXME: [],
+    HACK: [],
+    XXX: [],
   };
   const sourceExtensions = ['.js', '.ts', '.jsx', '.tsx', '.py', '.go', '.rs', '.java'];
 
@@ -244,22 +261,42 @@ export function countDebtMarkers(root: string, files: string[]): DebtMarkers {
 export function identifyRisks(root: string, files: string[], stack: StackInfo): Risk[] {
   const risks: Risk[] = [];
 
-  const hasTests = files.some(f => f.includes('test') || f.includes('spec') || f.includes('__tests__'));
+  const hasTests = files.some(
+    (f) => f.includes('test') || f.includes('spec') || f.includes('__tests__')
+  );
   if (!hasTests) {
-    risks.push({ risk: 'No test files detected', severity: 'High', detail: 'No files matching test/spec patterns found' });
+    risks.push({
+      risk: 'No test files detected',
+      severity: 'High',
+      detail: 'No files matching test/spec patterns found',
+    });
   }
 
-  const hasLock = files.some(f => ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb'].includes(f));
+  const hasLock = files.some((f) =>
+    ['package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'bun.lockb'].includes(f)
+  );
   if (stack.runtime === 'Node.js' && !hasLock) {
-    risks.push({ risk: 'No lock file', severity: 'Medium', detail: 'Non-deterministic dependency resolution' });
+    risks.push({
+      risk: 'No lock file',
+      severity: 'Medium',
+      detail: 'Non-deterministic dependency resolution',
+    });
   }
 
   if (!files.includes('.gitignore') && !existsSync(join(root, '.gitignore'))) {
-    risks.push({ risk: 'No .gitignore', severity: 'Low', detail: 'Risk of committing build artifacts or secrets' });
+    risks.push({
+      risk: 'No .gitignore',
+      severity: 'Low',
+      detail: 'Risk of committing build artifacts or secrets',
+    });
   }
 
-  if (files.some(f => f === '.env')) {
-    risks.push({ risk: '.env file in repository', severity: 'High', detail: 'Potential secret exposure' });
+  if (files.some((f) => f === '.env')) {
+    risks.push({
+      risk: '.env file in repository',
+      severity: 'High',
+      detail: 'Potential secret exposure',
+    });
   }
 
   return risks;
@@ -303,4 +340,3 @@ export function scan(opts: ScanOptions): ScanResult {
     risks: identifyRisks(root, files, stack),
   };
 }
-

@@ -18,8 +18,13 @@ import {
 } from '../src/lib/semantic-diff.js';
 
 let tmpDir: string;
-beforeEach(() => { tmpDir = join(tmpdir(), `test-sdiff-${Date.now()}`); mkdirSync(tmpDir, { recursive: true }); });
-afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
+beforeEach(() => {
+  tmpDir = join(tmpdir(), `test-sdiff-${Date.now()}`);
+  mkdirSync(tmpDir, { recursive: true });
+});
+afterEach(() => {
+  rmSync(tmpDir, { recursive: true, force: true });
+});
 
 describe('extractSections', () => {
   it('returns preamble for content without headings', () => {
@@ -29,8 +34,8 @@ describe('extractSections', () => {
 
   it('parses headings correctly', () => {
     const s = extractSections('# H1\ncontent\n## H2\nmore');
-    expect(s.some(sec => sec.heading === 'H1')).toBe(true);
-    expect(s.some(sec => sec.heading === 'H2')).toBe(true);
+    expect(s.some((sec) => sec.heading === 'H1')).toBe(true);
+    expect(s.some((sec) => sec.heading === 'H2')).toBe(true);
   });
 });
 
@@ -43,7 +48,7 @@ describe('extractRequirements', () => {
 
   it('deduplicates', () => {
     const ids = extractRequirements('REQ-001 REQ-001');
-    expect(ids.filter(i => i === 'REQ-001').length).toBe(1);
+    expect(ids.filter((i) => i === 'REQ-001').length).toBe(1);
   });
 
   it('returns empty for no matches', () => {
@@ -67,7 +72,7 @@ describe('extractTableData', () => {
   it('extracts table rows', () => {
     const rows = extractTableData('| Col1 | Col2 |\n|------|------|\n| A | B |');
     expect(rows.length).toBeGreaterThan(0);
-    expect(rows.some(r => r.includes('A'))).toBe(true);
+    expect(rows.some((r) => r.includes('A'))).toBe(true);
   });
 });
 
@@ -111,12 +116,12 @@ describe('compareArtifacts', () => {
 
   it('detects added sections', () => {
     const r = compareArtifacts('# Sec A\nContent', '# Sec A\nContent\n# Sec B\nNew');
-    expect(r.section_changes.some(c => c.type === 'section_added')).toBe(true);
+    expect(r.section_changes.some((c) => c.type === 'section_added')).toBe(true);
   });
 
   it('detects removed sections', () => {
     const r = compareArtifacts('# Sec A\nContent\n# Sec B\nOld', '# Sec A\nContent');
-    expect(r.section_changes.some(c => c.type === 'section_removed')).toBe(true);
+    expect(r.section_changes.some((c) => c.type === 'section_removed')).toBe(true);
   });
 
   it('detects added requirements', () => {

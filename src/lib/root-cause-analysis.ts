@@ -22,16 +22,56 @@ export interface FailurePattern {
 }
 
 export const FAILURE_PATTERNS: FailurePattern[] = [
-  { pattern: /Cannot find module ['"]([^'"]+)['"]/g, category: 'missing-dependency', fix: 'Install or fix import path' },
-  { pattern: /SyntaxError:\s*(.+)/g, category: 'syntax-error', fix: 'Fix syntax at indicated location' },
-  { pattern: /TypeError:\s*(.+)\s+is not a function/g, category: 'type-error', fix: 'Check API usage and version compatibility' },
-  { pattern: /ENOENT.*['"]([^'"]+)['"]/g, category: 'missing-file', fix: 'Create missing file or fix path reference' },
-  { pattern: /AssertionError|AssertionError:\s*(.+)/g, category: 'test-assertion', fix: 'Update test or fix implementation' },
-  { pattern: /ReferenceError:\s*(\w+)\s+is not defined/g, category: 'reference-error', fix: 'Import or declare the missing variable' },
-  { pattern: /ECONNREFUSED/g, category: 'connection-error', fix: 'Ensure required services are running' },
-  { pattern: /out of memory|heap|OOM/gi, category: 'memory-error', fix: 'Optimize memory usage or increase limits' },
-  { pattern: /timeout|ETIMEDOUT/gi, category: 'timeout', fix: 'Increase timeout or optimize slow operations' },
-  { pattern: /permission denied|EACCES/gi, category: 'permission-error', fix: 'Check file permissions or user privileges' },
+  {
+    pattern: /Cannot find module ['"]([^'"]+)['"]/g,
+    category: 'missing-dependency',
+    fix: 'Install or fix import path',
+  },
+  {
+    pattern: /SyntaxError:\s*(.+)/g,
+    category: 'syntax-error',
+    fix: 'Fix syntax at indicated location',
+  },
+  {
+    pattern: /TypeError:\s*(.+)\s+is not a function/g,
+    category: 'type-error',
+    fix: 'Check API usage and version compatibility',
+  },
+  {
+    pattern: /ENOENT.*['"]([^'"]+)['"]/g,
+    category: 'missing-file',
+    fix: 'Create missing file or fix path reference',
+  },
+  {
+    pattern: /AssertionError|AssertionError:\s*(.+)/g,
+    category: 'test-assertion',
+    fix: 'Update test or fix implementation',
+  },
+  {
+    pattern: /ReferenceError:\s*(\w+)\s+is not defined/g,
+    category: 'reference-error',
+    fix: 'Import or declare the missing variable',
+  },
+  {
+    pattern: /ECONNREFUSED/g,
+    category: 'connection-error',
+    fix: 'Ensure required services are running',
+  },
+  {
+    pattern: /out of memory|heap|OOM/gi,
+    category: 'memory-error',
+    fix: 'Optimize memory usage or increase limits',
+  },
+  {
+    pattern: /timeout|ETIMEDOUT/gi,
+    category: 'timeout',
+    fix: 'Increase timeout or optimize slow operations',
+  },
+  {
+    pattern: /permission denied|EACCES/gi,
+    category: 'permission-error',
+    fix: 'Check file permissions or user privileges',
+  },
 ];
 
 export interface Hypothesis {
@@ -65,7 +105,7 @@ const SEVERITY_ORDER: Record<string, number> = {
 
 export function analyzeFailure(
   output: string,
-  _options: Record<string, unknown> = {},
+  _options: Record<string, unknown> = {}
 ): AnalyzeResult {
   if (!output) return { success: false, error: 'output is required' };
 
@@ -74,8 +114,7 @@ export function analyzeFailure(
 
   for (const fp of FAILURE_PATTERNS) {
     const regex = new RegExp(fp.pattern.source, fp.pattern.flags);
-    let match: RegExpExecArray | null;
-    while ((match = regex.exec(output)) !== null) {
+    for (const match of output.matchAll(regex)) {
       const detail = match[1] ?? '';
       const key = `${fp.category}:${detail.substring(0, 50)}`;
       if (seen.has(key)) continue;
@@ -94,15 +133,17 @@ export function analyzeFailure(
     }
   }
 
-  hypotheses.sort((a, b) => (SEVERITY_ORDER[a.category] ?? 99) - (SEVERITY_ORDER[b.category] ?? 99));
+  hypotheses.sort(
+    (a, b) => (SEVERITY_ORDER[a.category] ?? 99) - (SEVERITY_ORDER[b.category] ?? 99)
+  );
 
   return {
     success: true,
     total_hypotheses: hypotheses.length,
     hypotheses,
     primary_cause: hypotheses[0] ?? null,
-    categories: [...new Set(hypotheses.map(h => h.category))],
-    recommended_actions: hypotheses.slice(0, 3).map(h => ({
+    categories: [...new Set(hypotheses.map((h) => h.category))],
+    recommended_actions: hypotheses.slice(0, 3).map((h) => ({
       action: h.suggested_fix,
       detail: h.detail,
       category: h.category,
@@ -110,7 +151,10 @@ export function analyzeFailure(
   };
 }
 
-export function analyzeTestFile(filePath: string, options: Record<string, unknown> = {}): AnalyzeResult {
+export function analyzeTestFile(
+  filePath: string,
+  options: Record<string, unknown> = {}
+): AnalyzeResult {
   if (!existsSync(filePath)) {
     return { success: false, error: `File not found: ${filePath}` };
   }
@@ -123,11 +167,13 @@ export function analyzeTestFile(filePath: string, options: Record<string, unknow
 
 export interface ReportResult {
   success: boolean;
-  summary?: {
-    total_issues: number;
-    primary_cause: string;
-    categories: number;
-  } | undefined;
+  summary?:
+    | {
+        total_issues: number;
+        primary_cause: string;
+        categories: number;
+      }
+    | undefined;
   by_category?: Record<string, number> | undefined;
   action_plan?: Array<{ action: string; detail: string; category: string }> | undefined;
   hypotheses?: Hypothesis[] | undefined;

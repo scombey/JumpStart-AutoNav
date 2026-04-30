@@ -54,14 +54,20 @@ describe('loadBaseline', () => {
   // Pollution key tests using raw bytes (not JSON.stringify which strips __proto__)
   it('rejects __proto__ pollution key', () => {
     const f = join(tmpDir, 'polluted.json');
-    writeFileSync(f, '{"__proto__":{"evil":true},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"frozen":false,"baselines":[],"change_requests":[]}');
+    writeFileSync(
+      f,
+      '{"__proto__":{"evil":true},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"frozen":false,"baselines":[],"change_requests":[]}'
+    );
     const b = loadBaseline(f);
     expect(b.baselines).toEqual([]);
   });
 
   it('rejects constructor pollution key', () => {
     const f = join(tmpDir, 'polluted2.json');
-    writeFileSync(f, '{"constructor":{},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"frozen":false,"baselines":[],"change_requests":[]}');
+    writeFileSync(
+      f,
+      '{"constructor":{},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"frozen":false,"baselines":[],"change_requests":[]}'
+    );
     const b = loadBaseline(f);
     expect(b.baselines).toEqual([]);
   });
@@ -107,7 +113,7 @@ describe('extractRequirementIds', () => {
 
   it('deduplicates', () => {
     const ids = extractRequirementIds('REQ-001 REQ-001 REQ-002');
-    expect(ids.filter(id => id === 'REQ-001').length).toBe(1);
+    expect(ids.filter((id) => id === 'REQ-001').length).toBe(1);
   });
 
   it('returns sorted array', () => {
@@ -126,7 +132,10 @@ describe('freezeBaseline', () => {
   it('freezes with existing spec files', () => {
     const specsDir = join(tmpDir, 'specs');
     mkdirSync(specsDir);
-    writeFileSync(join(specsDir, 'prd.md'), '# PRD\n\nREQ-001 some requirement\n\n## Phase Gate Approval\n- [x] done\nApproved by: Alice');
+    writeFileSync(
+      join(specsDir, 'prd.md'),
+      '# PRD\n\nREQ-001 some requirement\n\n## Phase Gate Approval\n- [x] done\nApproved by: Alice'
+    );
     const result = freezeBaseline(tmpDir);
     expect(result.success).toBe(true);
     expect(result.artifacts_frozen).toBeGreaterThan(0);

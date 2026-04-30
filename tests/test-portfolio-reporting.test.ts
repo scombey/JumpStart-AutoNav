@@ -6,11 +6,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  PHASES,
-  PORTFOLIO_STATUSES,
   defaultPortfolio,
   getPortfolioStatus,
   loadPortfolio,
+  PHASES,
+  PORTFOLIO_STATUSES,
   registerInitiative,
   removeInitiative,
   savePortfolio,
@@ -53,7 +53,10 @@ describe('loadPortfolio', () => {
   // Prototype pollution: raw __proto__ key injection in JSON bytes
   it('rejects __proto__ pollution key in JSON', () => {
     const f = join(tmpDir, 'polluted.json');
-    writeFileSync(f, '{"__proto__":{"x":1},"initiatives":[],"snapshots":[],"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null}');
+    writeFileSync(
+      f,
+      '{"__proto__":{"x":1},"initiatives":[],"snapshots":[],"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null}'
+    );
     const p = loadPortfolio(f);
     // Should return defaultPortfolio() due to pollution rejection
     expect(p.initiatives).toEqual([]);
@@ -61,7 +64,10 @@ describe('loadPortfolio', () => {
 
   it('rejects constructor pollution key in JSON', () => {
     const f = join(tmpDir, 'polluted2.json');
-    writeFileSync(f, '{"constructor":{},"initiatives":[],"snapshots":[],"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null}');
+    writeFileSync(
+      f,
+      '{"constructor":{},"initiatives":[],"snapshots":[],"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null}'
+    );
     const p = loadPortfolio(f);
     expect(p.initiatives).toEqual([]);
   });
@@ -159,7 +165,7 @@ describe('takeSnapshot', () => {
 
 describe('PHASES', () => {
   it('includes expected phase IDs', () => {
-    const ids = PHASES.map(p => p.id);
+    const ids = PHASES.map((p) => p.id);
     expect(ids).toContain('phase-0');
     expect(ids).toContain('phase-4');
   });

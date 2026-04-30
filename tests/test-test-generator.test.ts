@@ -6,16 +6,21 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  TEST_FRAMEWORKS,
-  TEST_TYPES,
   checkCoverage,
   extractCriteria,
   generateTestStubs,
+  TEST_FRAMEWORKS,
+  TEST_TYPES,
 } from '../src/lib/test-generator.js';
 
 let tmpDir: string;
-beforeEach(() => { tmpDir = join(tmpdir(), `test-testgen-${Date.now()}`); mkdirSync(tmpDir, { recursive: true }); });
-afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
+beforeEach(() => {
+  tmpDir = join(tmpdir(), `test-testgen-${Date.now()}`);
+  mkdirSync(tmpDir, { recursive: true });
+});
+afterEach(() => {
+  rmSync(tmpDir, { recursive: true, force: true });
+});
 
 const SAMPLE_PRD = `
 ## User Stories
@@ -38,19 +43,19 @@ describe('extractCriteria', () => {
   it('extracts Given/When/Then criteria', () => {
     const criteria = extractCriteria(SAMPLE_PRD);
     expect(criteria.length).toBeGreaterThan(0);
-    expect(criteria.some(c => c.type === 'given')).toBe(true);
-    expect(criteria.some(c => c.type === 'when')).toBe(true);
-    expect(criteria.some(c => c.type === 'then')).toBe(true);
+    expect(criteria.some((c) => c.type === 'given')).toBe(true);
+    expect(criteria.some((c) => c.type === 'when')).toBe(true);
+    expect(criteria.some((c) => c.type === 'then')).toBe(true);
   });
 
   it('extracts AC criteria', () => {
     const criteria = extractCriteria(SAMPLE_PRD);
-    expect(criteria.some(c => c.type === 'acceptance')).toBe(true);
+    expect(criteria.some((c) => c.type === 'acceptance')).toBe(true);
   });
 
   it('associates story IDs with criteria', () => {
     const criteria = extractCriteria(SAMPLE_PRD);
-    expect(criteria.some(c => c.story === 'E01-S01')).toBe(true);
+    expect(criteria.some((c) => c.story === 'E01-S01')).toBe(true);
   });
 
   it('returns empty for content without criteria', () => {
@@ -69,7 +74,7 @@ describe('generateTestStubs', () => {
     const criteria = extractCriteria(SAMPLE_PRD);
     const r = generateTestStubs(criteria, { language: 'typescript' });
     expect(r.success).toBe(true);
-    expect((r.test_files ?? 0)).toBeGreaterThan(0);
+    expect(r.test_files ?? 0).toBeGreaterThan(0);
     expect(r.framework).toBe('vitest');
   });
 
@@ -92,7 +97,7 @@ describe('generateTestStubs', () => {
     const criteria = extractCriteria(SAMPLE_PRD);
     const r = generateTestStubs(criteria, { language: 'javascript' });
     // E01-S01 and E01-S02 should produce separate files
-    expect((r.test_files ?? 0)).toBeGreaterThanOrEqual(2);
+    expect(r.test_files ?? 0).toBeGreaterThanOrEqual(2);
   });
 
   it('includes total_criteria count', () => {
@@ -116,8 +121,8 @@ describe('checkCoverage', () => {
     const r = checkCoverage(tmpDir);
     expect(r.success).toBe(true);
     expect(typeof r.coverage).toBe('number');
-    expect((r.coverage ?? 0)).toBeGreaterThanOrEqual(0);
-    expect((r.coverage ?? 0)).toBeLessThanOrEqual(100);
+    expect(r.coverage ?? 0).toBeGreaterThanOrEqual(0);
+    expect(r.coverage ?? 0).toBeLessThanOrEqual(100);
   });
 });
 
@@ -130,10 +135,10 @@ describe('TEST_TYPES', () => {
 
 describe('TEST_FRAMEWORKS', () => {
   it('has typescript framework config', () => {
-    expect(TEST_FRAMEWORKS['typescript']?.framework).toBe('vitest');
+    expect(TEST_FRAMEWORKS.typescript?.framework).toBe('vitest');
   });
 
   it('has python framework config', () => {
-    expect(TEST_FRAMEWORKS['python']?.framework).toBe('pytest');
+    expect(TEST_FRAMEWORKS.python?.framework).toBe('pytest');
   });
 });

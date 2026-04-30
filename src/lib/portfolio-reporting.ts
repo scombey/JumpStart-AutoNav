@@ -154,8 +154,8 @@ export function analyzeProject(projectRoot: string): ProjectAnalysis {
   if (existsSync(stateFile)) {
     try {
       const state = JSON.parse(readFileSync(stateFile, 'utf8')) as Record<string, unknown>;
-      if (typeof state['current_phase'] === 'string') {
-        result.current_phase = state['current_phase'];
+      if (typeof state.current_phase === 'string') {
+        result.current_phase = state.current_phase;
       }
     } catch {
       // ignore parse errors
@@ -177,8 +177,7 @@ export function analyzeProject(projectRoot: string): ProjectAnalysis {
     const fullPath = join(projectRoot, relPath);
     if (existsSync(fullPath)) {
       const content = readFileSync(fullPath, 'utf8');
-      const isApproved =
-        /- \[x\]/i.test(content) && /Approved by[:\s]+(?!Pending)/i.test(content);
+      const isApproved = /- \[x\]/i.test(content) && /Approved by[:\s]+(?!Pending)/i.test(content);
       if (isApproved) {
         completed++;
         latestPhase = phase;
@@ -187,7 +186,7 @@ export function analyzeProject(projectRoot: string): ProjectAnalysis {
       const blockerMatches = content.match(/\[BLOCKER[:\s]*([^\]]*)\]/gi);
       if (blockerMatches) {
         result.blockers.push(
-          ...blockerMatches.map(b => b.replace(/\[BLOCKER[:\s]*/i, '').replace(/\]/g, '')),
+          ...blockerMatches.map((b) => b.replace(/\[BLOCKER[:\s]*/i, '').replace(/\]/g, ''))
         );
       }
 
@@ -195,8 +194,8 @@ export function analyzeProject(projectRoot: string): ProjectAnalysis {
       if (clarificationMatches) {
         result.risks.push(
           ...clarificationMatches.map(
-            c => `Unresolved: ${c.replace(/\[NEEDS CLARIFICATION[:\s]*/i, '').replace(/\]/g, '')}`,
-          ),
+            (c) => `Unresolved: ${c.replace(/\[NEEDS CLARIFICATION[:\s]*/i, '').replace(/\]/g, '')}`
+          )
         );
       }
     }
@@ -206,10 +205,8 @@ export function analyzeProject(projectRoot: string): ProjectAnalysis {
   result.phase_progress = Math.round((completed / result.total_artifacts) * 100);
 
   if (!result.current_phase && latestPhase) {
-    const phaseObj = PHASES.find(p => p.id === latestPhase);
-    const nextPhase = phaseObj
-      ? PHASES.find(p => p.order === phaseObj.order + 1)
-      : undefined;
+    const phaseObj = PHASES.find((p) => p.id === latestPhase);
+    const nextPhase = phaseObj ? PHASES.find((p) => p.order === phaseObj.order + 1) : undefined;
     result.current_phase = nextPhase ? nextPhase.id : latestPhase;
   }
 
@@ -238,7 +235,7 @@ export interface RegisterResult {
 
 export function registerInitiative(
   initiative: RegisterInitiativeInput,
-  options: { portfolioFile?: string | undefined } = {},
+  options: { portfolioFile?: string | undefined } = {}
 ): RegisterResult {
   if (!initiative?.name) {
     return { success: false, error: 'initiative.name is required' };
@@ -248,7 +245,7 @@ export function registerInitiative(
   const portfolio = loadPortfolio(portfolioFile);
 
   const id = initiative.id ?? initiative.name.toLowerCase().replace(/\s+/g, '-');
-  if (portfolio.initiatives.find(i => i.id === id)) {
+  if (portfolio.initiatives.find((i) => i.id === id)) {
     return { success: false, error: `Initiative "${id}" already exists` };
   }
 
@@ -285,12 +282,12 @@ export interface RefreshResult {
 
 export function refreshInitiative(
   initiativeId: string,
-  options: { portfolioFile?: string | undefined } = {},
+  options: { portfolioFile?: string | undefined } = {}
 ): RefreshResult {
   const portfolioFile = options.portfolioFile ?? DEFAULT_PORTFOLIO_FILE;
   const portfolio = loadPortfolio(portfolioFile);
 
-  const initiative = portfolio.initiatives.find(i => i.id === initiativeId);
+  const initiative = portfolio.initiatives.find((i) => i.id === initiativeId);
   if (!initiative) {
     return { success: false, error: `Initiative not found: ${initiativeId}` };
   }
@@ -340,28 +337,28 @@ export interface PortfolioStatusResult {
 }
 
 export function getPortfolioStatus(
-  options: { portfolioFile?: string | undefined } = {},
+  options: { portfolioFile?: string | undefined } = {}
 ): PortfolioStatusResult {
   const portfolioFile = options.portfolioFile ?? DEFAULT_PORTFOLIO_FILE;
   const portfolio = loadPortfolio(portfolioFile);
 
   const statusCounts: Record<string, number> = {};
   for (const status of PORTFOLIO_STATUSES) {
-    statusCounts[status] = portfolio.initiatives.filter(i => i.status === status).length;
+    statusCounts[status] = portfolio.initiatives.filter((i) => i.status === status).length;
   }
 
   const totalBudget = portfolio.initiatives.reduce((sum, i) => sum + (i.budget ?? 0), 0);
   const totalSpend = portfolio.initiatives.reduce((sum, i) => sum + (i.spend ?? 0), 0);
 
-  const allBlockers = portfolio.initiatives.flatMap(i =>
-    (i.blockers ?? []).map(b => ({ initiative: i.name, blocker: b })),
+  const allBlockers = portfolio.initiatives.flatMap((i) =>
+    (i.blockers ?? []).map((b) => ({ initiative: i.name, blocker: b }))
   );
 
   const avgProgress =
     portfolio.initiatives.length > 0
       ? Math.round(
           portfolio.initiatives.reduce((sum, i) => sum + (i.phase_progress ?? 0), 0) /
-            portfolio.initiatives.length,
+            portfolio.initiatives.length
         )
       : 0;
 
@@ -372,7 +369,7 @@ export function getPortfolioStatus(
     average_progress: avgProgress,
     budget: { total: totalBudget, spent: totalSpend, remaining: totalBudget - totalSpend },
     blockers: allBlockers,
-    initiatives: portfolio.initiatives.map(i => ({
+    initiatives: portfolio.initiatives.map((i) => ({
       id: i.id,
       name: i.name,
       status: i.status,
@@ -394,12 +391,12 @@ export interface RemoveResult {
 
 export function removeInitiative(
   initiativeId: string,
-  options: { portfolioFile?: string | undefined } = {},
+  options: { portfolioFile?: string | undefined } = {}
 ): RemoveResult {
   const portfolioFile = options.portfolioFile ?? DEFAULT_PORTFOLIO_FILE;
   const portfolio = loadPortfolio(portfolioFile);
 
-  const index = portfolio.initiatives.findIndex(i => i.id === initiativeId);
+  const index = portfolio.initiatives.findIndex((i) => i.id === initiativeId);
   if (index === -1) {
     return { success: false, error: `Initiative not found: ${initiativeId}` };
   }
@@ -421,7 +418,7 @@ export function takeSnapshot(options: { portfolioFile?: string | undefined } = {
 
   const statusSummary: Record<string, number> = {};
   for (const status of PORTFOLIO_STATUSES) {
-    statusSummary[status] = portfolio.initiatives.filter(i => i.status === status).length;
+    statusSummary[status] = portfolio.initiatives.filter((i) => i.status === status).length;
   }
 
   const snapshot: PortfolioSnapshot = {
@@ -432,7 +429,7 @@ export function takeSnapshot(options: { portfolioFile?: string | undefined } = {
       portfolio.initiatives.length > 0
         ? Math.round(
             portfolio.initiatives.reduce((sum, i) => sum + (i.phase_progress ?? 0), 0) /
-              portfolio.initiatives.length,
+              portfolio.initiatives.length
           )
         : 0,
   };
@@ -445,4 +442,3 @@ export function takeSnapshot(options: { portfolioFile?: string | undefined } = {
 
   return { success: true, snapshot };
 }
-

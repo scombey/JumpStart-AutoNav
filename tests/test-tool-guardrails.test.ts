@@ -3,12 +3,12 @@
  * Vitest tests for src/lib/tool-guardrails.ts (M11 batch 6 port).
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   checkOperation,
-  validateFileOperation,
-  RISK_RULES,
   PROTECTED_PATHS,
+  RISK_RULES,
+  validateFileOperation,
 } from '../src/lib/tool-guardrails.js';
 
 // ─── RISK_RULES ───────────────────────────────────────────────────────────────
@@ -19,15 +19,15 @@ describe('RISK_RULES', () => {
   });
 
   it('has a critical rule for recursive-delete', () => {
-    const rule = RISK_RULES.find(r => r.id === 'recursive-delete');
+    const rule = RISK_RULES.find((r) => r.id === 'recursive-delete');
     expect(rule).toBeDefined();
-    expect(rule!.risk).toBe('critical');
+    expect(rule?.risk).toBe('critical');
   });
 
   it('has a critical rule for sudo-usage', () => {
-    const rule = RISK_RULES.find(r => r.id === 'sudo-usage');
+    const rule = RISK_RULES.find((r) => r.id === 'sudo-usage');
     expect(rule).toBeDefined();
-    expect(rule!.risk).toBe('critical');
+    expect(rule?.risk).toBe('critical');
   });
 });
 
@@ -65,7 +65,7 @@ describe('checkOperation', () => {
     expect(result.success).toBe(true);
     expect(result.allowed).toBe(false);
     expect(result.risk_level).toBe('critical');
-    const violationIds = (result.violations ?? []).map(v => v.rule_id);
+    const violationIds = (result.violations ?? []).map((v) => v.rule_id);
     expect(violationIds).toContain('recursive-delete');
   });
 
@@ -79,7 +79,7 @@ describe('checkOperation', () => {
     const result = checkOperation('ALTER TABLE users DROP COLUMN email');
     expect(result.success).toBe(true);
     expect(result.requires_approval).toBe(true);
-    const violationIds = (result.violations ?? []).map(v => v.rule_id);
+    const violationIds = (result.violations ?? []).map((v) => v.rule_id);
     expect(violationIds).toContain('schema-change');
   });
 
@@ -92,25 +92,25 @@ describe('checkOperation', () => {
   it('detects wide glob as medium risk', () => {
     const result = checkOperation('rm **/*');
     // recursive-delete not matched here (no -rf), but wide-glob is medium
-    const globs = (result.violations ?? []).filter(v => v.rule_id === 'wide-glob');
+    const globs = (result.violations ?? []).filter((v) => v.rule_id === 'wide-glob');
     expect(globs.length).toBeGreaterThan(0);
   });
 
   it('detects protected path .env', () => {
     const result = checkOperation('cat .env');
     expect(result.success).toBe(true);
-    const ppViolations = (result.violations ?? []).filter(v => v.rule_id === 'protected-path');
+    const ppViolations = (result.violations ?? []).filter((v) => v.rule_id === 'protected-path');
     expect(ppViolations.length).toBeGreaterThan(0);
   });
 
   it('detects protected path .jumpstart/state/', () => {
     const result = checkOperation('rm .jumpstart/state/state.json');
-    const ppViolations = (result.violations ?? []).filter(v => v.rule_id === 'protected-path');
+    const ppViolations = (result.violations ?? []).filter((v) => v.rule_id === 'protected-path');
     expect(ppViolations.length).toBeGreaterThan(0);
   });
 
   it('truncates long operations to 200 chars in result', () => {
-    const longOp = 'echo ' + 'a'.repeat(300);
+    const longOp = `echo ${'a'.repeat(300)}`;
     const result = checkOperation(longOp);
     expect((result.operation ?? '').length).toBeLessThanOrEqual(200);
   });
@@ -118,7 +118,7 @@ describe('checkOperation', () => {
   it('reports total_violations count', () => {
     const result = checkOperation('sudo rm -rf .env');
     expect(typeof result.total_violations).toBe('number');
-    expect((result.total_violations ?? 0)).toBeGreaterThan(0);
+    expect(result.total_violations ?? 0).toBeGreaterThan(0);
   });
 });
 
@@ -136,7 +136,7 @@ describe('validateFileOperation', () => {
     const result = validateFileOperation('delete', 'src/lib/foo.ts');
     expect(result.success).toBe(true);
     expect(result.allowed).toBe(true);
-    expect(result.warnings.some(w => w.level === 'high')).toBe(true);
+    expect(result.warnings.some((w) => w.level === 'high')).toBe(true);
   });
 
   it('blocks delete of protected path', () => {
@@ -152,17 +152,17 @@ describe('validateFileOperation', () => {
 
   it('warns on edit of .pem file', () => {
     const result = validateFileOperation('edit', 'certs/server.pem');
-    expect(result.warnings.some(w => w.message.includes('sensitive'))).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes('sensitive'))).toBe(true);
   });
 
   it('warns on edit of .key file', () => {
     const result = validateFileOperation('edit', 'private.key');
-    expect(result.warnings.some(w => w.level === 'high')).toBe(true);
+    expect(result.warnings.some((w) => w.level === 'high')).toBe(true);
   });
 
   it('warns on large edit (>100 lines)', () => {
     const result = validateFileOperation('edit', 'src/foo.ts', { lines_changed: 150 });
-    expect(result.warnings.some(w => w.message.includes('Large edit'))).toBe(true);
+    expect(result.warnings.some((w) => w.message.includes('Large edit'))).toBe(true);
   });
 
   it('does not warn for small edit', () => {

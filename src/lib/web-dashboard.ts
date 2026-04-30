@@ -18,13 +18,20 @@
  * @see bin/lib/web-dashboard.js (legacy reference)
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 export const DEFAULT_PORT = 3000;
 export const DEFAULT_HOST = 'localhost';
 
-export const DASHBOARD_SECTIONS = ['phases', 'artifacts', 'governance', 'timeline', 'risks', 'metrics'] as const;
+export const DASHBOARD_SECTIONS = [
+  'phases',
+  'artifacts',
+  'governance',
+  'timeline',
+  'risks',
+  'metrics',
+] as const;
 export type DashboardSection = (typeof DASHBOARD_SECTIONS)[number];
 
 export interface DashboardConfig {
@@ -52,7 +59,7 @@ export function generateConfig(
     theme?: string | undefined;
     auth?: { enabled: boolean } | undefined;
     refresh_interval?: number | undefined;
-  } = {},
+  } = {}
 ): ConfigResult {
   const config: DashboardConfig = {
     port: options.port ?? DEFAULT_PORT,
@@ -79,7 +86,11 @@ export interface DashboardData {
   project_root: string;
   generated_at: string;
   sections: {
-    phases: { current_phase: number | string; current_agent?: string | null; last_completed_step?: string | null };
+    phases: {
+      current_phase: number | string;
+      current_agent?: string | null;
+      last_completed_step?: string | null;
+    };
     artifacts: { total: number; files: ArtifactEntry[] };
     config: { exists: boolean };
   };
@@ -87,7 +98,7 @@ export interface DashboardData {
 
 export function gatherDashboardData(
   root: string,
-  _options: Record<string, unknown> = {},
+  _options: Record<string, unknown> = {}
 ): DashboardData {
   const data: DashboardData = {
     success: true,
@@ -105,9 +116,9 @@ export function gatherDashboardData(
     try {
       const state = JSON.parse(readFileSync(stateFile, 'utf8')) as Record<string, unknown>;
       data.sections.phases = {
-        current_phase: (state['current_phase'] as number | string | undefined) ?? 0,
-        current_agent: (state['current_agent'] as string | null | undefined) ?? null,
-        last_completed_step: (state['last_completed_step'] as string | null | undefined) ?? null,
+        current_phase: (state.current_phase as number | string | undefined) ?? 0,
+        current_agent: (state.current_agent as string | null | undefined) ?? null,
+        last_completed_step: (state.last_completed_step as string | null | undefined) ?? null,
       };
     } catch {
       data.sections.phases = { current_phase: 0 };
@@ -117,7 +128,7 @@ export function gatherDashboardData(
   const specsDir = join(root, 'specs');
   const artifacts: ArtifactEntry[] = [];
   if (existsSync(specsDir)) {
-    for (const f of readdirSync(specsDir).filter(f => f.endsWith('.md'))) {
+    for (const f of readdirSync(specsDir).filter((f) => f.endsWith('.md'))) {
       const fp = join(specsDir, f);
       const st = statSync(fp);
       artifacts.push({ name: f, size: st.size, modified: st.mtime.toISOString() });
@@ -146,7 +157,7 @@ export function generateStaticDashboard(data: DashboardData): HtmlResult {
 <h2>Phase Status</h2>
 <p>Current Phase: ${data.sections.phases.current_phase}</p>
 <h2>Artifacts (${data.sections.artifacts.total})</h2>
-<ul>${data.sections.artifacts.files.map(f => `<li>${f.name} (${f.size} bytes)</li>`).join('')}</ul>
+<ul>${data.sections.artifacts.files.map((f) => `<li>${f.name} (${f.size} bytes)</li>`).join('')}</ul>
 </body>
 </html>`;
   return { success: true, html };
@@ -160,7 +171,9 @@ export interface StatusResult {
   uptime: null;
 }
 
-export function getServerStatus(options: { port?: number | undefined; host?: string | undefined } = {}): StatusResult {
+export function getServerStatus(
+  options: { port?: number | undefined; host?: string | undefined } = {}
+): StatusResult {
   return {
     success: true,
     running: false,

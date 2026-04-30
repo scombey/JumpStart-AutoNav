@@ -104,7 +104,7 @@ export function saveBaseline(baseline: Baseline, baselineFile?: string): void {
   const dir = dirname(filePath);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   baseline.last_updated = new Date().toISOString();
-  writeFileSync(filePath, JSON.stringify(baseline, null, 2) + '\n', 'utf8');
+  writeFileSync(filePath, `${JSON.stringify(baseline, null, 2)}\n`, 'utf8');
 }
 
 export function hashContent(content: string): string {
@@ -122,8 +122,7 @@ export function extractRequirementIds(content: string): string[] {
   ];
   const ids = new Set<string>();
   for (const pattern of patterns) {
-    let match: RegExpExecArray | null;
-    while ((match = pattern.exec(content)) !== null) {
+    for (const match of content.matchAll(pattern)) {
       const id = match[1];
       if (id) ids.add(id);
     }
@@ -142,7 +141,7 @@ export interface FreezeResult {
 
 export function freezeBaseline(
   root: string,
-  options: { baselineFile?: string | undefined; approver?: string | undefined } = {},
+  options: { baselineFile?: string | undefined; approver?: string | undefined } = {}
 ): FreezeResult {
   const baselineFile = options.baselineFile ?? join(root, DEFAULT_BASELINE_FILE);
   const baseline = loadBaseline(baselineFile);
@@ -196,7 +195,7 @@ export function freezeBaseline(
     baseline_id: baselineEntry.id,
     artifacts_frozen: snapshots.length,
     total_requirements: baselineEntry.total_requirements,
-    snapshots: snapshots.map(s => ({
+    snapshots: snapshots.map((s) => ({
       type: s.type,
       path: s.path,
       requirements: s.requirement_ids.length,
@@ -221,18 +220,20 @@ export interface CheckBaselineResult {
   drifted?: boolean | undefined;
   changes?: ChangeInfo[] | undefined;
   unchanged?: Array<{ type: ArtifactType; path: string }> | undefined;
-  summary?: {
-    total_artifacts: number;
-    changed: number;
-    unchanged: number;
-    critical: number;
-  } | undefined;
+  summary?:
+    | {
+        total_artifacts: number;
+        changed: number;
+        unchanged: number;
+        critical: number;
+      }
+    | undefined;
   message?: string | undefined;
 }
 
 export function checkBaseline(
   root: string,
-  options: { baselineFile?: string | undefined } = {},
+  options: { baselineFile?: string | undefined } = {}
 ): CheckBaselineResult {
   const baselineFile = options.baselineFile ?? join(root, DEFAULT_BASELINE_FILE);
   const baseline = loadBaseline(baselineFile);
@@ -250,7 +251,12 @@ export function checkBaseline(
   for (const snapshot of latestBaseline.snapshots) {
     const fullPath = join(root, snapshot.path);
     if (!existsSync(fullPath)) {
-      changes.push({ type: snapshot.type, path: snapshot.path, change: 'deleted', severity: 'critical' });
+      changes.push({
+        type: snapshot.type,
+        path: snapshot.path,
+        change: 'deleted',
+        severity: 'critical',
+      });
       continue;
     }
 
@@ -259,8 +265,8 @@ export function checkBaseline(
 
     if (currentHash !== snapshot.hash) {
       const currentIds = extractRequirementIds(content);
-      const addedIds = currentIds.filter(id => !snapshot.requirement_ids.includes(id));
-      const removedIds = snapshot.requirement_ids.filter(id => !currentIds.includes(id));
+      const addedIds = currentIds.filter((id) => !snapshot.requirement_ids.includes(id));
+      const removedIds = snapshot.requirement_ids.filter((id) => !currentIds.includes(id));
 
       changes.push({
         type: snapshot.type,
@@ -287,7 +293,7 @@ export function checkBaseline(
       total_artifacts: latestBaseline.snapshots.length,
       changed: changes.length,
       unchanged: unchanged.length,
-      critical: changes.filter(c => c.severity === 'critical').length,
+      critical: changes.filter((c) => c.severity === 'critical').length,
     },
   };
 }
@@ -297,43 +303,54 @@ export interface ImpactResult {
   impact: string;
   change_request_id?: string | undefined;
   artifact?: string | undefined;
-  assessment?: {
-    change_type: string;
-    affected_requirements?: string[] | undefined;
-    downstream_artifacts: ArtifactType[];
-    added_requirements?: string[] | undefined;
-    removed_requirements?: string[] | undefined;
-    unchanged_requirements?: number | undefined;
-    requires_re_approval?: boolean | undefined;
-  } | undefined;
+  assessment?:
+    | {
+        change_type: string;
+        affected_requirements?: string[] | undefined;
+        downstream_artifacts: ArtifactType[];
+        added_requirements?: string[] | undefined;
+        removed_requirements?: string[] | undefined;
+        unchanged_requirements?: number | undefined;
+        requires_re_approval?: boolean | undefined;
+      }
+    | undefined;
   message?: string | undefined;
 }
 
 export function assessImpact(
   artifactPath: string,
   root: string,
-  options: { baselineFile?: string | undefined } = {},
+  options: { baselineFile?: string | undefined } = {}
 ): ImpactResult {
   const baselineFile = options.baselineFile ?? join(root, DEFAULT_BASELINE_FILE);
   const baseline = loadBaseline(baselineFile);
 
   if (!baseline.frozen || baseline.baselines.length === 0) {
-    return { success: true, impact: 'none', message: 'No frozen baseline — changes are unconstrained' };
+    return {
+      success: true,
+      impact: 'none',
+      message: 'No frozen baseline — changes are unconstrained',
+    };
   }
 
   const relPath = relative(root, resolve(root, artifactPath)).replace(/\\/g, '/');
   const latestBaseline = baseline.baselines[baseline.baselines.length - 1];
-  if (!latestBaseline) return { success: true, impact: 'none', message: 'No frozen baseline found' };
+  if (!latestBaseline)
+    return { success: true, impact: 'none', message: 'No frozen baseline found' };
 
-  const snapshot = latestBaseline.snapshots.find(s => s.path === relPath);
+  const snapshot = latestBaseline.snapshots.find((s) => s.path === relPath);
 
   if (!snapshot) {
-    return { success: true, impact: 'none', message: `${relPath} is not part of the frozen baseline` };
+    return {
+      success: true,
+      impact: 'none',
+      message: `${relPath} is not part of the frozen baseline`,
+    };
   }
 
   const fullPath = join(root, relPath);
   if (!existsSync(fullPath)) {
-    const downstreamTypes = ARTIFACT_TYPES.filter(t => t !== snapshot.type) as ArtifactType[];
+    const downstreamTypes = ARTIFACT_TYPES.filter((t) => t !== snapshot.type) as ArtifactType[];
     return {
       success: true,
       impact: 'critical',
@@ -354,18 +371,23 @@ export function assessImpact(
   }
 
   const currentIds = extractRequirementIds(content);
-  const addedIds = currentIds.filter(id => !snapshot.requirement_ids.includes(id));
-  const removedIds = snapshot.requirement_ids.filter(id => !currentIds.includes(id));
-  const unchangedIds = currentIds.filter(id => snapshot.requirement_ids.includes(id));
+  const addedIds = currentIds.filter((id) => !snapshot.requirement_ids.includes(id));
+  const removedIds = snapshot.requirement_ids.filter((id) => !currentIds.includes(id));
+  const unchangedIds = currentIds.filter((id) => snapshot.requirement_ids.includes(id));
 
   const typeIndex = ARTIFACT_TYPES.indexOf(snapshot.type);
-  const downstreamTypes = (typeIndex >= 0 ? ARTIFACT_TYPES.slice(typeIndex + 1) : []) as ArtifactType[];
+  const downstreamTypes = (
+    typeIndex >= 0 ? ARTIFACT_TYPES.slice(typeIndex + 1) : []
+  ) as ArtifactType[];
 
   const impactLevel =
-    removedIds.length > 0 ? 'critical'
-    : addedIds.length > 3 ? 'high'
-    : addedIds.length > 0 ? 'medium'
-    : 'low';
+    removedIds.length > 0
+      ? 'critical'
+      : addedIds.length > 3
+        ? 'high'
+        : addedIds.length > 0
+          ? 'medium'
+          : 'low';
 
   const changeRequest: ChangeRequest = {
     id: `cr-${Date.now()}`,
@@ -408,7 +430,7 @@ export interface BaselineStatusResult {
 }
 
 export function getBaselineStatus(
-  options: { baselineFile?: string | undefined } = {},
+  options: { baselineFile?: string | undefined } = {}
 ): BaselineStatusResult {
   const baselineFile = options.baselineFile ?? DEFAULT_BASELINE_FILE;
   const baseline = loadBaseline(baselineFile);
@@ -418,8 +440,11 @@ export function getBaselineStatus(
     frozen: baseline.frozen,
     total_baselines: baseline.baselines.length,
     total_change_requests: baseline.change_requests.length,
-    pending_change_requests: baseline.change_requests.filter(cr => cr.status === 'pending_review').length,
+    pending_change_requests: baseline.change_requests.filter((cr) => cr.status === 'pending_review')
+      .length,
     latest_baseline:
-      baseline.baselines.length > 0 ? (baseline.baselines[baseline.baselines.length - 1] ?? null) : null,
+      baseline.baselines.length > 0
+        ? (baseline.baselines[baseline.baselines.length - 1] ?? null)
+        : null,
   };
 }

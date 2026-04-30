@@ -96,7 +96,7 @@ export interface StubResult {
 
 export function generateTestStubs(
   criteria: Criterion[],
-  options: { language?: string | undefined } = {},
+  options: { language?: string | undefined } = {}
 ): StubResult {
   const language = options.language ?? 'javascript';
   const fwConfig = TEST_FRAMEWORKS[language];
@@ -108,13 +108,13 @@ export function generateTestStubs(
   for (const c of criteria) {
     const story = c.story ?? 'general';
     byStory[story] = byStory[story] ?? [];
-    byStory[story]!.push(c);
+    byStory[story]?.push(c);
   }
 
   const testFiles: TestFileStub[] = [];
   for (const [story, storyCriteria] of Object.entries(byStory)) {
     const fileName = `${story.toLowerCase().replace(/[^a-z0-9]/g, '-')}${fwConfig.extension}`;
-    const tests = storyCriteria.map(c => {
+    const tests = storyCriteria.map((c) => {
       const testName = c.criterion.replace(/'/g, "\\'").substring(0, 100);
       return `  it('${testName}', () => {\n    // TODO: Implement test for ${c.type}\n    expect(true).toBe(true);\n  });`;
     });
@@ -141,7 +141,10 @@ export interface CoverageResult {
   error?: string | undefined;
 }
 
-export function checkCoverage(root: string, _options: Record<string, unknown> = {}): CoverageResult {
+export function checkCoverage(
+  root: string,
+  _options: Record<string, unknown> = {}
+): CoverageResult {
   const prdFile = join(root, 'specs', 'prd.md');
   if (!existsSync(prdFile)) {
     return { success: false, error: 'PRD not found at specs/prd.md' };
@@ -156,15 +159,20 @@ export function checkCoverage(root: string, _options: Record<string, unknown> = 
     for (const entry of readdirSync(testDir)) {
       if (entry.endsWith('.test.js') || entry.endsWith('.test.ts')) {
         try {
-          testContent += readFileSync(join(testDir, entry), 'utf8') + '\n';
-        } catch { /* skip */ }
+          testContent += `${readFileSync(join(testDir, entry), 'utf8')}\n`;
+        } catch {
+          /* skip */
+        }
       }
     }
   }
 
-  const covered = criteria.filter(c => {
-    const terms = c.criterion.toLowerCase().split(/\s+/).filter(t => t.length > 3);
-    return terms.some(t => testContent.toLowerCase().includes(t));
+  const covered = criteria.filter((c) => {
+    const terms = c.criterion
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((t) => t.length > 3);
+    return terms.some((t) => testContent.toLowerCase().includes(t));
   });
 
   return {
@@ -172,6 +180,6 @@ export function checkCoverage(root: string, _options: Record<string, unknown> = 
     total_criteria: criteria.length,
     covered: covered.length,
     coverage: criteria.length > 0 ? Math.round((covered.length / criteria.length) * 100) : 0,
-    uncovered: criteria.filter(c => !covered.includes(c)),
+    uncovered: criteria.filter((c) => !covered.includes(c)),
   };
 }

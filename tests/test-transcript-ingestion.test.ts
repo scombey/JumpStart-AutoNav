@@ -3,19 +3,19 @@
  * Vitest tests for src/lib/transcript-ingestion.ts (M11 batch 6 port).
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { writeFileSync, mkdirSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
 import {
-  defaultState,
-  loadState,
-  saveState,
-  ingestTranscript,
-  extractFromTranscript,
-  listTranscripts,
   ACTION_PATTERNS,
   DECISION_PATTERNS,
+  defaultState,
+  extractFromTranscript,
+  ingestTranscript,
+  listTranscripts,
+  loadState,
+  saveState,
 } from '../src/lib/transcript-ingestion.js';
 
 let _seq = 0;
@@ -69,7 +69,7 @@ describe('loadState / saveState', () => {
     writeFileSync(
       f,
       '{"__proto__":{"polluted":true},"version":"1.0.0","transcripts":[],"last_updated":null}',
-      'utf8',
+      'utf8'
     );
     // Should fall back to defaultState, not throw to caller
     const state = loadState(f);
@@ -81,7 +81,7 @@ describe('loadState / saveState', () => {
     writeFileSync(
       f,
       '{"constructor":{"polluted":true},"version":"1.0.0","transcripts":[],"last_updated":null}',
-      'utf8',
+      'utf8'
     );
     const state = loadState(f);
     expect(state.transcripts).toEqual([]);
@@ -122,7 +122,10 @@ describe('ingestTranscript', () => {
 
   it('ingests a transcript and returns success', () => {
     const f = tmpStateFile();
-    const result = ingestTranscript('Hello world meeting notes.', { stateFile: f, title: 'Test Meeting' });
+    const result = ingestTranscript('Hello world meeting notes.', {
+      stateFile: f,
+      title: 'Test Meeting',
+    });
     expect(result.success).toBe(true);
     expect(result.transcript?.title).toBe('Test Meeting');
     expect(result.transcript?.id).toMatch(/^TR-/);
@@ -138,18 +141,18 @@ describe('ingestTranscript', () => {
   it('extracts action items from TODO pattern', () => {
     const f = tmpStateFile();
     const result = ingestTranscript('Meeting notes. TODO: fix the build.', { stateFile: f });
-    expect(result.transcript?.actions.some(a => a.text.includes('fix the build'))).toBe(true);
+    expect(result.transcript?.actions.some((a) => a.text.includes('fix the build'))).toBe(true);
   });
 
   it('extracts decisions from "decided" pattern', () => {
     const f = tmpStateFile();
     const result = ingestTranscript('We decided to use TypeScript.', { stateFile: f });
-    expect(result.transcript?.decisions.some(d => d.text.includes('use TypeScript'))).toBe(true);
+    expect(result.transcript?.decisions.some((d) => d.text.includes('use TypeScript'))).toBe(true);
   });
 
   it('extracts key_topics from markdown headings', () => {
     const f = tmpStateFile();
-    const text = '# Sprint Review\n## Action Items\nLet\'s do this.';
+    const text = "# Sprint Review\n## Action Items\nLet's do this.";
     const result = ingestTranscript(text, { stateFile: f });
     expect(result.transcript?.key_topics).toContain('Sprint Review');
     expect(result.transcript?.key_topics).toContain('Action Items');
@@ -175,7 +178,7 @@ describe('extractFromTranscript', () => {
   it('extracts data for existing transcript', () => {
     const f = tmpStateFile();
     const ingested = ingestTranscript('action item: review PR. decided to ship.', { stateFile: f });
-    const id = ingested.transcript!.id;
+    const id = ingested.transcript?.id ?? '';
     const result = extractFromTranscript(id, { stateFile: f });
     expect(result.success).toBe(true);
     expect(result.id).toBe(id);
@@ -201,7 +204,7 @@ describe('listTranscripts', () => {
     ingestTranscript('notes two', { stateFile: f, title: 'Meeting B' });
     const result = listTranscripts({ stateFile: f });
     expect(result.total).toBe(2);
-    expect(result.transcripts.map(t => t.title)).toContain('Meeting A');
-    expect(result.transcripts.map(t => t.title)).toContain('Meeting B');
+    expect(result.transcripts.map((t) => t.title)).toContain('Meeting A');
+    expect(result.transcripts.map((t) => t.title)).toContain('Meeting B');
   });
 });

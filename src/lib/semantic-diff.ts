@@ -86,9 +86,8 @@ export interface ApiEndpoint {
 
 export function extractApiEndpoints(content: string): ApiEndpoint[] {
   const endpoints: ApiEndpoint[] = [];
-  let match: RegExpExecArray | null;
   const pattern = new RegExp(API_ENDPOINT.source, 'g');
-  while ((match = pattern.exec(content)) !== null) {
+  for (const match of content.matchAll(pattern)) {
     const method = match[1];
     const apiPath = match[2];
     if (method && apiPath) endpoints.push({ method, path: apiPath });
@@ -98,23 +97,37 @@ export function extractApiEndpoints(content: string): ApiEndpoint[] {
 
 export function extractTableData(content: string): string[][] {
   const rows: string[][] = [];
-  let match: RegExpExecArray | null;
   const pattern = new RegExp(TABLE_ROW.source, 'gm');
-  while ((match = pattern.exec(content)) !== null) {
-    const cells = (match[1] ?? '').split('|').map(c => c.trim()).filter(c => c.length > 0);
-    if (cells.some(c => /^[-:]+$/.test(c))) continue;
+  for (const match of content.matchAll(pattern)) {
+    const cells = (match[1] ?? '')
+      .split('|')
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0);
+    if (cells.some((c) => /^[-:]+$/.test(c))) continue;
     rows.push(cells);
   }
   return rows;
 }
 
 export function normalizeText(text: string): string {
-  return text.toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export function textSimilarity(a: string, b: string): number {
-  const wordsA = new Set(normalizeText(a).split(' ').filter(w => w.length > 2));
-  const wordsB = new Set(normalizeText(b).split(' ').filter(w => w.length > 2));
+  const wordsA = new Set(
+    normalizeText(a)
+      .split(' ')
+      .filter((w) => w.length > 2)
+  );
+  const wordsB = new Set(
+    normalizeText(b)
+      .split(' ')
+      .filter((w) => w.length > 2)
+  );
   if (wordsA.size === 0 && wordsB.size === 0) return 1;
   if (wordsA.size === 0 || wordsB.size === 0) return 0;
 
@@ -167,13 +180,13 @@ export interface CompareResult {
 export function compareArtifacts(
   contentA: string,
   contentB: string,
-  _options: Record<string, unknown> = {},
+  _options: Record<string, unknown> = {}
 ): CompareResult {
   const sectionsA = extractSections(contentA);
   const sectionsB = extractSections(contentB);
   const sectionChanges: SectionChange[] = [];
-  const headingsA = sectionsA.map(s => s.heading);
-  const headingsB = sectionsB.map(s => s.heading);
+  const headingsA = sectionsA.map((s) => s.heading);
+  const headingsB = sectionsB.map((s) => s.heading);
 
   for (const sec of sectionsB) {
     if (!headingsA.includes(sec.heading)) {
@@ -188,7 +201,7 @@ export function compareArtifacts(
   }
 
   for (const secA of sectionsA) {
-    const secB = sectionsB.find(s => s.heading === secA.heading);
+    const secB = sectionsB.find((s) => s.heading === secA.heading);
     if (secB) {
       const similarity = textSimilarity(secA.content, secB.content);
       if (similarity < 0.95) {
@@ -204,35 +217,47 @@ export function compareArtifacts(
 
   const reqsA = extractRequirements(contentA);
   const reqsB = extractRequirements(contentB);
-  const addedReqs = reqsB.filter(r => !reqsA.includes(r));
-  const removedReqs = reqsA.filter(r => !reqsB.includes(r));
+  const addedReqs = reqsB.filter((r) => !reqsA.includes(r));
+  const removedReqs = reqsA.filter((r) => !reqsB.includes(r));
 
   const apisA = extractApiEndpoints(contentA);
   const apisB = extractApiEndpoints(contentB);
-  const apiKeysA = apisA.map(a => `${a.method} ${a.path}`);
-  const apiKeysB = apisB.map(a => `${a.method} ${a.path}`);
-  const addedApis = apiKeysB.filter(k => !apiKeysA.includes(k));
-  const removedApis = apiKeysA.filter(k => !apiKeysB.includes(k));
+  const apiKeysA = apisA.map((a) => `${a.method} ${a.path}`);
+  const apiKeysB = apisB.map((a) => `${a.method} ${a.path}`);
+  const addedApis = apiKeysB.filter((k) => !apiKeysA.includes(k));
+  const removedApis = apiKeysA.filter((k) => !apiKeysB.includes(k));
 
   const tablesA = extractTableData(contentA);
   const tablesB = extractTableData(contentB);
 
   const overallSimilarity = textSimilarity(contentA, contentB);
   const hasBreakingChanges =
-    removedReqs.length > 0 || removedApis.length > 0 || sectionChanges.some(c => c.severity === 'critical');
+    removedReqs.length > 0 ||
+    removedApis.length > 0 ||
+    sectionChanges.some((c) => c.severity === 'critical');
 
   return {
     success: true,
     overall_similarity: Math.round(overallSimilarity * 100),
     has_breaking_changes: hasBreakingChanges,
     section_changes: sectionChanges,
-    requirement_changes: { added: addedReqs, removed: removedReqs, total_before: reqsA.length, total_after: reqsB.length },
-    api_changes: { added: addedApis, removed: removedApis, total_before: apisA.length, total_after: apisB.length },
+    requirement_changes: {
+      added: addedReqs,
+      removed: removedReqs,
+      total_before: reqsA.length,
+      total_after: reqsB.length,
+    },
+    api_changes: {
+      added: addedApis,
+      removed: removedApis,
+      total_before: apisA.length,
+      total_after: apisB.length,
+    },
     table_changes: { rows_before: tablesA.length, rows_after: tablesB.length },
     summary: {
-      sections_added: sectionChanges.filter(c => c.type === 'section_added').length,
-      sections_removed: sectionChanges.filter(c => c.type === 'section_removed').length,
-      sections_modified: sectionChanges.filter(c => c.type === 'section_modified').length,
+      sections_added: sectionChanges.filter((c) => c.type === 'section_added').length,
+      sections_removed: sectionChanges.filter((c) => c.type === 'section_removed').length,
+      sections_modified: sectionChanges.filter((c) => c.type === 'section_modified').length,
       requirements_added: addedReqs.length,
       requirements_removed: removedReqs.length,
       apis_added: addedApis.length,
@@ -248,7 +273,7 @@ export type CompareFilesResult =
 export function compareFiles(
   pathA: string,
   pathB: string,
-  options: Record<string, unknown> = {},
+  options: Record<string, unknown> = {}
 ): CompareFilesResult {
   if (!existsSync(pathA)) return { success: false, error: `File not found: ${pathA}` };
   if (!existsSync(pathB)) return { success: false, error: `File not found: ${pathB}` };
@@ -262,24 +287,35 @@ export function compareFiles(
 export interface CrossDiffResult {
   success: boolean;
   artifacts_analyzed?: number | undefined;
-  inconsistencies?: Array<{
-    type: string;
-    upstream: string;
-    downstream: string;
-    missing_requirements: string[];
-    severity: string;
-  }> | undefined;
+  inconsistencies?:
+    | Array<{
+        type: string;
+        upstream: string;
+        downstream: string;
+        missing_requirements: string[];
+        severity: string;
+      }>
+    | undefined;
   summary?: { total_inconsistencies: number; requirement_gaps: number } | undefined;
   error?: string | undefined;
 }
 
-export function crossArtifactDiff(root: string, _options: Record<string, unknown> = {}): CrossDiffResult {
+export function crossArtifactDiff(
+  root: string,
+  _options: Record<string, unknown> = {}
+): CrossDiffResult {
   const specsDir = join(root, 'specs');
   if (!existsSync(specsDir)) {
     return { success: false, error: 'specs/ directory not found' };
   }
 
-  const artifactFiles = ['challenger-brief.md', 'product-brief.md', 'prd.md', 'architecture.md', 'implementation-plan.md'];
+  const artifactFiles = [
+    'challenger-brief.md',
+    'product-brief.md',
+    'prd.md',
+    'architecture.md',
+    'implementation-plan.md',
+  ];
   const artifacts: Record<string, { requirements: string[] }> = {};
 
   for (const file of artifactFiles) {
@@ -307,7 +343,9 @@ export function crossArtifactDiff(root: string, _options: Record<string, unknown
     const downstream = artifacts[downstreamKey];
     if (!upstream || !downstream) continue;
 
-    const missingDownstream = upstream.requirements.filter(r => !downstream.requirements.includes(r));
+    const missingDownstream = upstream.requirements.filter(
+      (r) => !downstream.requirements.includes(r)
+    );
     if (missingDownstream.length > 0) {
       inconsistencies.push({
         type: 'requirement_gap',
@@ -325,7 +363,7 @@ export function crossArtifactDiff(root: string, _options: Record<string, unknown
     inconsistencies,
     summary: {
       total_inconsistencies: inconsistencies.length,
-      requirement_gaps: inconsistencies.filter(i => i.type === 'requirement_gap').length,
+      requirement_gaps: inconsistencies.filter((i) => i.type === 'requirement_gap').length,
     },
   };
 }

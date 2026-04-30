@@ -6,20 +6,25 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  DEFAULT_SLO_TEMPLATES,
-  SLO_TYPES,
   applyTemplate,
   checkSLOCoverage,
+  DEFAULT_SLO_TEMPLATES,
   defaultState,
   defineSLO,
   generateReport,
   loadState,
+  SLO_TYPES,
   saveState,
 } from '../src/lib/sla-slo.js';
 
 let tmpDir: string;
-beforeEach(() => { tmpDir = join(tmpdir(), `test-sla-${Date.now()}`); mkdirSync(tmpDir, { recursive: true }); });
-afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
+beforeEach(() => {
+  tmpDir = join(tmpdir(), `test-sla-${Date.now()}`);
+  mkdirSync(tmpDir, { recursive: true });
+});
+afterEach(() => {
+  rmSync(tmpDir, { recursive: true, force: true });
+});
 
 describe('defaultState', () => {
   it('returns empty SLOs/SLAs', () => {
@@ -45,14 +50,20 @@ describe('loadState', () => {
   // Pollution key tests
   it('rejects __proto__ key in JSON', () => {
     const f = join(tmpDir, 'polluted.json');
-    writeFileSync(f, '{"__proto__":{"x":1},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"slos":[],"slas":[],"error_budgets":[]}');
+    writeFileSync(
+      f,
+      '{"__proto__":{"x":1},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"slos":[],"slas":[],"error_budgets":[]}'
+    );
     const s = loadState(f);
     expect(s.slos).toEqual([]);
   });
 
   it('rejects constructor key in JSON', () => {
     const f = join(tmpDir, 'polluted2.json');
-    writeFileSync(f, '{"constructor":{},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"slos":[],"slas":[],"error_budgets":[]}');
+    writeFileSync(
+      f,
+      '{"constructor":{},"version":"1.0.0","created_at":"2024-01-01T00:00:00.000Z","last_updated":null,"slos":[],"slas":[],"error_budgets":[]}'
+    );
     const s = loadState(f);
     expect(s.slos).toEqual([]);
   });
@@ -78,14 +89,20 @@ describe('defineSLO', () => {
 
   it('rejects invalid type', () => {
     const f = join(tmpDir, 'state.json');
-    const r = defineSLO({ name: 'SLO', service: 'api', target: 99, type: 'invalid' }, { stateFile: f });
+    const r = defineSLO(
+      { name: 'SLO', service: 'api', target: 99, type: 'invalid' },
+      { stateFile: f }
+    );
     expect(r.success).toBe(false);
     expect(r.error).toMatch(/Invalid type/);
   });
 
   it('creates SLO with valid inputs', () => {
     const f = join(tmpDir, 'state.json');
-    const r = defineSLO({ name: 'API Availability', service: 'api', target: 99.9, type: 'availability' }, { stateFile: f });
+    const r = defineSLO(
+      { name: 'API Availability', service: 'api', target: 99.9, type: 'availability' },
+      { stateFile: f }
+    );
     expect(r.success).toBe(true);
     expect(r.slo?.id).toMatch(/^SLO-/);
   });
@@ -109,7 +126,7 @@ describe('applyTemplate', () => {
     const f = join(tmpDir, 'state.json');
     const r = applyTemplate('my-api', 'web-api', { stateFile: f });
     expect(r.success).toBe(true);
-    expect((r.slos_created ?? 0)).toBeGreaterThan(0);
+    expect(r.slos_created ?? 0).toBeGreaterThan(0);
   });
 });
 
@@ -141,6 +158,6 @@ describe('SLO_TYPES', () => {
 describe('DEFAULT_SLO_TEMPLATES', () => {
   it('has web-api template', () => {
     expect(DEFAULT_SLO_TEMPLATES['web-api']).toBeTruthy();
-    expect(DEFAULT_SLO_TEMPLATES['web-api']!.length).toBeGreaterThan(0);
+    expect(DEFAULT_SLO_TEMPLATES['web-api']?.length).toBeGreaterThan(0);
   });
 });

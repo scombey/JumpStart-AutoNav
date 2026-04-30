@@ -89,7 +89,14 @@ function rejectPollutionKeys(obj: unknown): void {
 }
 
 export function defaultState(): SreState {
-  return { version: '1.0.0', monitors: [], alerts: [], runbooks: [], error_budgets: [], last_updated: null };
+  return {
+    version: '1.0.0',
+    monitors: [],
+    alerts: [],
+    runbooks: [],
+    error_budgets: [],
+    last_updated: null,
+  };
 }
 
 export function loadState(stateFile?: string): SreState {
@@ -109,7 +116,7 @@ export function saveState(state: SreState, stateFile?: string): void {
   const dir = dirname(fp);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   state.last_updated = new Date().toISOString();
-  writeFileSync(fp, JSON.stringify(state, null, 2) + '\n', 'utf8');
+  writeFileSync(fp, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
 }
 
 export interface MonitorResult {
@@ -121,10 +128,15 @@ export interface MonitorResult {
 export function generateMonitor(
   name: string,
   type: string,
-  options: { stateFile?: string | undefined; threshold?: unknown; interval?: string | undefined; service?: string | undefined } = {},
+  options: {
+    stateFile?: string | undefined;
+    threshold?: unknown;
+    interval?: string | undefined;
+    service?: string | undefined;
+  } = {}
 ): MonitorResult {
   if (!name || !type) return { success: false, error: 'name and type are required' };
-  if (!MONITOR_TYPES.includes(type as typeof MONITOR_TYPES[number])) {
+  if (!MONITOR_TYPES.includes(type as (typeof MONITOR_TYPES)[number])) {
     return { success: false, error: `Unknown type: ${type}. Valid: ${MONITOR_TYPES.join(', ')}` };
   }
 
@@ -155,11 +167,19 @@ export interface AlertResult {
 export function generateAlert(
   name: string,
   severity: string,
-  options: { stateFile?: string | undefined; condition?: unknown; channels?: unknown[]; runbook_id?: string | undefined } = {},
+  options: {
+    stateFile?: string | undefined;
+    condition?: unknown;
+    channels?: unknown[];
+    runbook_id?: string | undefined;
+  } = {}
 ): AlertResult {
   if (!name || !severity) return { success: false, error: 'name and severity are required' };
   if (!ALERT_SEVERITIES.includes(severity as AlertSeverity)) {
-    return { success: false, error: `Unknown severity: ${severity}. Valid: ${ALERT_SEVERITIES.join(', ')}` };
+    return {
+      success: false,
+      error: `Unknown severity: ${severity}. Valid: ${ALERT_SEVERITIES.join(', ')}`,
+    };
   }
 
   const stateFile = options.stateFile ?? DEFAULT_STATE_FILE;
@@ -189,7 +209,7 @@ export interface RunbookResult {
 export function generateRunbook(
   name: string,
   steps: unknown,
-  options: { stateFile?: string | undefined; service?: string | undefined } = {},
+  options: { stateFile?: string | undefined; service?: string | undefined } = {}
 ): RunbookResult {
   if (!name || !steps) return { success: false, error: 'name and steps are required' };
 
@@ -218,9 +238,14 @@ export interface ErrorBudgetResult {
 export function configureErrorBudget(
   service: string,
   slo: number,
-  options: { stateFile?: string | undefined; remaining?: number | undefined; window?: string | undefined } = {},
+  options: {
+    stateFile?: string | undefined;
+    remaining?: number | undefined;
+    window?: string | undefined;
+  } = {}
 ): ErrorBudgetResult {
-  if (!service || slo === undefined) return { success: false, error: 'service and slo are required' };
+  if (!service || slo === undefined)
+    return { success: false, error: 'service and slo are required' };
 
   const stateFile = options.stateFile ?? DEFAULT_STATE_FILE;
   const state = loadState(stateFile);

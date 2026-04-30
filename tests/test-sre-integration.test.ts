@@ -7,7 +7,6 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   ALERT_SEVERITIES,
-  MONITOR_TYPES,
   configureErrorBudget,
   defaultState,
   generateAlert,
@@ -15,12 +14,17 @@ import {
   generateReport,
   generateRunbook,
   loadState,
-  saveState,
+  MONITOR_TYPES,
 } from '../src/lib/sre-integration.js';
 
 let tmpDir: string;
-beforeEach(() => { tmpDir = join(tmpdir(), `test-sre-${Date.now()}`); mkdirSync(tmpDir, { recursive: true }); });
-afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
+beforeEach(() => {
+  tmpDir = join(tmpdir(), `test-sre-${Date.now()}`);
+  mkdirSync(tmpDir, { recursive: true });
+});
+afterEach(() => {
+  rmSync(tmpDir, { recursive: true, force: true });
+});
 
 describe('defaultState', () => {
   it('returns empty state', () => {
@@ -40,14 +44,20 @@ describe('loadState', () => {
 
   it('rejects __proto__ pollution key', () => {
     const f = join(tmpDir, 'polluted.json');
-    writeFileSync(f, '{"__proto__":{"x":1},"version":"1.0.0","monitors":[],"alerts":[],"runbooks":[],"error_budgets":[],"last_updated":null}');
+    writeFileSync(
+      f,
+      '{"__proto__":{"x":1},"version":"1.0.0","monitors":[],"alerts":[],"runbooks":[],"error_budgets":[],"last_updated":null}'
+    );
     const s = loadState(f);
     expect(s.monitors).toEqual([]);
   });
 
   it('rejects constructor pollution key', () => {
     const f = join(tmpDir, 'polluted2.json');
-    writeFileSync(f, '{"constructor":{},"version":"1.0.0","monitors":[],"alerts":[],"runbooks":[],"error_budgets":[],"last_updated":null}');
+    writeFileSync(
+      f,
+      '{"constructor":{},"version":"1.0.0","monitors":[],"alerts":[],"runbooks":[],"error_budgets":[],"last_updated":null}'
+    );
     const s = loadState(f);
     expect(s.monitors).toEqual([]);
   });
@@ -95,7 +105,9 @@ describe('generateRunbook', () => {
 
   it('creates runbook with steps', () => {
     const f = join(tmpDir, 's.json');
-    const r = generateRunbook('Restart Service', ['Stop the pod', 'Scale down', 'Scale up'], { stateFile: f });
+    const r = generateRunbook('Restart Service', ['Stop the pod', 'Scale down', 'Scale up'], {
+      stateFile: f,
+    });
     expect(r.success).toBe(true);
     expect(r.runbook?.steps.length).toBe(3);
   });
@@ -103,7 +115,9 @@ describe('generateRunbook', () => {
 
 describe('configureErrorBudget', () => {
   it('requires service and slo', () => {
-    const r = configureErrorBudget('', undefined as unknown as number, { stateFile: join(tmpDir, 's.json') });
+    const r = configureErrorBudget('', undefined as unknown as number, {
+      stateFile: join(tmpDir, 's.json'),
+    });
     expect(r.success).toBe(false);
   });
 

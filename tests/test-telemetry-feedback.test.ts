@@ -6,18 +6,22 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  METRIC_TYPES,
   analyzeMetrics,
   defaultState,
   generateFeedbackReport,
   ingestMetric,
   loadState,
-  saveState,
+  METRIC_TYPES,
 } from '../src/lib/telemetry-feedback.js';
 
 let tmpDir: string;
-beforeEach(() => { tmpDir = join(tmpdir(), `test-tel-${Date.now()}`); mkdirSync(tmpDir, { recursive: true }); });
-afterEach(() => { rmSync(tmpDir, { recursive: true, force: true }); });
+beforeEach(() => {
+  tmpDir = join(tmpdir(), `test-tel-${Date.now()}`);
+  mkdirSync(tmpDir, { recursive: true });
+});
+afterEach(() => {
+  rmSync(tmpDir, { recursive: true, force: true });
+});
 
 describe('defaultState', () => {
   it('returns empty metrics and insights', () => {
@@ -42,14 +46,20 @@ describe('loadState', () => {
 
   it('rejects __proto__ pollution key', () => {
     const f = join(tmpDir, 'polluted.json');
-    writeFileSync(f, '{"__proto__":{"x":1},"version":"1.0.0","metrics":[],"insights":[],"last_updated":null}');
+    writeFileSync(
+      f,
+      '{"__proto__":{"x":1},"version":"1.0.0","metrics":[],"insights":[],"last_updated":null}'
+    );
     const s = loadState(f);
     expect(s.metrics).toEqual([]);
   });
 
   it('rejects constructor pollution key', () => {
     const f = join(tmpDir, 'polluted2.json');
-    writeFileSync(f, '{"constructor":{},"version":"1.0.0","metrics":[],"insights":[],"last_updated":null}');
+    writeFileSync(
+      f,
+      '{"constructor":{},"version":"1.0.0","metrics":[],"insights":[],"last_updated":null}'
+    );
     const s = loadState(f);
     expect(s.metrics).toEqual([]);
   });
@@ -95,7 +105,7 @@ describe('analyzeMetrics', () => {
     ingestMetric('m', 'latency', 100, { stateFile: f });
     ingestMetric('m', 'latency', 200, { stateFile: f });
     const r = analyzeMetrics({ stateFile: f });
-    const stats = r.analysis['latency'];
+    const stats = r.analysis.latency;
     expect(stats?.avg).toBe(150);
     expect(stats?.min).toBe(100);
     expect(stats?.max).toBe(200);
@@ -114,14 +124,14 @@ describe('generateFeedbackReport', () => {
     const f = join(tmpDir, 's.json');
     ingestMetric('api', 'latency', 600, { stateFile: f });
     const r = generateFeedbackReport({ stateFile: f });
-    expect(r.recommendations.some(rec => rec.includes('latency'))).toBe(true);
+    expect(r.recommendations.some((rec) => rec.includes('latency'))).toBe(true);
   });
 
   it('generates recommendation for high error rate', () => {
     const f = join(tmpDir, 's.json');
     ingestMetric('api', 'error-rate', 10, { stateFile: f });
     const r = generateFeedbackReport({ stateFile: f });
-    expect(r.recommendations.some(rec => rec.includes('error'))).toBe(true);
+    expect(r.recommendations.some((rec) => rec.includes('error'))).toBe(true);
   });
 });
 

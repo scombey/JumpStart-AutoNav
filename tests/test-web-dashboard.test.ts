@@ -3,18 +3,18 @@
  * Vitest tests for src/lib/web-dashboard.ts (M11 batch 6 port).
  */
 
-import { describe, it, expect } from 'vitest';
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { describe, expect, it } from 'vitest';
 import {
-  generateConfig,
+  DASHBOARD_SECTIONS,
+  DEFAULT_HOST,
+  DEFAULT_PORT,
   gatherDashboardData,
+  generateConfig,
   generateStaticDashboard,
   getServerStatus,
-  DASHBOARD_SECTIONS,
-  DEFAULT_PORT,
-  DEFAULT_HOST,
 } from '../src/lib/web-dashboard.js';
 
 let _seq = 0;
@@ -115,8 +115,12 @@ describe('gatherDashboardData', () => {
     mkdirSync(stateDir, { recursive: true });
     writeFileSync(
       join(stateDir, 'state.json'),
-      JSON.stringify({ current_phase: 3, current_agent: 'developer', last_completed_step: 'build' }),
-      'utf8',
+      JSON.stringify({
+        current_phase: 3,
+        current_agent: 'developer',
+        last_completed_step: 'build',
+      }),
+      'utf8'
     );
     const result = gatherDashboardData(root);
     expect(result.sections.phases.current_phase).toBe(3);
@@ -140,7 +144,7 @@ describe('gatherDashboardData', () => {
     writeFileSync(join(specsDir, 'architecture.md'), '# Arch\n', 'utf8');
     const result = gatherDashboardData(root);
     expect(result.sections.artifacts.total).toBe(2);
-    const names = result.sections.artifacts.files.map(f => f.name);
+    const names = result.sections.artifacts.files.map((f) => f.name);
     expect(names).toContain('prd.md');
     expect(names).toContain('architecture.md');
   });

@@ -90,7 +90,7 @@ export function saveState(state: TranscriptState, stateFile?: string): void {
   const dir = dirname(fp);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   state.last_updated = new Date().toISOString();
-  writeFileSync(fp, JSON.stringify(state, null, 2) + '\n', 'utf8');
+  writeFileSync(fp, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
 }
 
 export interface IngestResult {
@@ -101,7 +101,11 @@ export interface IngestResult {
 
 export function ingestTranscript(
   text: string,
-  options: { stateFile?: string | undefined; title?: string | undefined; source?: string | undefined } = {},
+  options: {
+    stateFile?: string | undefined;
+    title?: string | undefined;
+    source?: string | undefined;
+  } = {}
 ): IngestResult {
   if (!text) return { success: false, error: 'Transcript text is required' };
 
@@ -120,9 +124,8 @@ export function ingestTranscript(
   };
 
   for (const pattern of ACTION_PATTERNS) {
-    let match: RegExpExecArray | null;
-    pattern.lastIndex = 0;
-    while ((match = pattern.exec(text)) !== null) {
+    const re = new RegExp(pattern.source, pattern.flags);
+    for (const match of text.matchAll(re)) {
       const matchedText = match[1];
       if (matchedText) {
         transcript.actions.push({
@@ -134,9 +137,8 @@ export function ingestTranscript(
   }
 
   for (const pattern of DECISION_PATTERNS) {
-    let match: RegExpExecArray | null;
-    pattern.lastIndex = 0;
-    while ((match = pattern.exec(text)) !== null) {
+    const re = new RegExp(pattern.source, pattern.flags);
+    for (const match of text.matchAll(re)) {
       const matchedText = match[1];
       if (matchedText) {
         transcript.decisions.push({ text: matchedText.trim() });
@@ -146,7 +148,7 @@ export function ingestTranscript(
 
   const headings = text.match(/^#+\s+(.+)$/gm);
   if (headings) {
-    transcript.key_topics = headings.map(h => h.replace(/^#+\s+/, '').trim());
+    transcript.key_topics = headings.map((h) => h.replace(/^#+\s+/, '').trim());
   }
 
   state.transcripts.push(transcript);
@@ -168,12 +170,12 @@ export interface ExtractResult {
 
 export function extractFromTranscript(
   transcriptId: string,
-  options: { stateFile?: string | undefined } = {},
+  options: { stateFile?: string | undefined } = {}
 ): ExtractResult {
   const stateFile = options.stateFile ?? DEFAULT_STATE_FILE;
   const state = loadState(stateFile);
 
-  const transcript = state.transcripts.find(t => t.id === transcriptId);
+  const transcript = state.transcripts.find((t) => t.id === transcriptId);
   if (!transcript) return { success: false, error: `Transcript ${transcriptId} not found` };
 
   return {
@@ -212,7 +214,7 @@ export function listTranscripts(options: { stateFile?: string | undefined } = {}
   return {
     success: true,
     total: state.transcripts.length,
-    transcripts: state.transcripts.map(t => ({
+    transcripts: state.transcripts.map((t) => ({
       id: t.id,
       title: t.title,
       actions: t.actions.length,

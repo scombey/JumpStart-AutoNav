@@ -23,20 +23,64 @@ export interface RiskRule {
 }
 
 export const RISK_RULES: RiskRule[] = [
-  { id: 'delete-protection', pattern: /^(?:rm|del|remove)\s+/i, risk: 'high', description: 'File deletion operation' },
-  { id: 'recursive-delete', pattern: /rm\s+-rf?\s/i, risk: 'critical', description: 'Recursive deletion' },
-  { id: 'schema-change', pattern: /(?:ALTER|DROP|TRUNCATE)\s+(?:TABLE|DATABASE|SCHEMA)/i, risk: 'high', description: 'Database schema modification' },
-  { id: 'config-write', pattern: /(?:\.env|config|secrets?)\s*$/i, risk: 'high', description: 'Configuration file modification' },
-  { id: 'wide-glob', pattern: /\*\*\/\*|\*\.\*/i, risk: 'medium', description: 'Wide glob pattern' },
-  { id: 'sudo-usage', pattern: /\bsudo\b/i, risk: 'critical', description: 'Elevated privilege usage' },
-  { id: 'network-call', pattern: /\b(?:curl|wget|fetch)\s+http/i, risk: 'medium', description: 'External network call' },
-  { id: 'git-force', pattern: /git\s+(?:push\s+--force|reset\s+--hard)/i, risk: 'high', description: 'Force git operation' },
+  {
+    id: 'delete-protection',
+    pattern: /^(?:rm|del|remove)\s+/i,
+    risk: 'high',
+    description: 'File deletion operation',
+  },
+  {
+    id: 'recursive-delete',
+    pattern: /rm\s+-rf?\s/i,
+    risk: 'critical',
+    description: 'Recursive deletion',
+  },
+  {
+    id: 'schema-change',
+    pattern: /(?:ALTER|DROP|TRUNCATE)\s+(?:TABLE|DATABASE|SCHEMA)/i,
+    risk: 'high',
+    description: 'Database schema modification',
+  },
+  {
+    id: 'config-write',
+    pattern: /(?:\.env|config|secrets?)\s*$/i,
+    risk: 'high',
+    description: 'Configuration file modification',
+  },
+  {
+    id: 'wide-glob',
+    pattern: /\*\*\/\*|\*\.\*/i,
+    risk: 'medium',
+    description: 'Wide glob pattern',
+  },
+  {
+    id: 'sudo-usage',
+    pattern: /\bsudo\b/i,
+    risk: 'critical',
+    description: 'Elevated privilege usage',
+  },
+  {
+    id: 'network-call',
+    pattern: /\b(?:curl|wget|fetch)\s+http/i,
+    risk: 'medium',
+    description: 'External network call',
+  },
+  {
+    id: 'git-force',
+    pattern: /git\s+(?:push\s+--force|reset\s+--hard)/i,
+    risk: 'high',
+    description: 'Force git operation',
+  },
 ];
 
 export const PROTECTED_PATHS = [
-  '.env', '.env.local', '.env.production',
-  '.git/', 'node_modules/',
-  'package-lock.json', 'yarn.lock',
+  '.env',
+  '.env.local',
+  '.env.production',
+  '.git/',
+  'node_modules/',
+  'package-lock.json',
+  'yarn.lock',
   '.jumpstart/state/',
 ] as const;
 
@@ -62,7 +106,7 @@ export interface OperationCheckResult {
 
 export function checkOperation(
   operation: string,
-  _options: Record<string, unknown> = {},
+  _options: Record<string, unknown> = {}
 ): OperationCheckResult {
   if (!operation) return { success: false, error: 'operation is required' };
 
@@ -97,8 +141,8 @@ export function checkOperation(
   return {
     success: true,
     operation: operation.substring(0, 200),
-    allowed: violations.filter(v => v.risk === 'critical').length === 0,
-    requires_approval: violations.some(v => v.risk === 'high' || v.risk === 'critical'),
+    allowed: violations.filter((v) => v.risk === 'critical').length === 0,
+    requires_approval: violations.some((v) => v.risk === 'high' || v.risk === 'critical'),
     risk_level: violations.length > 0 ? maxRisk : 'none',
     violations,
     total_violations: violations.length,
@@ -123,7 +167,7 @@ export interface FileOpResult {
 export function validateFileOperation(
   action: string,
   filePath: string,
-  options: { lines_changed?: number | undefined } = {},
+  options: { lines_changed?: number | undefined } = {}
 ): FileOpResult {
   const warnings: Warning[] = [];
 
@@ -160,6 +204,6 @@ export function validateFileOperation(
     action,
     file: filePath,
     warnings,
-    requires_review: warnings.some(w => w.level === 'high'),
+    requires_review: warnings.some((w) => w.level === 'high'),
   };
 }

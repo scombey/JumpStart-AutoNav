@@ -85,7 +85,7 @@ export function saveState(state: CommentsState, stateFile?: string): void {
   const dir = dirname(fp);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   state.last_updated = new Date().toISOString();
-  writeFileSync(fp, JSON.stringify(state, null, 2) + '\n', 'utf8');
+  writeFileSync(fp, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
 }
 
 export interface CommentResult {
@@ -102,7 +102,7 @@ export function addComment(
     stateFile?: string | undefined;
     author?: string | undefined;
     assignee?: string | undefined;
-  } = {},
+  } = {}
 ): CommentResult {
   if (!artifact || !text) return { success: false, error: 'artifact and text are required' };
 
@@ -131,14 +131,14 @@ export function addComment(
 export function resolveComment(
   commentId: string,
   resolution: string | undefined,
-  options: { stateFile?: string | undefined; author?: string | undefined } = {},
+  options: { stateFile?: string | undefined; author?: string | undefined } = {}
 ): CommentResult {
   if (!commentId) return { success: false, error: 'commentId is required' };
 
   const stateFile = options.stateFile ?? DEFAULT_STATE_FILE;
   const state = loadState(stateFile);
 
-  const comment = state.comments.find(c => c.id === commentId);
+  const comment = state.comments.find((c) => c.id === commentId);
   if (!comment) return { success: false, error: `Comment ${commentId} not found` };
 
   comment.status = 'resolved';
@@ -162,7 +162,7 @@ export function listComments(
     artifact?: string | undefined;
     status?: string | undefined;
     assignee?: string | undefined;
-  } = {},
+  } = {}
 ): ListCommentsResult {
   const stateFile = options.stateFile ?? DEFAULT_STATE_FILE;
   const state = loadState(stateFile);
@@ -170,13 +170,13 @@ export function listComments(
   let comments = state.comments;
 
   if (options.artifact) {
-    comments = comments.filter(c => c.artifact === options.artifact);
+    comments = comments.filter((c) => c.artifact === options.artifact);
   }
   if (options.status) {
-    comments = comments.filter(c => c.status === options.status);
+    comments = comments.filter((c) => c.status === options.status);
   }
   if (options.assignee) {
-    comments = comments.filter(c => c.assignee === options.assignee);
+    comments = comments.filter((c) => c.assignee === options.assignee);
   }
 
   return { success: true, total: comments.length, comments };
@@ -185,14 +185,15 @@ export function listComments(
 export function assignComment(
   commentId: string,
   assignee: string,
-  options: { stateFile?: string | undefined } = {},
+  options: { stateFile?: string | undefined } = {}
 ): CommentResult {
-  if (!commentId || !assignee) return { success: false, error: 'commentId and assignee are required' };
+  if (!commentId || !assignee)
+    return { success: false, error: 'commentId and assignee are required' };
 
   const stateFile = options.stateFile ?? DEFAULT_STATE_FILE;
   const state = loadState(stateFile);
 
-  const comment = state.comments.find(c => c.id === commentId);
+  const comment = state.comments.find((c) => c.id === commentId);
   if (!comment) return { success: false, error: `Comment ${commentId} not found` };
 
   comment.assignee = assignee;
