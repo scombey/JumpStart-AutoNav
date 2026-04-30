@@ -27,9 +27,7 @@ export default defineConfig({
     // Strangler tail: include both .js (legacy, slated for M11 cleanup) and
     // .ts (ported canonical + new TS tests).
     include: ['tests/**/*.test.{js,ts}'],
-    exclude: [
-      'tests/test-agent-intelligence.test.js', // Aggregate test that imports 20+ modules; covered by individual test files
-    ],
+    exclude: [],
     testTimeout: 10000,
     coverage: {
       provider: 'v8',

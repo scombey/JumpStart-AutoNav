@@ -9,11 +9,20 @@
 import { describe, it, expect } from 'vitest';
 import path from 'path';
 import fs from 'fs';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const { checkAmbiguity, checkPassiveVoice, checkMetricCoverage, checkTerminologyDrift, runAllChecks, VAGUE_ADJECTIVES } = require('../bin/lib/spec-tester');
-const { detectSmells, scoreSmellDensity, scanDirectory, SMELL_PATTERNS } = require('../bin/lib/smell-detector');
+import {
+  checkAmbiguity,
+  checkMetricCoverage,
+  checkPassiveVoice,
+  checkTerminologyDrift,
+  runAllChecks,
+  VAGUE_ADJECTIVES,
+} from '../src/lib/spec-tester.js';
+import {
+  detectSmells,
+  scanDirectory,
+  scoreSmellDensity,
+  SMELL_PATTERNS,
+} from '../src/lib/smell-detector.js';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A-Z]:)/, '$1');
 
