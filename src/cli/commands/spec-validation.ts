@@ -25,7 +25,16 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { defineCommand } from 'citty';
+import { generateAuditReport } from '../../lib/freshness-gate.js';
+import { generateReport as generateInvariantsReport } from '../../lib/invariants-check.js';
 import { writeResult } from '../../lib/io.js';
+import { extractEpics, generateIndex, generateShard, shouldShard } from '../../lib/sharder.js';
+import { check as simplicityCheck } from '../../lib/simplicity-gate.js';
+import {
+  generateReport as specTesterGenerateReport,
+  runAllChecks as specTesterRunAllChecks,
+} from '../../lib/spec-tester.js';
+import { checkForChanges as templateCheckForChanges } from '../../lib/template-watcher.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -217,15 +226,13 @@ export interface SimplicityArgs {
 }
 
 export function simplicityImpl(deps: Deps, args: SimplicityArgs): CommandResult {
-  const simplicity = legacyRequire<{
-    check: (dir: string) => { pass: boolean; count: number; max: number };
-  }>('simplicity-gate');
-  const result = simplicity.check(args.targetDir ?? 'src');
-  if (result.pass) {
+  const targetDir = args.targetDir ?? 'src';
+  const result = simplicityCheck({ projectDir: targetDir });
+  if (result.passed) {
     deps.logger.success(`Simplicity gate passed (${result.count} top-level dirs).`);
     return { exitCode: 0 };
   }
-  deps.logger.error(`Simplicity gate failed: ${result.count} top-level dirs (max ${result.max}).`);
+  deps.logger.error(result.message);
   deps.logger.warn('  Add a justification section to the Architecture Document.');
   return { exitCode: 1 };
 }
@@ -289,13 +296,10 @@ export const scanWrappersCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function invariantsImpl(deps: Deps): CommandResult {
-  const invariants = legacyRequire<{
-    generateReport: (invariantsPath: string, specsDir: string) => Record<string, unknown>;
-  }>('invariants-check');
   const invariantsPath = safeJoin(deps, '.jumpstart', 'invariants.md');
   const specsDir = safeJoin(deps, 'specs');
-  const report = invariants.generateReport(invariantsPath, specsDir);
-  writeResult(report);
+  const report = generateInvariantsReport(invariantsPath, specsDir);
+  writeResult(report as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
@@ -315,21 +319,15 @@ export const invariantsCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function templateCheckImpl(deps: Deps): CommandResult {
-  const watcher = legacyRequire<{
-    checkForChanges: (
-      templatesDir: string,
-      snapshotPath: string
-    ) => { template: string; changeType: string }[];
-  }>('template-watcher');
   const templatesDir = safeJoin(deps, '.jumpstart', 'templates');
   const snapshotPath = safeJoin(deps, '.jumpstart', 'state', 'template-snapshot.json');
-  const changes = watcher.checkForChanges(templatesDir, snapshotPath);
-  if (changes.length === 0) {
+  const result = templateCheckForChanges(templatesDir, snapshotPath);
+  if (!result.changed) {
     deps.logger.success('All templates unchanged.');
     return { exitCode: 0 };
   }
-  deps.logger.warn(`${changes.length} template(s) changed:`);
-  for (const c of changes) deps.logger.warn(`  ${c.template}: ${c.changeType}`);
+  deps.logger.warn(`${result.warnings.length} template(s) changed:`);
+  for (const w of result.warnings) deps.logger.warn(`  ${w}`);
   return { exitCode: 0 };
 }
 
@@ -349,11 +347,8 @@ export const templateCheckCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function freshnessAuditImpl(deps: Deps): CommandResult {
-  const freshness = legacyRequire<{
-    generateAuditReport: (specsDir: string) => string;
-  }>('freshness-gate');
   const specsDir = safeJoin(deps, 'specs');
-  const report = freshness.generateAuditReport(specsDir);
+  const report = generateAuditReport(specsDir);
   deps.logger.info(report);
   return { exitCode: 0 };
 }
@@ -378,38 +373,33 @@ export interface ShardArgs {
 }
 
 export function shardImpl(deps: Deps, args: ShardArgs): CommandResult {
-  const sharder = legacyRequire<{
-    shouldShard: (content: string) => boolean;
-    extractEpics: (content: string) => { id: string }[];
-    generateShard: (epic: { id: string }, idx: number) => string;
-    generateIndex: (epics: { id: string }[]) => string;
-  }>('sharder');
   const prdPath = args.prdPath ?? safeJoin(deps, 'specs', 'prd.md');
   if (!existsSync(prdPath)) {
     deps.logger.error(`PRD not found: ${prdPath}`);
     return { exitCode: 1 };
   }
   const content = readFileSync(prdPath, 'utf8');
-  if (!sharder.shouldShard(content)) {
+  const shardDecision = shouldShard(content);
+  if (!shardDecision.shouldShard) {
     deps.logger.success('PRD is within context window limits. No sharding needed.');
     return { exitCode: 0 };
   }
-  const epics = sharder.extractEpics(content);
+  const epics = extractEpics(content);
   deps.logger.info(`Found ${epics.length} epic(s). Generating shards...`);
   const shardDir = safeJoin(deps, 'specs', 'prd');
   if (!existsSync(shardDir)) mkdirSync(shardDir, { recursive: true });
+  const shardDescriptors = [];
   for (let i = 0; i < epics.length; i++) {
     const epic = epics[i];
     if (epic === undefined) continue;
-    const shard = sharder.generateShard(epic, i + 1);
-    const shardPath = path.join(
-      shardDir,
-      `prd-${String(i + 1).padStart(3, '0')}-${epic.id.toLowerCase()}.md`
-    );
+    const shard = generateShard(content, [epic.id], i + 1);
+    const shardFile = `prd-${String(i + 1).padStart(3, '0')}-${epic.id.toLowerCase()}.md`;
+    const shardPath = path.join(shardDir, shardFile);
     writeFileSync(shardPath, shard, 'utf8');
     deps.logger.success(`  ${shardPath}`);
+    shardDescriptors.push({ index: i + 1, epicIds: [epic.id], filePath: `specs/prd/${shardFile}` });
   }
-  const index = sharder.generateIndex(epics);
+  const index = generateIndex(shardDescriptors);
   writeFileSync(path.join(shardDir, 'index.md'), index, 'utf8');
   deps.logger.success('  Index generated.');
   return { exitCode: 0 };
@@ -449,21 +439,13 @@ export function checklistImpl(deps: Deps, args: ChecklistArgs): CommandResult {
     deps.logger.error(`File not found: ${args.path}`);
     return { exitCode: 1 };
   }
-  const specTester = legacyRequire<{
-    runAllChecks: (content: string, opts: { specsDir: string }) => { pass?: boolean } | unknown;
-    generateReport: (filePath: string) => string;
-  }>('spec-tester');
   const content = readFileSync(safePath, 'utf8');
   // Pit Crew M8 HIGH (Reviewer 4): pre-fix `void specTester.runAllChecks(...)`
-  // discarded the result — exit code was always 0 even when checks failed.
+  // discarded the result -- exit code was always 0 even when checks failed.
   // Post-fix: capture result, exit non-zero on `pass === false`.
-  const result = specTester.runAllChecks(content, { specsDir: safeJoin(deps, 'specs') });
-  deps.logger.info(specTester.generateReport(safePath));
-  const passed =
-    typeof result === 'object' && result !== null && 'pass' in result
-      ? (result as { pass: boolean }).pass !== false
-      : true;
-  return { exitCode: passed ? 0 : 1 };
+  const result = specTesterRunAllChecks(content, { specsDir: safeJoin(deps, 'specs') });
+  deps.logger.info(specTesterGenerateReport(safePath));
+  return { exitCode: result.pass ? 0 : 1 };
 }
 
 export const checklistCommand = defineCommand({

@@ -39,11 +39,19 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import { generateContextPacket, renderContextMarkdown } from '../../lib/context-summarizer.js';
 import { writeResult } from '../../lib/io.js';
 import * as legacyProactiveValidator from '../../lib/proactive-validator.js';
+import {
+  applyConfigPatches as qsApplyConfigPatches,
+  buildQuickstartConfig as qsBuildConfig,
+  generateQuickstartSummary as qsGenerateSummary,
+} from '../../lib/quickstart.js';
+import {
+  analyzeAndPropose as selfEvolveAnalyze,
+  generateProposalArtifact as selfEvolveGenerateArtifact,
+} from '../../lib/self-evolve.js';
 import {
   clearTimeline,
   generateTimelineReport,
@@ -63,24 +71,13 @@ export interface SelfEvolveArgs {
   artifact?: boolean | undefined;
 }
 
-interface SelfEvolveLib {
-  // biome-ignore lint/suspicious/noExplicitAny: <legacy ESM lib returns dynamic shape — narrowed at call site>
-  analyzeAndPropose: (projectDir: string) => any;
-  // biome-ignore lint/suspicious/noExplicitAny: <legacy ESM lib returns dynamic shape — narrowed at call site>
-  generateProposalArtifact: (result: any) => string;
-}
-
-export async function selfEvolveImpl(deps: Deps, args: SelfEvolveArgs): Promise<CommandResult> {
-  // bin/lib/self-evolve.mjs is ESM (uses `export`), so it must be loaded via
-  // dynamic import — `legacyRequire` would fail with ERR_REQUIRE_ESM.
-  const mod = (await import(
-    path.join(deps.projectRoot, 'bin', 'lib', 'self-evolve.js')
-  )) as SelfEvolveLib;
-  const result = mod.analyzeAndPropose(deps.projectRoot);
+export function selfEvolveImpl(deps: Deps, args: SelfEvolveArgs): CommandResult {
+  // M11 batch7: self-evolve is now a TS port — use direct imports.
+  const result = selfEvolveAnalyze(deps.projectRoot);
   if (args.artifact) {
-    deps.logger.info(mod.generateProposalArtifact(result));
+    deps.logger.info(selfEvolveGenerateArtifact(result));
   } else {
-    writeResult(result as Record<string, unknown>);
+    writeResult(result as unknown as Record<string, unknown>);
   }
   return { exitCode: 0 };
 }
@@ -361,32 +358,6 @@ export interface QuickstartArgs {
   ceremony?: string | undefined;
 }
 
-interface QuickstartLib {
-  DOMAIN_OPTIONS: { value: string; title: string; description: string }[];
-  CEREMONY_OPTIONS: { value: string; title: string; description: string }[];
-  buildQuickstartConfig: (answers: {
-    projectName?: string | null | undefined;
-    projectType?: string | undefined;
-    domain?: string | undefined;
-    customDomain?: string | null | undefined;
-    ceremony?: string | undefined;
-    targetDir?: string | undefined;
-  }) => {
-    targetDir: string;
-    projectName: string | null;
-    projectType: string;
-    domain: string;
-    ceremony: string;
-    [key: string]: unknown;
-  };
-  generateQuickstartSummary: (config: unknown) => {
-    lines: string[];
-    firstCommand: string;
-    firstMessage: string;
-  };
-  applyConfigPatches: (content: string, config: unknown) => string;
-}
-
 const VALID_QUICKSTART_TYPES = new Set(['greenfield', 'brownfield']);
 const VALID_QUICKSTART_CEREMONIES = new Set(['light', 'standard', 'rigorous']);
 
@@ -430,11 +401,8 @@ export async function quickstartImpl(deps: Deps, args: QuickstartArgs): Promise<
     return { exitCode: 1 };
   }
 
-  const lib = (await import(
-    path.join(deps.projectRoot, 'bin', 'lib', 'quickstart.js')
-  )) as QuickstartLib;
-
-  const qsConfig = lib.buildQuickstartConfig({
+  // M11 batch7: quickstart is now a TS port — use direct imports.
+  const qsConfig = qsBuildConfig({
     projectName: args.name,
     projectType: args.type,
     domain: args.domain,
@@ -447,11 +415,11 @@ export async function quickstartImpl(deps: Deps, args: QuickstartArgs): Promise<
   const configPath = safeJoin(deps, '.jumpstart', 'config.yaml');
   if (existsSync(configPath)) {
     const content = readFileSync(configPath, 'utf8');
-    const patched = lib.applyConfigPatches(content, qsConfig);
+    const patched = qsApplyConfigPatches(content, qsConfig);
     writeFileSync(configPath, patched, 'utf8');
   }
 
-  const summary = lib.generateQuickstartSummary(qsConfig);
+  const summary = qsGenerateSummary(qsConfig);
   deps.logger.success('JumpStart initialized!');
   for (const line of summary.lines) deps.logger.info(`  ${line}`);
   deps.logger.info(`  ▶ Type ${summary.firstCommand} to begin!`);

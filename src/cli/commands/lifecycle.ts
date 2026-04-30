@@ -27,7 +27,6 @@
  */
 
 import { existsSync } from 'node:fs';
-import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import * as legacyAgentCheckpoint from '../../lib/agent-checkpoint.js';
 import {
@@ -46,6 +45,7 @@ import {
   VALID_PRESETS,
   writeFocusToConfig,
 } from '../../lib/focus.js';
+import { generateInitConfig as initGenerateInitConfig } from '../../lib/init.js';
 import { writeResult } from '../../lib/io.js';
 import { acquireLock, listLocks, lockStatus, releaseLock } from '../../lib/locks.js';
 import { determineNextAction } from '../../lib/next-phase.js';
@@ -455,22 +455,11 @@ export interface InitArgs {
   json?: boolean | undefined;
 }
 
-interface InitLib {
-  generateInitConfig: (input: { skill_level: string; project_type: string }) => {
-    skill_level: string;
-    explanation_depth: string;
-    project_type: string;
-    recommendations: string[];
-  };
-}
-
-export async function initImpl(deps: Deps, args: InitArgs): Promise<CommandResult> {
-  // bin/lib/init.mjs is ESM (uses `export`), so it must be loaded via
-  // dynamic import — `legacyRequire` would fail with ERR_REQUIRE_ESM.
-  const initMod = (await import(path.join(deps.projectRoot, 'bin', 'lib', 'init.js'))) as InitLib;
+export function initImpl(deps: Deps, args: InitArgs): CommandResult {
+  // M11 batch7: init is now a TS port — use direct import.
   const skillLevel = args.skillLevel ?? 'intermediate';
   const projectType = args.type ?? 'greenfield';
-  const result = initMod.generateInitConfig({
+  const result = initGenerateInitConfig({
     skill_level: skillLevel,
     project_type: projectType,
   });

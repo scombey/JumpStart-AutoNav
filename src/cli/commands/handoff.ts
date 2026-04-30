@@ -20,7 +20,12 @@
 
 import { existsSync } from 'node:fs';
 import { defineCommand } from 'citty';
+import { checkBoundaries } from '../../lib/boundary-check.js';
+import { generateCoverageReport } from '../../lib/coverage.js';
+import { exportHandoffPackage as exportExportHandoffPackage } from '../../lib/export.js';
 import { writeResult } from '../../lib/io.js';
+import { runLint as lintRunnerRunLint } from '../../lib/lint-runner.js';
+import { loadAllModules as moduleLoaderLoadAllModules } from '../../lib/module-loader.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import {
   assertUserPath,
@@ -99,10 +104,7 @@ export function coverageImpl(deps: Deps, args: CoverageArgs): CommandResult {
   // Pit Crew M8 BLOCKER (Adversary 2): containment on both user paths.
   const safePrd = assertUserPath(deps, args.prdPath, 'coverage:prd');
   const safePlan = assertUserPath(deps, args.planPath, 'coverage:plan');
-  const coverageMod = legacyRequire<{
-    generateCoverageReport: (prdPath: string, planPath: string) => string;
-  }>('coverage');
-  deps.logger.info(coverageMod.generateCoverageReport(safePrd, safePlan));
+  deps.logger.info(generateCoverageReport(safePrd, safePlan));
   return { exitCode: 0 };
 }
 
@@ -155,20 +157,18 @@ export interface LintArgs {
   targetDir?: string | undefined;
 }
 
-export async function lintImpl(deps: Deps, args: LintArgs): Promise<CommandResult> {
-  const { runLint } = legacyRequire<{
-    runLint: (dir: string) => Promise<Record<string, unknown> & { ok?: boolean; pass?: boolean }>;
-  }>('lint-runner');
+export function lintImpl(deps: Deps, args: LintArgs): CommandResult {
+  // M11 batch7: lint-runner is now a TS port — use direct import.
   // Pit Crew M8 HIGH (Adversary 5 + Reviewer 2): containment on
   // user-supplied targetDir.
   const safeDir = args.targetDir
     ? assertUserPath(deps, args.targetDir, 'lint:targetDir')
     : deps.projectRoot;
-  const result = await runLint(safeDir);
-  writeResult(result);
+  const result = lintRunnerRunLint(safeDir);
+  writeResult(result as unknown as Record<string, unknown>);
   // Pit Crew M8 MED (Reviewer 5): pre-fix discarded result; lint
   // failures invisible to CI exit code. Post-fix: respect ok/pass.
-  const passed = result.ok !== false && result.pass !== false;
+  const passed = result.pass !== false;
   return { exitCode: passed ? 0 : 1 };
 }
 
@@ -236,12 +236,9 @@ export const regulatoryCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function boundariesImpl(deps: Deps): CommandResult {
-  const { checkBoundaries } = legacyRequire<{
-    checkBoundaries: (specsDir: string) => Record<string, unknown>;
-  }>('boundary-check');
-  const specsDir = safeJoin(deps, 'specs');
-  const result = checkBoundaries(specsDir);
-  writeResult(result);
+  const root = deps.projectRoot;
+  const result = checkBoundaries({ root });
+  writeResult(result as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
@@ -321,12 +318,10 @@ export const diffCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function modulesImpl(deps: Deps): CommandResult {
-  const { loadAllModules } = legacyRequire<{
-    loadAllModules: (dir: string) => Record<string, unknown>;
-  }>('module-loader');
+  // M11 batch7: module-loader is now a TS port — use direct import.
   const modulesDir = safeJoin(deps, '.jumpstart', 'modules');
-  const result = loadAllModules(modulesDir);
-  writeResult(result);
+  const result = moduleLoaderLoadAllModules(modulesDir);
+  writeResult(result as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
@@ -383,17 +378,10 @@ export interface HandoffArgs {
 }
 
 export function handoffImpl(deps: Deps, args: HandoffArgs): CommandResult {
-  const { exportHandoffPackage } = legacyRequire<{
-    exportHandoffPackage: (opts: { root: string; outputPath?: string | undefined }) => {
-      success: boolean;
-      output_path?: string | undefined;
-      stats?: Record<string, number>;
-      error?: string | undefined;
-    };
-  }>('export');
+  // M11 batch7: export is now a TS port — use direct import.
   const outputPath = parseFlag(args.rest, 'output');
   const jsonMode = hasFlag(args.rest, 'json');
-  const result = exportHandoffPackage({ root: deps.projectRoot, outputPath });
+  const result = exportExportHandoffPackage({ root: deps.projectRoot, output: outputPath });
   if (jsonMode) {
     writeResult(result as unknown as Record<string, unknown>);
     return { exitCode: 0 };
@@ -407,7 +395,7 @@ export function handoffImpl(deps: Deps, args: HandoffArgs): CommandResult {
     }
     return { exitCode: 0 };
   }
-  deps.logger.error(result.error ?? 'handoff failed');
+  deps.logger.error('handoff failed');
   return { exitCode: 1 };
 }
 

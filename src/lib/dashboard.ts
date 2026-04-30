@@ -39,7 +39,10 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
+import { computeCoverage as coverageComputeCoverage } from './coverage.js';
 import { buildFromSpecs, getCoverage } from './graph.js';
+import { isArtifactApproved as handoffIsArtifactApproved } from './handoff.js';
+import { runAllChecks as specTesterRunAllChecks } from './spec-tester.js';
 import { loadState } from './state-store.js';
 import { getTimelineSummary } from './timeline.js';
 import { summarizeUsage } from './usage.js';
@@ -189,14 +192,8 @@ interface SpecTesterModule {
 // the catch now rebinds via a debug-only logger so a regression surfaces
 // when DEBUG=1.
 async function loadHandoffSibling(): Promise<HandoffModule | null> {
-  try {
-    // @ts-expect-error legacy ESM module without .d.mts companion (M11 cleanup)
-    const mod = (await import('../../bin/lib/handoff.mjs')) as HandoffModule;
-    return mod;
-  } catch (err) {
-    if (process.env.DEBUG) console.error('[dashboard] handoff sibling unavailable:', err);
-    return null;
-  }
+  // M11 batch7: handoff is now a TS port -- return a thin wrapper.
+  return { isArtifactApproved: (content) => handoffIsArtifactApproved(content) };
 }
 
 async function loadNextPhaseSibling(): Promise<NextPhaseModule | null> {
@@ -211,11 +208,8 @@ async function loadNextPhaseSibling(): Promise<NextPhaseModule | null> {
 }
 
 function loadSpecTesterSibling(): SpecTesterModule | null {
-  try {
-    return require('../../bin/lib/spec-tester.js') as SpecTesterModule;
-  } catch {
-    return null;
-  }
+  // M11 batch7: spec-tester is now a TS port -- return a thin wrapper.
+  return { runAllChecks: (content) => specTesterRunAllChecks(content) };
 }
 
 interface CoverageModule {
@@ -231,11 +225,8 @@ interface CoverageModule {
 }
 
 function loadCoverageSibling(): CoverageModule | null {
-  try {
-    return require('../../bin/lib/coverage.js') as CoverageModule;
-  } catch {
-    return null;
-  }
+  // M11 batch7: coverage is now a TS port -- return a thin wrapper.
+  return { computeCoverage: coverageComputeCoverage };
 }
 
 // Data Gathering
