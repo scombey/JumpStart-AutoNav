@@ -198,8 +198,9 @@ async function loadHandoffSibling(): Promise<HandoffModule | null> {
 
 async function loadNextPhaseSibling(): Promise<NextPhaseModule | null> {
   try {
-    // @ts-expect-error legacy ESM module without .d.mts companion (M11 cleanup)
-    const mod = (await import('../../bin/lib/next-phase.mjs')) as NextPhaseModule;
+    // M11 phase 5e: next-phase is now a TS port at src/lib/next-phase.ts;
+    // direct ESM import replaces the legacy bin/lib/next-phase.mjs.
+    const mod = (await import('./next-phase.js')) as NextPhaseModule;
     return mod;
   } catch (err) {
     if (process.env.DEBUG) console.error('[dashboard] next-phase sibling unavailable:', err);

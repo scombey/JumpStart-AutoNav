@@ -65,11 +65,9 @@ const babelTraverse = babelTraverseModule.default ?? babelTraverseModule;
 
 const REPO_ROOT = process.cwd();
 
-// Post-M9 cutover: strangler collapsed. The single canonical surface
-// is `src/lib/`. The fallback `bin/lib/` array entry is retained for
-// older consumers that still ship the legacy JS alongside their port,
-// but in this repo it resolves to nothing (directory deleted at M9).
-const SCAN_ROOTS = ['src/lib', 'bin/lib'];
+// Post-M11 phase 5e cutover: strangler tail fully retired. The single
+// canonical surface is `src/lib/`; `bin/lib/` was deleted in M11.
+const SCAN_ROOTS = ['src/lib'];
 
 const OUTPUT_DIR = '.jumpstart/metrics';
 const OUTPUT_PATH = path.join(OUTPUT_DIR, 'drift-catches.json');
