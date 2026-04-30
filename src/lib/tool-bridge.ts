@@ -68,6 +68,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { assertInsideRoot } from './path-safety.js';
+import { computeUATCoverage } from './uat-coverage.js';
 import type { TimelineLike } from './simulation-tracer.js';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -742,15 +743,9 @@ export function createToolBridge(options: ToolBridgeOptions): ToolBridge {
 
     async run_uat_coverage(args) {
       try {
-        const mod = await dynImportFirst(['./uat-coverage.js', '../lib/uat-coverage.js']);
-        if (!mod) return { error: 'uat-coverage unavailable', pass: false };
-        const computeUATCoverage = mod.computeUATCoverage as
-          | ((prdPath: unknown, testDir: unknown) => unknown)
-          | undefined;
-        if (!computeUATCoverage) {
-          return { error: 'computeUATCoverage unavailable', pass: false };
-        }
-        return computeUATCoverage(args.prd_path, args.test_dir);
+        const prdPath = typeof args.prd_path === 'string' ? args.prd_path : '';
+        const testDir = typeof args.test_dir === 'string' ? args.test_dir : '';
+        return computeUATCoverage(prdPath, testDir);
       } catch (err) {
         return { error: (err as Error).message, pass: false };
       }
