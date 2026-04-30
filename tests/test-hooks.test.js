@@ -790,7 +790,7 @@ describe('enforce-test-cochange hook', () => {
 
   it('isSourceEdit / isTestEdit classify paths correctly', () => {
     expect(testCochange.isSourceEdit('src/app.js')).toBe(true);
-    expect(testCochange.isSourceEdit('bin/cli.js')).toBe(true);
+    expect(testCochange.isSourceEdit('src/cli/main.ts')).toBe(true);
     expect(testCochange.isSourceEdit('tests/app.test.js')).toBe(false);
     expect(testCochange.isTestEdit('tests/app.test.js')).toBe(true);
     expect(testCochange.isTestEdit('src/app.spec.ts')).toBe(true);

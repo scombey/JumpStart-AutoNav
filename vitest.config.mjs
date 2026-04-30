@@ -45,7 +45,6 @@ export default defineConfig({
         'scripts/**/*.mjs',
       ],
       exclude: [
-        'bin/cli.js',
         'bin/verify-diagrams.js',
         'bin/context7-setup.js',
         '**/_smoke.*', // M0 toolchain smoke; will be deleted at first real port
