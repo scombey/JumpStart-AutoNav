@@ -25,18 +25,13 @@ import { generateCoverageReport } from '../../lib/coverage.js';
 import { generateDiff } from '../../lib/diff.js';
 import { exportHandoffPackage as exportExportHandoffPackage } from '../../lib/export.js';
 import * as graphLib from '../../lib/graph.js';
+import { generateHandoffReport } from '../../lib/handoff-validator.js';
 import { writeResult } from '../../lib/io.js';
 import { runLint as lintRunnerRunLint } from '../../lib/lint-runner.js';
 import { loadAllModules as moduleLoaderLoadAllModules } from '../../lib/module-loader.js';
-import { generateHandoffReport } from '../../lib/handoff-validator.js';
 import { evaluateRegulatory } from '../../lib/regulatory-gate.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import {
-  assertUserPath,
-  hasFlag,
-  parseFlag,
-  safeJoin,
-} from './_helpers.js';
+import { assertUserPath, hasFlag, parseFlag, safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // handoff-check
@@ -274,10 +269,12 @@ export interface DiffArgs {
   path?: string | undefined;
 }
 
-export function diffImpl(deps: Deps, args: DiffArgs): CommandResult {
+export async function diffImpl(deps: Deps, args: DiffArgs): Promise<CommandResult> {
   // M11 phase-5c: switched from `legacyImport('diff')` to static import of
   // the TS port. Port's generateDiff({ changes, root }) takes a changes array;
   // with no explicit changes we pass root so the result reflects the target dir.
+  // Kept async to preserve the Promise contract expected by M8/M9 regression
+  // tests (they use `await expect(diffImpl(...)).rejects.toThrow()`).
   const target = args.path ? assertUserPath(deps, args.path, 'diff:path') : deps.projectRoot;
   const result = generateDiff({ root: target, changes: [] });
   writeResult(result as unknown as Record<string, unknown>);
@@ -289,8 +286,8 @@ export const diffCommand = defineCommand({
   args: {
     path: { type: 'positional', description: 'Target path', required: false },
   },
-  run({ args }) {
-    diffImpl(createRealDeps(), { path: args.path });
+  async run({ args }) {
+    await diffImpl(createRealDeps(), { path: args.path });
   },
 });
 
