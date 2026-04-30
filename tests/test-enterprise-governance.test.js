@@ -28,9 +28,26 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
+import * as aiIntakeLib from '../src/lib/ai-intake.js';
+import * as bcdrPlanningLib from '../src/lib/bcdr-planning.js';
+import * as cabOutputLib from '../src/lib/cab-output.js';
+import * as ciCdIntegrationLib from '../src/lib/ci-cd-integration.js';
+import * as compliancePacksLib from '../src/lib/compliance-packs.js';
+import * as credentialBoundaryLib from '../src/lib/credential-boundary.js';
+import * as dataClassificationLib from '../src/lib/data-classification.js';
+import * as eaReviewPacketLib from '../src/lib/ea-review-packet.js';
+import * as environmentPromotionLib from '../src/lib/environment-promotion.js';
+import * as evidenceCollectorLib from '../src/lib/evidence-collector.js';
+import * as finopsPlannerLib from '../src/lib/finops-planner.js';
+import * as governanceDashboardLib from '../src/lib/governance-dashboard.js';
+import * as modelGovernanceLib from '../src/lib/model-governance.js';
+import * as opsOwnershipLib from '../src/lib/ops-ownership.js';
+import * as raciMatrixLib from '../src/lib/raci-matrix.js';
+import * as releaseReadinessLib from '../src/lib/release-readiness.js';
+import * as riskRegisterLib from '../src/lib/risk-register.js';
+import * as slaSloLib from '../src/lib/sla-slo.js';
+import * as vendorRiskLib from '../src/lib/vendor-risk.js';
+import * as waiverWorkflowLib from '../src/lib/waiver-workflow.js';
 
 function createTempDir() {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jumpstart-gov-'));
@@ -48,7 +65,7 @@ function cleanupTempDir(tmpDir) {
 // ─── Item 21: CI/CD Integration ──────────────────────────────────────────────
 
 describe('CI/CD Integration (Item 21)', () => {
-  const lib = require('../bin/lib/ci-cd-integration');
+  const lib = ciCdIntegrationLib;
 
   it('generates GitHub Actions pipeline', () => {
     const result = lib.generatePipeline('github-actions');
@@ -90,7 +107,7 @@ describe('CI/CD Integration (Item 21)', () => {
 // ─── Item 22: Environment Promotion ──────────────────────────────────────────
 
 describe('Environment Promotion (Item 22)', () => {
-  const lib = require('../bin/lib/environment-promotion');
+  const lib = environmentPromotionLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -127,7 +144,7 @@ describe('Environment Promotion (Item 22)', () => {
 // ─── Item 23: RACI Matrix ────────────────────────────────────────────────────
 
 describe('RACI Matrix (Item 23)', () => {
-  const lib = require('../bin/lib/raci-matrix');
+  const lib = raciMatrixLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -161,7 +178,7 @@ describe('RACI Matrix (Item 23)', () => {
 // ─── Item 24: Compliance Packs ───────────────────────────────────────────────
 
 describe('Compliance Packs (Item 24)', () => {
-  const lib = require('../bin/lib/compliance-packs');
+  const lib = compliancePacksLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -201,7 +218,7 @@ describe('Compliance Packs (Item 24)', () => {
 // ─── Item 25: Evidence Collector ─────────────────────────────────────────────
 
 describe('Evidence Collector (Item 25)', () => {
-  const lib = require('../bin/lib/evidence-collector');
+  const lib = evidenceCollectorLib;
   let tmpDir;
 
   beforeEach(() => { tmpDir = createTempDir(); });
@@ -225,7 +242,7 @@ describe('Evidence Collector (Item 25)', () => {
 // ─── Item 26: Release Readiness ──────────────────────────────────────────────
 
 describe('Release Readiness (Item 26)', () => {
-  const lib = require('../bin/lib/release-readiness');
+  const lib = releaseReadinessLib;
   let tmpDir;
 
   beforeEach(() => { tmpDir = createTempDir(); });
@@ -250,7 +267,7 @@ describe('Release Readiness (Item 26)', () => {
 // ─── Item 27: Waiver Workflow ────────────────────────────────────────────────
 
 describe('Waiver Workflow (Item 27)', () => {
-  const lib = require('../bin/lib/waiver-workflow');
+  const lib = waiverWorkflowLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -287,7 +304,7 @@ describe('Waiver Workflow (Item 27)', () => {
 // ─── Item 28: SLA/SLO ───────────────────────────────────────────────────────
 
 describe('SLA/SLO (Item 28)', () => {
-  const lib = require('../bin/lib/sla-slo');
+  const lib = slaSloLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -317,7 +334,7 @@ describe('SLA/SLO (Item 28)', () => {
 // ─── Item 29: Risk Register ─────────────────────────────────────────────────
 
 describe('Risk Register (Item 29)', () => {
-  const lib = require('../bin/lib/risk-register');
+  const lib = riskRegisterLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -355,7 +372,7 @@ describe('Risk Register (Item 29)', () => {
 // ─── Item 30: Data Classification ───────────────────────────────────────────
 
 describe('Data Classification (Item 30)', () => {
-  const lib = require('../bin/lib/data-classification');
+  const lib = dataClassificationLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -385,7 +402,7 @@ describe('Data Classification (Item 30)', () => {
 // ─── Item 31: Credential Boundary ───────────────────────────────────────────
 
 describe('Credential Boundary (Item 31)', () => {
-  const lib = require('../bin/lib/credential-boundary');
+  const lib = credentialBoundaryLib;
   let tmpDir;
 
   beforeEach(() => { tmpDir = createTempDir(); });
@@ -411,7 +428,7 @@ describe('Credential Boundary (Item 31)', () => {
 // ─── Item 32: EA Review Packet ──────────────────────────────────────────────
 
 describe('EA Review Packet (Item 32)', () => {
-  const lib = require('../bin/lib/ea-review-packet');
+  const lib = eaReviewPacketLib;
   let tmpDir;
 
   beforeEach(() => { tmpDir = createTempDir(); });
@@ -434,7 +451,7 @@ describe('EA Review Packet (Item 32)', () => {
 // ─── Item 33: Model Governance ──────────────────────────────────────────────
 
 describe('Model Governance (Item 33)', () => {
-  const lib = require('../bin/lib/model-governance');
+  const lib = modelGovernanceLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -459,7 +476,7 @@ describe('Model Governance (Item 33)', () => {
 // ─── Item 34: AI Intake ─────────────────────────────────────────────────────
 
 describe('AI Intake (Item 34)', () => {
-  const lib = require('../bin/lib/ai-intake');
+  const lib = aiIntakeLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -485,7 +502,7 @@ describe('AI Intake (Item 34)', () => {
 // ─── Item 35: FinOps Planner ─────────────────────────────────────────────────
 
 describe('FinOps Planner (Item 35)', () => {
-  const lib = require('../bin/lib/finops-planner');
+  const lib = finopsPlannerLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -513,7 +530,7 @@ describe('FinOps Planner (Item 35)', () => {
 // ─── Item 36: Vendor Risk ───────────────────────────────────────────────────
 
 describe('Vendor Risk (Item 36)', () => {
-  const lib = require('../bin/lib/vendor-risk');
+  const lib = vendorRiskLib;
   let tmpDir;
 
   beforeEach(() => { tmpDir = createTempDir(); });
@@ -539,7 +556,7 @@ describe('Vendor Risk (Item 36)', () => {
 // ─── Item 37: CAB Output ────────────────────────────────────────────────────
 
 describe('CAB Output (Item 37)', () => {
-  const lib = require('../bin/lib/cab-output');
+  const lib = cabOutputLib;
   let tmpDir;
 
   beforeEach(() => { tmpDir = createTempDir(); });
@@ -556,7 +573,7 @@ describe('CAB Output (Item 37)', () => {
 // ─── Item 38: BCDR Planning ─────────────────────────────────────────────────
 
 describe('BCDR Planning (Item 38)', () => {
-  const lib = require('../bin/lib/bcdr-planning');
+  const lib = bcdrPlanningLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -582,7 +599,7 @@ describe('BCDR Planning (Item 38)', () => {
 // ─── Item 39: Ops Ownership ─────────────────────────────────────────────────
 
 describe('Ops Ownership (Item 39)', () => {
-  const lib = require('../bin/lib/ops-ownership');
+  const lib = opsOwnershipLib;
   let tmpDir, stateFile;
 
   beforeEach(() => {
@@ -607,7 +624,7 @@ describe('Ops Ownership (Item 39)', () => {
 // ─── Item 40: Governance Dashboard ──────────────────────────────────────────
 
 describe('Governance Dashboard (Item 40)', () => {
-  const lib = require('../bin/lib/governance-dashboard');
+  const lib = governanceDashboardLib;
   let tmpDir;
 
   beforeEach(() => { tmpDir = createTempDir(); });
