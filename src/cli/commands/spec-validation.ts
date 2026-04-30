@@ -25,18 +25,24 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { defineCommand } from 'citty';
+import * as antiAbstraction from '../../lib/anti-abstraction.js';
 import { generateAuditReport } from '../../lib/freshness-gate.js';
+import * as graphLib from '../../lib/graph.js';
+import * as hashing from '../../lib/hashing.js';
 import { generateReport as generateInvariantsReport } from '../../lib/invariants-check.js';
 import { writeResult } from '../../lib/io.js';
 import { extractEpics, generateIndex, generateShard, shouldShard } from '../../lib/sharder.js';
 import { check as simplicityCheck } from '../../lib/simplicity-gate.js';
+import * as smellDetector from '../../lib/smell-detector.js';
+import * as specDrift from '../../lib/spec-drift.js';
 import {
   generateReport as specTesterGenerateReport,
   runAllChecks as specTesterRunAllChecks,
 } from '../../lib/spec-tester.js';
 import { checkForChanges as templateCheckForChanges } from '../../lib/template-watcher.js';
+import * as validator from '../../lib/validator.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
+import { assertUserPath, safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // validate
@@ -57,18 +63,12 @@ export function validateImpl(deps: Deps, args: ValidateArgs): CommandResult {
   // Post-fix: gate via assertUserPath so the path is provably inside
   // the project root.
   const safePath = assertUserPath(deps, args.path, 'validate');
-  const validator = legacyRequire<{
-    validateArtifact: (
-      filePath: string,
-      schemasDir: string
-    ) => { valid: boolean; errors: string[] };
-  }>('validator');
-  // Pit Crew M8 BLOCKER (Reviewer 1): pre-fix used `__dirname` to
-  // compute packageRoot. `__dirname` is undefined under ESM and
-  // resolves to dist/ paths under build, both wrong. Post-fix: anchor
-  // schemas dir at deps.projectRoot — the documented invariant.
+  // M11 phase-5c: switched from `legacyRequire('validator')` to static import.
+  // Port's validateArtifact(filePath, schemaName, schemasDir?) takes schemaName
+  // as 2nd arg; infer schema name from the file's basename.
   const schemasDir = path.join(deps.projectRoot, '.jumpstart', 'schemas');
-  const result = validator.validateArtifact(safePath, schemasDir);
+  const schemaName = path.basename(safePath, path.extname(safePath));
+  const result = validator.validateArtifact(safePath, schemaName, schemasDir);
   if (result.valid) {
     deps.logger.success('Artifact is valid.');
     return { exitCode: 0 };
@@ -99,11 +99,10 @@ export interface SpecDriftArgs {
 }
 
 export function specDriftImpl(_deps: Deps, args: SpecDriftArgs): CommandResult {
-  const specDrift = legacyRequire<{
-    checkSpecDrift: (specsDir: string, srcDir: string) => Record<string, unknown>;
-  }>('spec-drift');
-  const result = specDrift.checkSpecDrift(args.specsDir ?? 'specs', args.srcDir ?? 'src');
-  writeResult(result as Record<string, unknown>);
+  // M11 phase-5c: switched from `legacyRequire('spec-drift')` to static import.
+  // Port's checkSpecDrift(specsDir) takes only one arg; srcDir was not used.
+  const result = specDrift.checkSpecDrift(args.specsDir ?? 'specs');
+  writeResult(result as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
@@ -128,29 +127,30 @@ export interface HashArgs {
 }
 
 export function hashImpl(deps: Deps, args: HashArgs): CommandResult {
-  const hashing = legacyRequire<{
-    registerArtifact: (filePath: string, manifestPath: string) => { hash: string };
-    verifyAll: (manifestPath: string) => { valid: boolean; path: string; reason?: string }[];
-  }>('hashing');
+  // M11 phase-5c: switched from `legacyRequire('hashing')` to static import.
+  // Port API: registerArtifact(manifestPath, artifactPath, filePath) — 3 args.
+  // verifyAll(manifestPath, baseDir) returns VerifyResult, not an array.
   const manifestPath = safeJoin(deps, '.jumpstart', 'manifest.json');
   if (args.action === 'register') {
     if (!args.filePath) {
       deps.logger.error('Usage: jumpstart-mode hash register <file-path>');
       return { exitCode: 1 };
     }
-    const result = hashing.registerArtifact(args.filePath, manifestPath);
+    const artifactPath = path.relative(deps.projectRoot, path.resolve(args.filePath));
+    const result = hashing.registerArtifact(manifestPath, artifactPath, args.filePath);
     deps.logger.success(`Registered: ${result.hash.substring(0, 12)}...`);
     return { exitCode: 0 };
   }
   if (args.action === 'verify') {
-    const results = hashing.verifyAll(manifestPath);
-    const failed = results.filter((r) => !r.valid);
-    if (failed.length === 0) {
-      deps.logger.success(`All ${results.length} artifact(s) verified.`);
+    const result = hashing.verifyAll(manifestPath, deps.projectRoot);
+    const failCount = result.tampered.length + result.missing.length;
+    if (failCount === 0) {
+      deps.logger.success(`All ${result.verified} artifact(s) verified.`);
       return { exitCode: 0 };
     }
-    deps.logger.error(`${failed.length} artifact(s) failed verification:`);
-    for (const f of failed) deps.logger.warn(`  - ${f.path}: ${f.reason ?? 'unknown'}`);
+    deps.logger.error(`${failCount} artifact(s) failed verification:`);
+    for (const f of result.tampered) deps.logger.warn(`  - ${f.path}: hash mismatch`);
+    for (const m of result.missing) deps.logger.warn(`  - ${m}: missing`);
     return { exitCode: 1 };
   }
   deps.logger.info('Usage: jumpstart-mode hash <register|verify> [file-path]');
@@ -178,29 +178,30 @@ export interface GraphArgs {
 }
 
 export function graphImpl(deps: Deps, args: GraphArgs): CommandResult {
-  const graph = legacyRequire<{
-    buildFromSpecs: (specsDir: string, graphPath: string) => { nodes: unknown[]; edges: unknown[] };
-    getCoverage: (graphPath: string) => {
-      total: number;
-      withEdges: number;
-      orphans: number;
-      coverage: number;
-    };
-  }>('graph');
+  // M11 phase-5c: switched from `legacyRequire('graph')` to static import.
+  // Port API changes:
+  //   buildFromSpecs(specsDir) — no graphPath arg (port saves to disk internally via SpecGraph)
+  //   getCoverage(graph: SpecGraph) — takes a graph object, not a path
   const graphPath = safeJoin(deps, '.jumpstart', 'spec-graph.json');
   const specsDir = safeJoin(deps, 'specs');
   if (args.action === 'build') {
-    const result = graph.buildFromSpecs(specsDir, graphPath);
-    deps.logger.success(`Graph built: ${result.nodes.length} nodes, ${result.edges.length} edges.`);
+    const graph = graphLib.buildFromSpecs(specsDir);
+    const nodeCount = Object.keys(graph.nodes).length;
+    const edgeCount = graph.edges.length;
+    deps.logger.success(`Graph built: ${nodeCount} nodes, ${edgeCount} edges.`);
     return { exitCode: 0 };
   }
   if (args.action === 'coverage') {
-    const result = graph.getCoverage(graphPath);
+    const graph = graphLib.loadGraph(graphPath);
+    const result = graphLib.getCoverage(graph);
+    const storyCount = result.stories ?? 0;
+    const unmapped = (result.unmappedStories ?? []).length;
+    const coverage = storyCount > 0 ? Math.round(((storyCount - unmapped) / storyCount) * 100) : 0;
     deps.logger.info('Dependency Coverage:');
-    deps.logger.info(`  Total nodes: ${result.total}`);
-    deps.logger.info(`  With outgoing edges: ${result.withEdges}`);
-    deps.logger.info(`  Orphans: ${result.orphans}`);
-    deps.logger.info(`  Coverage: ${result.coverage}%`);
+    deps.logger.info(`  Total stories: ${storyCount}`);
+    deps.logger.info(`  Tasks: ${result.tasks ?? 0}`);
+    deps.logger.info(`  Unmapped stories: ${unmapped}`);
+    deps.logger.info(`  Coverage: ${coverage}%`);
     return { exitCode: 0 };
   }
   deps.logger.info('Usage: jumpstart-mode graph <build|coverage>');
@@ -264,16 +265,19 @@ export interface ScanWrappersArgs {
 }
 
 export function scanWrappersImpl(deps: Deps, args: ScanWrappersArgs): CommandResult {
-  const antiAbstraction = legacyRequire<{
-    scanDirectory: (dir: string) => { file: string; line: number; pattern: string }[];
-  }>('anti-abstraction');
-  const results = antiAbstraction.scanDirectory(args.targetDir ?? 'src');
-  if (results.length === 0) {
+  // M11 phase-5c: switched from `legacyRequire('anti-abstraction')` to static import.
+  // Port's scanDirectory returns ScanDirectoryResult { files: ScanFileResult[] }.
+  // Flatten per-file findings for the CLI output.
+  const result = antiAbstraction.scanDirectory(args.targetDir ?? 'src');
+  const findings = result.files.flatMap((f) =>
+    f.findings.map((finding) => ({ file: f.file, line: finding.line, pattern: finding.pattern }))
+  );
+  if (findings.length === 0) {
     deps.logger.success('No wrapper patterns detected.');
     return { exitCode: 0 };
   }
-  deps.logger.warn(`${results.length} potential wrapper pattern(s) found:`);
-  for (const r of results) deps.logger.warn(`  ${r.file}:${r.line} - ${r.pattern}`);
+  deps.logger.warn(`${findings.length} potential wrapper pattern(s) found:`);
+  for (const r of findings) deps.logger.warn(`  ${r.file}:${r.line} - ${r.pattern}`);
   return { exitCode: 0 };
 }
 
@@ -478,9 +482,7 @@ export function smellsImpl(deps: Deps, args: SmellsArgs): CommandResult {
     deps.logger.error(`File not found: ${args.path}`);
     return { exitCode: 1 };
   }
-  const smellDetector = legacyRequire<{
-    generateSmellReport: (filePath: string) => string;
-  }>('smell-detector');
+  // M11 phase-5c: switched from `legacyRequire('smell-detector')` to static import.
   deps.logger.info(smellDetector.generateSmellReport(safePath));
   return { exitCode: 0 };
 }
