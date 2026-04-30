@@ -20,9 +20,10 @@
 
 import { existsSync } from 'node:fs';
 import { defineCommand } from 'citty';
-import { writeResult } from '../../lib/io.js';
-import { generateCoverageReport } from '../../lib/coverage.js';
 import { checkBoundaries } from '../../lib/boundary-check.js';
+import { generateCoverageReport } from '../../lib/coverage.js';
+import { exportHandoffPackage as exportExportHandoffPackage } from '../../lib/export.js';
+import { writeResult } from '../../lib/io.js';
 import { runLint as lintRunnerRunLint } from '../../lib/lint-runner.js';
 import { loadAllModules as moduleLoaderLoadAllModules } from '../../lib/module-loader.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
@@ -377,17 +378,10 @@ export interface HandoffArgs {
 }
 
 export function handoffImpl(deps: Deps, args: HandoffArgs): CommandResult {
-  const { exportHandoffPackage } = legacyRequire<{
-    exportHandoffPackage: (opts: { root: string; outputPath?: string | undefined }) => {
-      success: boolean;
-      output_path?: string | undefined;
-      stats?: Record<string, number>;
-      error?: string | undefined;
-    };
-  }>('export');
+  // M11 batch7: export is now a TS port — use direct import.
   const outputPath = parseFlag(args.rest, 'output');
   const jsonMode = hasFlag(args.rest, 'json');
-  const result = exportHandoffPackage({ root: deps.projectRoot, outputPath });
+  const result = exportExportHandoffPackage({ root: deps.projectRoot, output: outputPath });
   if (jsonMode) {
     writeResult(result as unknown as Record<string, unknown>);
     return { exitCode: 0 };
@@ -401,7 +395,7 @@ export function handoffImpl(deps: Deps, args: HandoffArgs): CommandResult {
     }
     return { exitCode: 0 };
   }
-  deps.logger.error(result.error ?? 'handoff failed');
+  deps.logger.error('handoff failed');
   return { exitCode: 1 };
 }
 
