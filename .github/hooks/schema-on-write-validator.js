@@ -15,6 +15,11 @@ const {
   extractTargetPath,
   extractSessionId,
 } = require('./lib/common');
+// NOTE (M11 phase 5e): bin/lib/* was almost entirely deleted, but
+// `bin/lib/validator.js` (and 3 sibling files used by other hooks) was
+// kept because converting these hooks to load the TS port requires
+// async/dynamic-import refactoring that breaks the sync test contract
+// in tests/test-hooks.test.js. Tracked as a follow-up cleanup task.
 const { validateArtifact } = require('../../bin/lib/validator.js');
 
 const SCHEMA_MAP = [

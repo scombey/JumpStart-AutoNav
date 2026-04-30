@@ -24,8 +24,9 @@ export default defineConfig({
   test: {
     globals: true,
     root: '.',
-    // Strangler tail: include both .js (legacy, slated for M11 cleanup) and
-    // .ts (ported canonical + new TS tests).
+    // M11 phase 5e: strangler tail fully retired — .test.js files that
+    // remain are the converted integration tests (already use src/lib/
+    // imports), and the legacy .test.js unit tests + bin/lib/* are gone.
     include: ['tests/**/*.test.{js,ts}'],
     exclude: [],
     testTimeout: 10000,
@@ -35,17 +36,14 @@ export default defineConfig({
       // ratchet script reads. `text` keeps a human-readable summary in the
       // terminal. `html` is for local inspection (gitignored).
       reporter: ['text', 'json-summary', 'html'],
-      // Cover both src/ (canonical) + bin/lib/ (legacy strangler tail).
+      // Canonical surface only — src/ + scripts/.
       include: [
-        'bin/lib/**/*.js',
         'src/lib/**/*.ts',
         'src/cli/**/*.ts',
         'scripts/**/*.mjs',
       ],
       exclude: [
-        'bin/verify-diagrams.js',
-        'bin/context7-setup.js',
-        '**/_smoke.*', // M0 toolchain smoke; will be deleted at first real port
+        '**/_smoke.*', // M0 toolchain smoke; deleted at first real port (kept as glob just in case)
       ],
     },
   },

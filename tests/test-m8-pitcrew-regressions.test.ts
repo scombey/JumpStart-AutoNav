@@ -31,7 +31,7 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { assertUserPath, legacyRequire, safeJoin } from '../src/cli/commands/_helpers.js';
+import { assertUserPath, safeJoin } from '../src/cli/commands/_helpers.js';
 import { diffImpl, validateModuleImpl } from '../src/cli/commands/handoff.js';
 import { validateImpl } from '../src/cli/commands/spec-validation.js';
 import { createTestDeps, type Deps } from '../src/cli/deps.js';
@@ -166,31 +166,19 @@ describe('Pit Crew M8 HIGH (Adversary 5) — diffImpl gates user path', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────
-// HIGH (Adversary 3) — legacyRequire rejects unsafe lib names
+// REMOVED — legacyRequire NODE_PATH-injection regression pin
 // ─────────────────────────────────────────────────────────────────────────
-
-describe('Pit Crew M8 HIGH (Adversary 3) — legacyRequire rejects unsafe lib names', () => {
-  it('rejects a name with a slash (path injection)', () => {
-    expect(() => legacyRequire('../../etc/passwd')).toThrow();
-  });
-
-  it('rejects a name with a parent-traversal', () => {
-    expect(() => legacyRequire('foo/../bar')).toThrow();
-  });
-
-  it('rejects a name with null byte', () => {
-    expect(() => legacyRequire('foo\0bar')).toThrow();
-  });
-
-  it('rejects a name starting with a dot', () => {
-    expect(() => legacyRequire('.bashrc')).toThrow();
-  });
-
-  it('accepts a clean lib name (e.g. "validator")', () => {
-    // Successfully resolves to the legacy lib (path-anchored absolute).
-    expect(() => legacyRequire('validator')).not.toThrow();
-  });
-});
+// The M8 Pit Crew regression pins on `legacyRequire` (Adversary 3 —
+// reject unsafe lib names) are gone: `legacyRequire` and `legacyImport`
+// were both deleted in M11 phase 5e (#34/#53), at which point the
+// underlying attack surface (NODE_PATH module hijack via bare relative
+// require, traversal-shaped lib names, null-byte injection) ceased to
+// exist. Every cluster file in `src/cli/commands/*` now uses static ESM
+// imports of typed `src/lib/*` ports — no runtime path resolution from
+// caller-controlled strings remains. The `safeJoin` and `assertUserPath`
+// pins above continue to exercise the path-safety surface that DOES
+// still apply (user-supplied artifact paths in `validate`/`smells`/
+// `handoff-check`/`coverage`/`diff` etc.).
 
 // ─────────────────────────────────────────────────────────────────────────
 // REMOVED — diff-cli-help.mjs swap-point pin (M11 strangler-cleanup)

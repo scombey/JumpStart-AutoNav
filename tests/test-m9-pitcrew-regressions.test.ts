@@ -52,7 +52,6 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { legacyImport, legacyRequire } from '../src/cli/commands/_helpers.js';
 import { adrImpl, revertImpl, timestampImpl } from '../src/cli/commands/cleanup.js';
 import { mergeTemplatesImpl } from '../src/cli/commands/enterprise.js';
 import { diffImpl } from '../src/cli/commands/handoff.js';
@@ -158,63 +157,32 @@ describe('Pit Crew M9 BLOCKER B2 — bin.ts secrets redaction', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────
-// BLOCKER B3 — legacyRequire/legacyImport anchor at import.meta.url
+// REMOVED — legacyRequire/legacyImport anchor pin (M11 phase 5e cleanup)
 // ─────────────────────────────────────────────────────────────────────────
-
-describe('Pit Crew M9 BLOCKER B3 — legacy lib path anchored at module, not cwd', () => {
-  // Pre-fix: `PACKAGE_ROOT = path.resolve(process.cwd())`. An attacker
-  // who plants `bin/lib/io.js` in the victim's cwd gets RCE on next
-  // CLI invocation. Post-fix: `MODULE_DIR = path.dirname(fileURLToPath
-  // (import.meta.url))` and `PACKAGE_ROOT = path.resolve(MODULE_DIR,
-  // '..', '..', '..')` so resolution is independent of cwd.
-
-  it('legacyRequire resolves the same module regardless of cwd', () => {
-    const originalCwd = process.cwd();
-    const tmp = mkdtempSync(path.join(tmpdir(), 'm9-cwd-'));
-    try {
-      // Plant a fake bin/lib/io.js inside the tmp cwd. If the resolver
-      // anchored at cwd it would prefer this file. With the import.meta.url
-      // anchor it still loads the real package's io.
-      // We don't actually CREATE the malicious file — we just chdir to
-      // a tmpdir without one and verify the genuine io still loads.
-      process.chdir(tmp);
-      const io = legacyRequire<{ writeResult?: unknown }>('io');
-      expect(typeof io.writeResult).toBe('function');
-    } finally {
-      process.chdir(originalCwd);
-      rmSync(tmp, { recursive: true, force: true });
-    }
-  });
-
-  it('legacyImport rejects path-traversal-shaped names', async () => {
-    await expect(legacyImport('../../etc/passwd')).rejects.toThrow(/Invalid legacy lib name/);
-    await expect(legacyImport('foo/../bar')).rejects.toThrow(/Invalid legacy lib name/);
-    await expect(legacyImport('foo\0bar')).rejects.toThrow(/Invalid legacy lib name/);
-  });
-
-  it('legacyImport loads ESM (.mjs) modules successfully', async () => {
-    // adr-index is one of the 38 ESM legacy modules.
-    const adr = await legacyImport<{ buildIndex?: unknown }>('adr-index');
-    expect(typeof adr.buildIndex).toBe('function');
-  });
-
-  it('legacyImport falls back to .js when .mjs does not exist', async () => {
-    // io is CJS (.js only) — verifies the .mjs → .js fallback path.
-    const io = await legacyImport<{ writeResult?: unknown }>('io');
-    expect(typeof io.writeResult).toBe('function');
-  });
-});
+// The M9 BLOCKER B3 pin guaranteed `legacyRequire`/`legacyImport`
+// resolved relative to `import.meta.url` (module-anchored) rather than
+// `process.cwd()` (attacker-controlled). Both helpers + the entire
+// `bin/lib/*` tree they resolved against were deleted in M11 phase 5e
+// (#34/#53). The attack surface (NODE_PATH module hijack, cwd-poisoning,
+// .mjs→.js fallback string-matching) is therefore gone — every cluster
+// file now uses static `import * as <X> from '../../lib/<X>.js'` of
+// typed TS ports, which Node resolves through the standard ESM module
+// graph with no caller-controlled string resolution. Removing the
+// pinned tests in this commit; the path-safety pins above (`safeJoin`,
+// `assertUserPath`) continue to cover the user-input surface that
+// remains.
 
 // ─────────────────────────────────────────────────────────────────────────
 // HIGH H6 — async impls exercised past the early-return guard
 // ─────────────────────────────────────────────────────────────────────────
 
-describe('Pit Crew M9 HIGH H6 — async impls hit the legacyImport branch', () => {
+describe('Pit Crew M9 HIGH H6 — async impls exercise their full execution path', () => {
   // Pre-PR these tests existed only for missing-args paths, so the
-  // `await legacyImport(...)` line was never executed in CI. A future
-  // bug in legacyImport would have shipped invisibly.
+  // dispatch into the underlying lib (originally via legacyImport, now
+  // direct ESM) was never executed in CI. A future regression in the
+  // dispatch wiring would have shipped invisibly.
 
-  it('adrImpl resolves through legacyImport(adr-index)', async () => {
+  it('adrImpl dispatches through the adr-index TS port', async () => {
     const tmp = mkdtempSync(path.join(tmpdir(), 'm9-adr-'));
     try {
       const deps = createTestDeps({ projectRoot: tmp });
@@ -225,7 +193,7 @@ describe('Pit Crew M9 HIGH H6 — async impls hit the legacyImport branch', () =
     }
   });
 
-  it('revertImpl reaches legacyImport(revert) when artifact is supplied', async () => {
+  it('revertImpl reaches the revert TS port when artifact is supplied', async () => {
     const tmp = mkdtempSync(path.join(tmpdir(), 'm9-revert-'));
     try {
       const deps = createTestDeps({ projectRoot: tmp });
@@ -243,7 +211,7 @@ describe('Pit Crew M9 HIGH H6 — async impls hit the legacyImport branch', () =
     }
   });
 
-  it('mergeTemplatesImpl reaches legacyImport(template-merge) when both paths supplied', async () => {
+  it('mergeTemplatesImpl reaches the template-merge TS port when both paths supplied', async () => {
     const tmp = mkdtempSync(path.join(tmpdir(), 'm9-merge-'));
     try {
       const deps = createTestDeps({ projectRoot: tmp });
@@ -325,15 +293,14 @@ describe('Pit Crew M9 HIGH H7 — cluster files smoke', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────
-// MED M6 — legacyImport ENOENT detection by err.code, not regex
+// REMOVED — legacyImport ENOENT detection pin (M11 phase 5e cleanup)
 // ─────────────────────────────────────────────────────────────────────────
-
-describe('Pit Crew M9 MED M6 — legacyImport ENOENT detection by err.code', () => {
-  it('rejects with the underlying error when neither .mjs nor .js exists', async () => {
-    // A name that passes the regex but has no matching file in bin/lib.
-    await expect(legacyImport('genuinely-nonexistent-module-xyz')).rejects.toThrow();
-  });
-});
+// The MED M6 fix — using `err.code === 'ERR_MODULE_NOT_FOUND'` instead
+// of regex-matching the English error message — applied to the
+// `legacyImport` helper, which was deleted in phase 5e along with
+// `bin/lib/*`. No remaining code path in `src/` does dynamic module
+// resolution from caller-supplied strings, so the original regression
+// can no longer occur.
 
 afterAll(() => {
   // The build artifacts are shared with other test files; do NOT remove

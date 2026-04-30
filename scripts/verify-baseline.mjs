@@ -76,8 +76,8 @@ run('check-return-shapes', 'node', ['scripts/check-return-shapes.mjs']);
 run('contract-harness', 'node', ['scripts/extract-public-surface.mjs'], {
   env: { ...process.env, HARNESS_FAIL_ON_DRIFT: '1' },
 });
-if (existsSync('bin/holodeck.mjs')) {
-  run('holodeck-baseline', 'node', ['bin/holodeck.mjs', '--scenario', 'baseline']);
+if (existsSync('dist/cli/bin.mjs')) {
+  run('holodeck-baseline', 'node', ['dist/cli/bin.mjs', 'holodeck', 'baseline']);
 }
 run('npm-audit-high', 'npm', ['audit', '--audit-level=high']);
 
