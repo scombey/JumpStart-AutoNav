@@ -53,7 +53,8 @@ import * as legacyPlanExecutor from '../../lib/plan-executor.js';
 import { renderRewindReport, rewindToPhase } from '../../lib/rewind.js';
 import { createCheckpoint, listCheckpoints, restoreCheckpoint } from '../../lib/state-store.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { asRest, assertUserPath, legacyRequire, parseFlag, safeJoin } from './_helpers.js';
+import * as projectMemory from '../../lib/project-memory.js';
+import { asRest, assertUserPath, parseFlag, safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // approve
@@ -653,31 +654,8 @@ export interface MemoryArgs {
   json?: boolean | undefined;
 }
 
-interface MemoryLib {
-  addMemory: (
-    payload: { type: string; title: string; content: string },
-    opts: { memoryFile: string }
-  ) => { success: boolean; entry?: { id: string }; error?: string };
-  searchMemories: (
-    keyword: string,
-    opts: { memoryFile: string }
-  ) => { total: number; entries: { id: string; type: string; title: string }[] };
-  recallMemory: (
-    id: string,
-    opts: { memoryFile: string }
-  ) => {
-    success: boolean;
-    entry?: { id: string; title: string; type: string; created_at: string; content: string };
-    error?: string | undefined;
-  };
-  listMemories: (
-    filter: Record<string, unknown>,
-    opts: { memoryFile: string }
-  ) => { total: number; entries: { id: string; type: string; title: string }[] };
-}
-
 export function memoryImpl(deps: Deps, args: MemoryArgs): CommandResult {
-  const memLib = legacyRequire<MemoryLib>('project-memory');
+  // M11 phase-5c: switched from `legacyRequire('project-memory')` to static import.
   const memFile = safeJoin(deps, '.jumpstart', 'state', 'project-memory.json');
   const action = args.action ?? 'list';
 
@@ -691,7 +669,7 @@ export function memoryImpl(deps: Deps, args: MemoryArgs): CommandResult {
       );
       return { exitCode: 1 };
     }
-    const result = memLib.addMemory({ type: typeArg, title, content }, { memoryFile: memFile });
+    const result = projectMemory.addMemory({ type: typeArg, title, content }, { memoryFile: memFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else if (result.success && result.entry) {
@@ -707,12 +685,12 @@ export function memoryImpl(deps: Deps, args: MemoryArgs): CommandResult {
       deps.logger.error('Usage: jumpstart-mode memory search <keyword>');
       return { exitCode: 1 };
     }
-    const result = memLib.searchMemories(args.arg, { memoryFile: memFile });
+    const result = projectMemory.searchMemories(args.arg, { memoryFile: memFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else {
-      deps.logger.info(`Memory Search: "${args.arg}" (${result.total} results)`);
-      for (const e of result.entries) deps.logger.info(`  [${e.type}] ${e.title} — ${e.id}`);
+      deps.logger.info(`Memory Search: "${args.arg}" (${result.total ?? 0} results)`);
+      for (const e of result.entries ?? []) deps.logger.info(`  [${e.type}] ${e.title} — ${e.id}`);
     }
     return { exitCode: 0 };
   }
@@ -721,7 +699,7 @@ export function memoryImpl(deps: Deps, args: MemoryArgs): CommandResult {
       deps.logger.error('Usage: jumpstart-mode memory recall <id>');
       return { exitCode: 1 };
     }
-    const result = memLib.recallMemory(args.arg, { memoryFile: memFile });
+    const result = projectMemory.recallMemory(args.arg, { memoryFile: memFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else if (result.success && result.entry) {
@@ -736,7 +714,7 @@ export function memoryImpl(deps: Deps, args: MemoryArgs): CommandResult {
   }
   // list (default)
   const typeFilter = parseFlag(args.rest, 'type');
-  const result = memLib.listMemories(typeFilter ? { type: typeFilter } : {}, {
+  const result = projectMemory.listMemories(typeFilter ? { type: typeFilter } : {}, {
     memoryFile: memFile,
   });
   if (args.json) {
