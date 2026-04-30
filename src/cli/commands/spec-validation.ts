@@ -26,6 +26,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import { writeResult } from '../../lib/io.js';
+import { generateAuditReport } from '../../lib/freshness-gate.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -349,11 +350,8 @@ export const templateCheckCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function freshnessAuditImpl(deps: Deps): CommandResult {
-  const freshness = legacyRequire<{
-    generateAuditReport: (specsDir: string) => string;
-  }>('freshness-gate');
   const specsDir = safeJoin(deps, 'specs');
-  const report = freshness.generateAuditReport(specsDir);
+  const report = generateAuditReport(specsDir);
   deps.logger.info(report);
   return { exitCode: 0 };
 }
