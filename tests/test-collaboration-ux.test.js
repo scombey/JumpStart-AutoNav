@@ -6,9 +6,14 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
+import * as collaborationLib from '../src/lib/collaboration.js';
+import * as enterpriseTemplatesLib from '../src/lib/enterprise-templates.js';
+import * as playbackSummariesLib from '../src/lib/playback-summaries.js';
+import * as roleViewsLib from '../src/lib/role-views.js';
+import * as specCommentsLib from '../src/lib/spec-comments.js';
+import * as structuredElicitationLib from '../src/lib/structured-elicitation.js';
+import * as webDashboardLib from '../src/lib/web-dashboard.js';
+import * as workshopModeLib from '../src/lib/workshop-mode.js';
 
 function createTempDir() {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'jumpstart-collab-'));
@@ -26,7 +31,7 @@ function cleanupTempDir(tmpDir) {
 // ─── Item 61: Web Dashboard ──────────────────────────────────────────────
 
 describe('Web Dashboard (Item 61)', () => {
-  const lib = require('../bin/lib/web-dashboard');
+  const lib = webDashboardLib;
   let tmpDir;
   beforeEach(() => { tmpDir = createTempDir(); });
   afterEach(() => { cleanupTempDir(tmpDir); });
@@ -62,7 +67,7 @@ describe('Web Dashboard (Item 61)', () => {
 // ─── Item 62: Role-Based Views ───────────────────────────────────────────
 
 describe('Role-Based Views (Item 62)', () => {
-  const lib = require('../bin/lib/role-views');
+  const lib = roleViewsLib;
   let tmpDir;
   beforeEach(() => { tmpDir = createTempDir(); });
   afterEach(() => { cleanupTempDir(tmpDir); });
@@ -101,7 +106,7 @@ describe('Role-Based Views (Item 62)', () => {
 // ─── Item 63: Spec Comments ──────────────────────────────────────────────
 
 describe('Spec Comments (Item 63)', () => {
-  const lib = require('../bin/lib/spec-comments');
+  const lib = specCommentsLib;
   let tmpDir;
   let stateFile;
   beforeEach(() => {
@@ -153,7 +158,7 @@ describe('Spec Comments (Item 63)', () => {
 // ─── Item 64: Workshop Mode ─────────────────────────────────────────────
 
 describe('Workshop Mode (Item 64)', () => {
-  const lib = require('../bin/lib/workshop-mode');
+  const lib = workshopModeLib;
   let tmpDir;
   let stateFile;
   beforeEach(() => {
@@ -203,7 +208,7 @@ describe('Workshop Mode (Item 64)', () => {
 // ─── Item 65: Collaboration Sessions ─────────────────────────────────────
 
 describe('Collaboration Sessions (Item 65)', () => {
-  const lib = require('../bin/lib/collaboration');
+  const lib = collaborationLib;
   let tmpDir;
   let stateFile;
   beforeEach(() => {
@@ -257,7 +262,7 @@ describe('Collaboration Sessions (Item 65)', () => {
 // ─── Item 66: Structured Elicitation ─────────────────────────────────────
 
 describe('Structured Elicitation (Item 66)', () => {
-  const lib = require('../bin/lib/structured-elicitation');
+  const lib = structuredElicitationLib;
   let tmpDir;
   let stateFile;
   beforeEach(() => {
@@ -304,7 +309,7 @@ describe('Structured Elicitation (Item 66)', () => {
 // ─── Item 67: Enterprise Templates ───────────────────────────────────────
 
 describe('Enterprise Templates (Item 67)', () => {
-  const lib = require('../bin/lib/enterprise-templates');
+  const lib = enterpriseTemplatesLib;
   let tmpDir;
   beforeEach(() => { tmpDir = createTempDir(); });
   afterEach(() => { cleanupTempDir(tmpDir); });
@@ -343,7 +348,7 @@ describe('Enterprise Templates (Item 67)', () => {
 // ─── Item 68: Playback Summaries ─────────────────────────────────────────
 
 describe('Playback Summaries (Item 68)', () => {
-  const lib = require('../bin/lib/playback-summaries');
+  const lib = playbackSummariesLib;
   let tmpDir;
   beforeEach(() => { tmpDir = createTempDir(); });
   afterEach(() => { cleanupTempDir(tmpDir); });

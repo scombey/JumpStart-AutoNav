@@ -18,20 +18,9 @@
 import { describe, it, expect } from 'vitest';
 import path from 'path';
 import fs from 'fs';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const {
-  extractFrontmatter,
-  validateMarkdownStructure
-} = require('../bin/lib/validator');
-const {
-  checkAmbiguity,
-  runAllChecks
-} = require('../bin/lib/spec-tester');
-const {
-  detectSmells
-} = require('../bin/lib/smell-detector');
+import { extractFrontmatter, validateMarkdownStructure } from '../src/lib/validator.js';
+import { checkAmbiguity, runAllChecks } from '../src/lib/spec-tester.js';
+import { detectSmells } from '../src/lib/smell-detector.js';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A-Z]:)/, '$1');
 const ROOT_DIR = path.join(__dirname, '..');

@@ -12,14 +12,11 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const { createProvider, listModels, getModelConfig } = require('../bin/lib/llm-provider');
-const { createToolBridge } = require('../bin/lib/tool-bridge');
-const { createMockRegistry, createPersonaRegistry } = require('../bin/lib/mock-responses');
-const { getToolsForPhase, getToolByName, ALL_TOOLS } = require('../bin/lib/tool-schemas');
-const { SimulationTracer } = require('../bin/lib/simulation-tracer');
+import { createProvider, getModelConfig, listModels } from '../src/lib/llm-provider.js';
+import { createToolBridge } from '../src/lib/tool-bridge.js';
+import { createMockRegistry, createPersonaRegistry } from '../src/lib/mock-responses.js';
+import { ALL_TOOLS, getToolByName, getToolsForPhase } from '../src/lib/tool-schemas.js';
+import { SimulationTracer } from '../src/lib/simulation-tracer.js';
 
 // ─── Test Fixtures ───────────────────────────────────────────────────────────
 
