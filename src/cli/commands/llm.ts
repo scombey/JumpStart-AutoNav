@@ -8,7 +8,7 @@
  *   - prompt-governance  (lib-ts: registerAsset + approveVersion + listAssets)
  *   - usage              (lib-ts: summarizeUsage + generateUsageReport)
  *   - ai-intake          (lib-ts: createIntake + listIntakes)
- *   - finops-planner     (legacy bin/lib/finops-planner.js — no lib-ts port yet)
+ *   - finops-planner     (lib-ts: generateReport + getOptimizations)
  *
  * **Skipped**: `freshness-audit` already lives in spec-validation.ts batch 1.
  * No standalone `llm-providers` subcommand exists in `bin/cli.js`; the
@@ -18,8 +18,8 @@
  *
  * Pattern: each leaf command is a `defineCommand` exported as
  * `<name>Command`. Pure logic lives in `<name>Impl(deps, args)`. All
- * lib-ts imports are TOP-LEVEL ES imports; only `finops-planner`
- * (no lib-ts port) goes through `legacyRequire`.
+ * lib-ts imports are TOP-LEVEL ES imports — finops-planner ported to TS
+ * in M11 batch 5, no remaining `legacyRequire` calls in this cluster.
  *
  * @see bin/cli.js (lines 1734-1746, 3643-3666, 3669-3691, 3694-3715,
  *       4096-4115, 4118-4135, 4997-5025 — legacy reference)
@@ -29,6 +29,10 @@
 import { defineCommand } from 'citty';
 import { createIntake, listIntakes } from '../../lib/ai-intake.js';
 import { generateReport as costGenerateReport, routeByCost } from '../../lib/cost-router.js';
+import {
+  generateReport as finopsGenerateReport,
+  getOptimizations as finopsGetOptimizations,
+} from '../../lib/finops-planner.js';
 import { writeResult } from '../../lib/io.js';
 import {
   generateReport as governanceGenerateReport,
@@ -38,7 +42,7 @@ import { generateReport as routerGenerateReport, routeTask } from '../../lib/mod
 import { approveVersion, listAssets, registerAsset } from '../../lib/prompt-governance.js';
 import { generateUsageReport, summarizeUsage } from '../../lib/usage.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { legacyRequire, safeJoin } from './_helpers.js';
+import { safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // cost-router
@@ -438,25 +442,17 @@ export interface FinopsPlannerArgs {
   json?: boolean | undefined;
 }
 
-interface FinopsPlannerLib {
-  generateReport: (opts: { stateFile: string }) => {
-    total_monthly: number;
-    total_annual: number;
-    total_estimates: number;
-  };
-  getOptimizations: (opts: { stateFile: string }) => {
-    total: number;
-    recommendations: { recommendation: string; potential_savings: string }[];
-  };
-}
-
 export function finopsPlannerImpl(deps: Deps, args: FinopsPlannerArgs): CommandResult {
-  const lib = legacyRequire<FinopsPlannerLib>('finops-planner');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('finops-
+  // planner')` to a static import of the TS port at
+  // `src/lib/finops-planner.ts`. Existing wiring already invoked the
+  // actual exports (`generateReport`, `getOptimizations`) — no latent
+  // bugs to fix here.
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'finops.json');
   const action = args.action ?? 'report';
 
   if (action === 'optimize') {
-    const result = lib.getOptimizations({ stateFile });
+    const result = finopsGetOptimizations({ stateFile });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else {
@@ -469,7 +465,7 @@ export function finopsPlannerImpl(deps: Deps, args: FinopsPlannerArgs): CommandR
   }
 
   // report (default)
-  const result = lib.generateReport({ stateFile });
+  const result = finopsGenerateReport({ stateFile });
   if (args.json) {
     writeResult(result as unknown as Record<string, unknown>);
   } else {

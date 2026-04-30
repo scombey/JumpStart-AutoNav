@@ -37,6 +37,7 @@ import { defineCommand } from 'citty';
 import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
 import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
 import * as legacyEnvironmentPromotion from '../../lib/environment-promotion.js';
+import * as legacyFitnessFunctions from '../../lib/fitness-functions.js';
 import * as legacyLegacyModernizer from '../../lib/legacy-modernizer.js';
 import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
 import * as legacyMultiRepo from '../../lib/multi-repo.js';
@@ -45,6 +46,7 @@ import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
 import * as legacyPrPackage from '../../lib/pr-package.js';
+import * as legacyReferenceArchitectures from '../../lib/reference-architectures.js';
 import * as legacyReleaseReadiness from '../../lib/release-readiness.js';
 import * as legacyTemplateMerge from '../../lib/template-merge.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
@@ -242,7 +244,10 @@ export interface FitnessFunctionsArgs {
 }
 
 export function fitnessFunctionsImpl(deps: Deps, args: FitnessFunctionsArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('fitness-functions');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('fitness-
+  // functions')` to a static import of the TS port at
+  // `src/lib/fitness-functions.ts`. Existing wiring already invoked the
+  // actual exports — no latent bugs to fix here.
   const action = args.action ?? 'evaluate';
   const registryFile = safeJoin(deps, '.jumpstart', 'fitness-functions.json');
   let result: unknown;
@@ -251,7 +256,7 @@ export function fitnessFunctionsImpl(deps: Deps, args: FitnessFunctionsArgs): Co
       deps.logger.error('Usage: jumpstart-mode fitness-functions add <name> <category>');
       return { exitCode: 1 };
     }
-    result = lib.addFitnessFunction(
+    result = legacyFitnessFunctions.addFitnessFunction(
       {
         name: args.name,
         category: args.category,
@@ -262,9 +267,9 @@ export function fitnessFunctionsImpl(deps: Deps, args: FitnessFunctionsArgs): Co
       { registryFile }
     );
   } else if (action === 'list') {
-    result = lib.listFitnessFunctions({}, { registryFile });
+    result = legacyFitnessFunctions.listFitnessFunctions({}, { registryFile });
   } else {
-    result = lib.evaluateFitness(deps.projectRoot, { registryFile });
+    result = legacyFitnessFunctions.evaluateFitness(deps.projectRoot, { registryFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Fitness functions: ${action}`);
@@ -938,7 +943,10 @@ export interface ReferenceArchArgs {
 }
 
 export function referenceArchImpl(deps: Deps, args: ReferenceArchArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('reference-architectures');
+  // M11 strangler-tail cleanup: switched from `legacyRequire('reference-
+  // architectures')` to a static import of the TS port at
+  // `src/lib/reference-architectures.ts`. Existing wiring already
+  // invoked the actual exports — no latent bugs to fix here.
   const action = args.action ?? 'list';
   let result: unknown;
   if (action === 'get') {
@@ -946,13 +954,13 @@ export function referenceArchImpl(deps: Deps, args: ReferenceArchArgs): CommandR
       deps.logger.error('Usage: jumpstart-mode reference-arch get <pattern-id>');
       return { exitCode: 1 };
     }
-    result = lib.getPattern(args.arg);
+    result = legacyReferenceArchitectures.getPattern(args.arg);
   } else if (action === 'register') {
     if (!args.arg) {
       deps.logger.error('Usage: jumpstart-mode reference-arch register <name>');
       return { exitCode: 1 };
     }
-    result = lib.registerPattern({
+    result = legacyReferenceArchitectures.registerPattern({
       name: args.arg,
       category: args.category ?? 'other',
       description: `Custom pattern: ${args.arg}`,
@@ -962,9 +970,9 @@ export function referenceArchImpl(deps: Deps, args: ReferenceArchArgs): CommandR
       deps.logger.error('Usage: jumpstart-mode reference-arch instantiate <pattern-id>');
       return { exitCode: 1 };
     }
-    result = lib.instantiatePattern(args.arg, deps.projectRoot);
+    result = legacyReferenceArchitectures.instantiatePattern(args.arg, deps.projectRoot);
   } else {
-    result = lib.listPatterns();
+    result = legacyReferenceArchitectures.listPatterns();
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Reference arch: ${action}`);

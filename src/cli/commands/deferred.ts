@@ -13,8 +13,8 @@
  *   - timeline      (interaction timeline; src/lib/timeline has a
  *                    TypeScript port — top-level ES import. Multi-flag
  *                    query/render surface.)
- *   - validate-all  (proactive validator + suggestion engine; legacy CJS
- *                    in bin/lib/proactive-validator.js — legacyRequire.)
+ *   - validate-all  (proactive validator + suggestion engine; lib-ts
+ *                    ported in M11 batch 5.)
  *
  * **Pragmatic scope.** Per the batch brief, these are interactive or
  * render-heavy and the smoke tests are deliberately lighter than the
@@ -43,6 +43,7 @@ import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import { generateContextPacket, renderContextMarkdown } from '../../lib/context-summarizer.js';
 import { writeResult } from '../../lib/io.js';
+import * as legacyProactiveValidator from '../../lib/proactive-validator.js';
 import {
   clearTimeline,
   generateTimelineReport,
@@ -52,7 +53,7 @@ import {
   type TimelineFilters,
 } from '../../lib/timeline.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { asRest, hasFlag, legacyRequire, parseFlag, safeJoin } from './_helpers.js';
+import { asRest, hasFlag, parseFlag, safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // self-evolve
@@ -277,45 +278,28 @@ export interface ValidateAllArgs {
   strict?: boolean | undefined;
 }
 
-interface ProactiveValidatorLib {
-  validateArtifactProactive: (
-    filePath: string,
-    options: { strict?: boolean | undefined }
-  ) => {
-    pass: boolean;
-    score: number;
-    diagnostics: { code: string; message: string; line?: number | undefined }[];
-  };
-  validateAllArtifacts: (
-    specsDir: string,
-    options: { root?: string | undefined; strict?: boolean | undefined }
-  ) => Promise<{
-    files: { pass: boolean; score: number; diagnostics: unknown[] }[];
-    cross_file: Record<string, unknown>;
-    summary: {
-      total_files: number;
-      total_diagnostics: number;
-      pass_count: number;
-      fail_count: number;
-      avg_score: number;
-    };
-  }>;
-  renderValidationReport: (result: unknown) => string;
-}
-
 export async function validateAllImpl(deps: Deps, args: ValidateAllArgs): Promise<CommandResult> {
-  const lib = legacyRequire<ProactiveValidatorLib>('proactive-validator');
-
+  // M11 strangler-tail cleanup: switched from `legacyRequire('proactive-
+  // validator')` to a static import of the TS port at
+  // `src/lib/proactive-validator.ts`. Existing wiring already invoked
+  // the actual exports — no latent bugs to fix here.
   if (args.file) {
     // Pit Crew M8 BLOCKER 2: gate user-supplied path through safeJoin.
     const safePath = safeJoin(deps, args.file);
-    const result = lib.validateArtifactProactive(safePath, { strict: args.strict });
+    const result = legacyProactiveValidator.validateArtifactProactive(safePath, {
+      strict: args.strict,
+    });
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else {
-      const report = lib.renderValidationReport({
+      const report = legacyProactiveValidator.renderValidationReport({
         files: [result],
-        cross_file: {},
+        cross_file: {
+          drift: null,
+          broken_links: null,
+          coverage_gaps: null,
+          unmapped_nfrs: null,
+        },
         summary: {
           total_files: 1,
           total_diagnostics: result.diagnostics.length,
@@ -330,14 +314,14 @@ export async function validateAllImpl(deps: Deps, args: ValidateAllArgs): Promis
   }
 
   const specsDir = safeJoin(deps, 'specs');
-  const result = await lib.validateAllArtifacts(specsDir, {
+  const result = await legacyProactiveValidator.validateAllArtifacts(specsDir, {
     root: deps.projectRoot,
     strict: args.strict,
   });
   if (args.json) {
     writeResult(result as unknown as Record<string, unknown>);
   } else {
-    deps.logger.info(lib.renderValidationReport(result));
+    deps.logger.info(legacyProactiveValidator.renderValidationReport(result));
   }
   return { exitCode: 0 };
 }
