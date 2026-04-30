@@ -34,10 +34,15 @@
  */
 
 import { defineCommand } from 'citty';
+import * as codebaseRetrieval from '../../lib/codebase-retrieval.js';
+import * as contractFirst from '../../lib/contract-first.js';
+import * as deterministicArtifacts from '../../lib/deterministic-artifacts.js';
 import * as legacyEnterpriseSearch from '../../lib/enterprise-search.js';
 import * as legacyEnterpriseTemplates from '../../lib/enterprise-templates.js';
 import * as legacyEnvironmentPromotion from '../../lib/environment-promotion.js';
 import * as legacyFitnessFunctions from '../../lib/fitness-functions.js';
+import * as impactAnalysis from '../../lib/impact-analysis.js';
+import { writeResult as ioWriteResult } from '../../lib/io.js';
 import * as legacyLegacyModernizer from '../../lib/legacy-modernizer.js';
 import * as legacyMigrationPlanner from '../../lib/migration-planner.js';
 import * as legacyMultiRepo from '../../lib/multi-repo.js';
@@ -46,25 +51,24 @@ import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
 import * as legacyPrPackage from '../../lib/pr-package.js';
+import * as promptlessMode from '../../lib/promptless-mode.js';
 import * as legacyReferenceArchitectures from '../../lib/reference-architectures.js';
 import * as legacyReleaseReadiness from '../../lib/release-readiness.js';
+import * as repoGraph from '../../lib/repo-graph.js';
 import * as legacyTemplateMerge from '../../lib/template-merge.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
+import { assertUserPath, safeJoin } from './_helpers.js';
 
 // Permissive shape for legacy lib modules — every callsite immediately narrows
 // via property access. Documenting once here so individual commands stay terse.
 // biome-ignore lint/suspicious/noExplicitAny: <legacy lib runtime shapes>
 type LegacyLib = Record<string, any>;
 
-/** Helper: write result via legacy io.writeResult when --json mode is on,
- *  otherwise let the caller render. The `_deps` arg is reserved for a
- *  future logger-aware JSON sink (currently the legacy `io.writeResult`
- *  writes directly to stdout). */
+/** Helper: write result via io.writeResult when --json mode is on,
+ *  otherwise let the caller render. */
 function maybeJson(_deps: Deps, json: boolean | undefined, result: unknown): void {
   if (!json) return;
-  const io = legacyRequire<{ writeResult: (r: unknown) => void }>('io');
-  io.writeResult(result);
+  ioWriteResult(result as Record<string, unknown>);
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -311,14 +315,14 @@ export function impactImpl(deps: Deps, args: ImpactArgs): CommandResult {
     deps.logger.error('Usage: jumpstart-mode impact <file> [--symbol <name>] [--spec <id>]');
     return { exitCode: 1 };
   }
-  const lib = legacyRequire<LegacyLib>('impact-analysis');
-  const target: Record<string, string> = {};
+  // M11 phase-5c: switched from `legacyRequire('impact-analysis')` to static import.
+  const target: { file?: string; symbol?: string; specId?: string } = {};
   if (args.file) target.file = assertUserPath(deps, args.file, 'impact:file');
   if (args.symbol) target.symbol = args.symbol;
   if (args.spec) target.specId = args.spec;
-  const result = lib.analyzeImpact(deps.projectRoot, target);
+  const result = impactAnalysis.analyzeImpact(deps.projectRoot, target);
   maybeJson(deps, args.json, result);
-  if (!args.json && lib.renderImpactReport) deps.logger.info(lib.renderImpactReport(result));
+  if (!args.json) deps.logger.info(impactAnalysis.renderImpactReport(result));
   return { exitCode: 0 };
 }
 
@@ -352,19 +356,16 @@ export interface KnowledgeGraphArgs {
 }
 
 export function knowledgeGraphImpl(deps: Deps, args: KnowledgeGraphArgs): CommandResult {
-  // knowledge-graph isn't a separate lib in this codebase — it surfaces
-  // through the repo-graph and bidirectional-trace facilities. For the
-  // strangler port we delegate via repo-graph which is the canonical
-  // backing store for nodes/edges.
-  const lib = legacyRequire<LegacyLib>('repo-graph');
+  // knowledge-graph isn't a separate lib — surfaces through repo-graph.
+  // M11 phase-5c: switched from `legacyRequire('repo-graph')` to static import.
   const graphFile = safeJoin(deps, '.jumpstart', 'state', 'repo-graph.json');
   const action = args.action ?? 'build';
   let result: unknown;
   if (action === 'query') {
-    const graph = lib.loadRepoGraph(graphFile);
-    result = lib.queryGraph(graph, { type: args.arg ?? null, nameContains: null });
+    const graph = repoGraph.loadRepoGraph(graphFile);
+    result = repoGraph.queryGraph(graph, { type: args.arg ?? undefined, nameContains: undefined });
   } else {
-    result = lib.buildRepoGraph(deps.projectRoot, { graphFile });
+    result = repoGraph.buildRepoGraph(deps.projectRoot, { graphFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Knowledge graph: ${action}`);
@@ -901,15 +902,18 @@ export interface PromptlessModeArgs {
 }
 
 export function promptlessModeImpl(deps: Deps, args: PromptlessModeArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('promptless-mode');
+  // M11 phase-5c: switched from `legacyRequire('promptless-mode')` to static import.
+  // Port exports: startWizard, answerStep, getWizardStatus.
+  // Legacy enable/disable/getStatus were phantom methods; adapted to port API.
+  const stateFile = safeJoin(deps, '.jumpstart', 'state', 'promptless-mode.json');
   const action = args.action ?? 'status';
   let result: unknown;
   if (action === 'enable') {
-    result = lib.enable?.(deps.projectRoot);
+    result = promptlessMode.startWizard('project-setup', { stateFile });
   } else if (action === 'disable') {
-    result = lib.disable?.(deps.projectRoot);
+    result = promptlessMode.getWizardStatus({ stateFile });
   } else {
-    result = lib.getStatus?.(deps.projectRoot) ?? { enabled: false };
+    result = promptlessMode.getWizardStatus({ stateFile });
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Promptless mode: ${action}`);
@@ -1064,7 +1068,8 @@ export interface CodebaseRetrievalArgs {
 }
 
 export function codebaseRetrievalImpl(deps: Deps, args: CodebaseRetrievalArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('codebase-retrieval');
+  // M11 phase-5c: switched from `legacyRequire('codebase-retrieval')` to static import.
+  // Port exports: indexProject(root, options), queryFiles(root, query, options).
   const action = args.action ?? 'index';
   let result: unknown;
   if (action === 'search') {
@@ -1072,11 +1077,9 @@ export function codebaseRetrievalImpl(deps: Deps, args: CodebaseRetrievalArgs): 
       deps.logger.error('Usage: jumpstart-mode codebase-retrieval search <query>');
       return { exitCode: 1 };
     }
-    result =
-      lib.search?.(deps.projectRoot, args.query) ??
-      lib.searchCodebase?.(deps.projectRoot, args.query);
+    result = codebaseRetrieval.queryFiles(deps.projectRoot, args.query);
   } else {
-    result = lib.indexCodebase?.(deps.projectRoot) ?? lib.index?.(deps.projectRoot);
+    result = codebaseRetrieval.indexProject(deps.projectRoot);
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Codebase retrieval: ${action}`);
@@ -1111,13 +1114,14 @@ export interface ContractFirstArgs {
 }
 
 export function contractFirstImpl(deps: Deps, args: ContractFirstArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('contract-first');
+  // M11 phase-5c: switched from `legacyRequire('contract-first')` to static import.
+  // Port exports: extractContracts(root), verifyCompliance(root).
   const action = args.action ?? 'check';
   let result: unknown;
   if (action === 'generate') {
-    result = lib.generateContracts?.(deps.projectRoot);
+    result = contractFirst.extractContracts(deps.projectRoot);
   } else {
-    result = lib.checkContracts?.(deps.projectRoot) ?? lib.check?.(deps.projectRoot);
+    result = contractFirst.verifyCompliance(deps.projectRoot);
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Contract-first: ${action}`);
@@ -1152,15 +1156,15 @@ export interface DeterministicArgs {
 }
 
 export function deterministicImpl(deps: Deps, args: DeterministicArgs): CommandResult {
-  const lib = legacyRequire<LegacyLib>('deterministic-artifacts');
+  // M11 phase-5c: switched from `legacyRequire('deterministic-artifacts')` to static import.
+  // Port exports: normalizeMarkdown, hashContent, normalizeFile, verifyStability,
+  // normalizeSpecs. Legacy verifyDeterminism/snapshot/getStatus were phantom methods.
   const action = args.action ?? 'verify';
   let result: unknown;
-  if (action === 'verify') {
-    result = lib.verifyDeterminism?.(deps.projectRoot) ?? lib.verify?.(deps.projectRoot);
-  } else if (action === 'snapshot') {
-    result = lib.snapshot?.(deps.projectRoot);
+  if (action === 'verify' || action === 'snapshot') {
+    result = deterministicArtifacts.normalizeSpecs(deps.projectRoot);
   } else {
-    result = lib.getStatus?.(deps.projectRoot) ?? {};
+    result = deterministicArtifacts.normalizeSpecs(deps.projectRoot);
   }
   maybeJson(deps, args.json, result);
   if (!args.json) deps.logger.info(`Deterministic: ${action}`);
