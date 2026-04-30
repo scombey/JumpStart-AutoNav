@@ -8,10 +8,12 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import path from 'path';
 import fs from 'fs';
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const { validateHandoff, checkPhantomRequirements, extractHandoffPayload, generateHandoffReport } = require('../bin/lib/handoff-validator');
+import {
+  checkPhantomRequirements,
+  extractHandoffPayload,
+  generateHandoffReport,
+  validateHandoff,
+} from '../src/lib/handoff-validator.js';
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname).replace(/^\/([A-Z]:)/, '$1');
 const HANDOFFS_DIR = path.join(__dirname, '..', '.jumpstart', 'handoffs');
