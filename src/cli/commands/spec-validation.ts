@@ -28,6 +28,7 @@ import { defineCommand } from 'citty';
 import { writeResult } from '../../lib/io.js';
 import { generateAuditReport } from '../../lib/freshness-gate.js';
 import { generateReport as generateInvariantsReport } from '../../lib/invariants-check.js';
+import { shouldShard, extractEpics, generateShard, generateIndex } from '../../lib/sharder.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -294,7 +295,7 @@ export function invariantsImpl(deps: Deps): CommandResult {
   const invariantsPath = safeJoin(deps, '.jumpstart', 'invariants.md');
   const specsDir = safeJoin(deps, 'specs');
   const report = generateInvariantsReport(invariantsPath, specsDir);
-  writeResult(report);
+  writeResult(report as unknown as Record<string, unknown>);
   return { exitCode: 0 };
 }
 
@@ -374,38 +375,33 @@ export interface ShardArgs {
 }
 
 export function shardImpl(deps: Deps, args: ShardArgs): CommandResult {
-  const sharder = legacyRequire<{
-    shouldShard: (content: string) => boolean;
-    extractEpics: (content: string) => { id: string }[];
-    generateShard: (epic: { id: string }, idx: number) => string;
-    generateIndex: (epics: { id: string }[]) => string;
-  }>('sharder');
   const prdPath = args.prdPath ?? safeJoin(deps, 'specs', 'prd.md');
   if (!existsSync(prdPath)) {
     deps.logger.error(`PRD not found: ${prdPath}`);
     return { exitCode: 1 };
   }
   const content = readFileSync(prdPath, 'utf8');
-  if (!sharder.shouldShard(content)) {
+  const shardDecision = shouldShard(content);
+  if (!shardDecision.shouldShard) {
     deps.logger.success('PRD is within context window limits. No sharding needed.');
     return { exitCode: 0 };
   }
-  const epics = sharder.extractEpics(content);
+  const epics = extractEpics(content);
   deps.logger.info(`Found ${epics.length} epic(s). Generating shards...`);
   const shardDir = safeJoin(deps, 'specs', 'prd');
   if (!existsSync(shardDir)) mkdirSync(shardDir, { recursive: true });
+  const shardDescriptors = [];
   for (let i = 0; i < epics.length; i++) {
     const epic = epics[i];
     if (epic === undefined) continue;
-    const shard = sharder.generateShard(epic, i + 1);
-    const shardPath = path.join(
-      shardDir,
-      `prd-${String(i + 1).padStart(3, '0')}-${epic.id.toLowerCase()}.md`
-    );
+    const shard = generateShard(content, [epic.id], i + 1);
+    const shardFile = `prd-${String(i + 1).padStart(3, '0')}-${epic.id.toLowerCase()}.md`;
+    const shardPath = path.join(shardDir, shardFile);
     writeFileSync(shardPath, shard, 'utf8');
     deps.logger.success(`  ${shardPath}`);
+    shardDescriptors.push({ index: i + 1, epicIds: [epic.id], filePath: `specs/prd/${shardFile}` });
   }
-  const index = sharder.generateIndex(epics);
+  const index = generateIndex(shardDescriptors);
   writeFileSync(path.join(shardDir, 'index.md'), index, 'utf8');
   deps.logger.success('  Index generated.');
   return { exitCode: 0 };
