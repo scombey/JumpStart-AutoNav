@@ -29,6 +29,7 @@ import { writeResult } from '../../lib/io.js';
 import { generateAuditReport } from '../../lib/freshness-gate.js';
 import { generateReport as generateInvariantsReport } from '../../lib/invariants-check.js';
 import { shouldShard, extractEpics, generateShard, generateIndex } from '../../lib/sharder.js';
+import { check as simplicityCheck } from '../../lib/simplicity-gate.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -220,15 +221,13 @@ export interface SimplicityArgs {
 }
 
 export function simplicityImpl(deps: Deps, args: SimplicityArgs): CommandResult {
-  const simplicity = legacyRequire<{
-    check: (dir: string) => { pass: boolean; count: number; max: number };
-  }>('simplicity-gate');
-  const result = simplicity.check(args.targetDir ?? 'src');
-  if (result.pass) {
+  const targetDir = args.targetDir ?? 'src';
+  const result = simplicityCheck({ projectDir: targetDir });
+  if (result.passed) {
     deps.logger.success(`Simplicity gate passed (${result.count} top-level dirs).`);
     return { exitCode: 0 };
   }
-  deps.logger.error(`Simplicity gate failed: ${result.count} top-level dirs (max ${result.max}).`);
+  deps.logger.error(result.message);
   deps.logger.warn('  Add a justification section to the Architecture Document.');
   return { exitCode: 1 };
 }
