@@ -51,11 +51,11 @@ import * as legacyPatternLibrary from '../../lib/pattern-library.js';
 import * as legacyPersonaPacks from '../../lib/persona-packs.js';
 import * as legacyPlatformEngineering from '../../lib/platform-engineering.js';
 import * as legacyPrPackage from '../../lib/pr-package.js';
+import * as promptlessMode from '../../lib/promptless-mode.js';
 import * as legacyReferenceArchitectures from '../../lib/reference-architectures.js';
 import * as legacyReleaseReadiness from '../../lib/release-readiness.js';
-import * as legacyTemplateMerge from '../../lib/template-merge.js';
-import * as promptlessMode from '../../lib/promptless-mode.js';
 import * as repoGraph from '../../lib/repo-graph.js';
+import * as legacyTemplateMerge from '../../lib/template-merge.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, safeJoin } from './_helpers.js';
 

@@ -50,10 +50,10 @@ import { writeResult } from '../../lib/io.js';
 import { acquireLock, listLocks, lockStatus, releaseLock } from '../../lib/locks.js';
 import { determineNextAction } from '../../lib/next-phase.js';
 import * as legacyPlanExecutor from '../../lib/plan-executor.js';
+import * as projectMemory from '../../lib/project-memory.js';
 import { renderRewindReport, rewindToPhase } from '../../lib/rewind.js';
 import { createCheckpoint, listCheckpoints, restoreCheckpoint } from '../../lib/state-store.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import * as projectMemory from '../../lib/project-memory.js';
 import { asRest, assertUserPath, parseFlag, safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -669,7 +669,10 @@ export function memoryImpl(deps: Deps, args: MemoryArgs): CommandResult {
       );
       return { exitCode: 1 };
     }
-    const result = projectMemory.addMemory({ type: typeArg, title, content }, { memoryFile: memFile });
+    const result = projectMemory.addMemory(
+      { type: typeArg, title, content },
+      { memoryFile: memFile }
+    );
     if (args.json) {
       writeResult(result as unknown as Record<string, unknown>);
     } else if (result.success && result.entry) {
