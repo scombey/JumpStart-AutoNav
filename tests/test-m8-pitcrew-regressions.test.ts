@@ -193,21 +193,17 @@ describe('Pit Crew M8 HIGH (Adversary 3) — legacyRequire rejects unsafe lib na
 });
 
 // ─────────────────────────────────────────────────────────────────────────
-// MED (Reviewer 6) — diff-cli-help.mjs swap-point honors --new-cli
+// REMOVED — diff-cli-help.mjs swap-point pin (M11 strangler-cleanup)
 // ─────────────────────────────────────────────────────────────────────────
-
-describe('Pit Crew M8 MED (Reviewer 6) — diff-cli-help.mjs swap-point uses --new-cli flag', () => {
-  it('script source contains the --new-cli flag handling', () => {
-    const fs = require('node:fs') as typeof import('node:fs');
-    const src = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'diff-cli-help.mjs'), 'utf8');
-    // The fix introduces an explicit --new-cli flag handler.
-    expect(src).toContain('--new-cli');
-    expect(src).toContain('JUMPSTART_NEW_CLI');
-    // The pre-fix `const newCli = LEGACY_CLI; // T4.7.2 swap-point`
-    // marker MUST be gone — keeping it would let the swap regress.
-    expect(src).not.toContain('// T4.7.2 swap-point');
-  });
-});
+// The M8 Pit Crew regression pin on `scripts/diff-cli-help.mjs` is gone:
+// the script existed only as a developer-side diagnostic to compare the
+// legacy `bin/cli.js` --help output against the new citty CLI during the
+// strangler window. Both inputs (the script + `bin/cli.js`) were deleted
+// in M11 strangler-cleanup phase 4 (#34), at which point the pin became
+// asserting on a non-existent file. Removing the test is the correct
+// follow-on; the underlying invariant (CLI command surface stability)
+// is covered by the citty schema and the cluster-files smoke test in
+// `tests/test-m9-pitcrew-regressions.test.ts`.
 
 // ─────────────────────────────────────────────────────────────────────────
 // MED (QA 4) — FRAMEWORK_VERSION read from package.json
