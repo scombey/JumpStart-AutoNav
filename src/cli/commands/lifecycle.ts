@@ -27,7 +27,6 @@
  */
 
 import { existsSync } from 'node:fs';
-import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import * as legacyAgentCheckpoint from '../../lib/agent-checkpoint.js';
 import {
@@ -46,11 +45,11 @@ import {
   VALID_PRESETS,
   writeFocusToConfig,
 } from '../../lib/focus.js';
+import { generateInitConfig as initGenerateInitConfig } from '../../lib/init.js';
 import { writeResult } from '../../lib/io.js';
 import { acquireLock, listLocks, lockStatus, releaseLock } from '../../lib/locks.js';
 import { determineNextAction } from '../../lib/next-phase.js';
 import * as legacyPlanExecutor from '../../lib/plan-executor.js';
-import { generateInitConfig as initGenerateInitConfig } from '../../lib/init.js';
 import { renderRewindReport, rewindToPhase } from '../../lib/rewind.js';
 import { createCheckpoint, listCheckpoints, restoreCheckpoint } from '../../lib/state-store.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';

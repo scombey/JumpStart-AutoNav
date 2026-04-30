@@ -1,16 +1,17 @@
 /**
  * tests/test-freshness-gate.test.ts — vitest suite for src/lib/freshness-gate.ts
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  CITATION_PATTERNS,
-  TECH_KEYWORDS,
   auditDocument,
   auditSpecs,
+  CITATION_PATTERNS,
   generateAuditReport,
+  TECH_KEYWORDS,
 } from '../src/lib/freshness-gate.js';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -95,7 +96,7 @@ describe('auditSpecs', () => {
   it('returns overallScore 100 and warning when directory not found', () => {
     const result = auditSpecs('/nonexistent/specs-dir');
     expect(result.overallScore).toBe(100);
-    expect(result.warnings.some(w => w.includes('not found'))).toBe(true);
+    expect(result.warnings.some((w) => w.includes('not found'))).toBe(true);
   });
 
   it('returns overallScore 100 for empty specs directory', () => {

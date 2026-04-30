@@ -46,15 +46,15 @@ export const SKILL_PRESETS: Record<SkillLevel, SkillPreset> = {
     config_overrides: {
       'workflow.explanation_level': 'detailed',
       'workflow.show_hints': true,
-      'workflow.verbose_gates': true
+      'workflow.verbose_gates': true,
     },
     recommendations: [
       'Read the AGENTS.md file for an overview of the workflow',
       'Start with /jumpstart.challenge to define your problem',
       'Follow each phase sequentially — do not skip ahead',
       'Use /jumpstart.help at any time for phase-specific guidance',
-      'Review the Gherkin guide for writing acceptance criteria'
-    ]
+      'Review the Gherkin guide for writing acceptance criteria',
+    ],
   },
   intermediate: {
     explanation_depth: 'standard',
@@ -64,13 +64,13 @@ export const SKILL_PRESETS: Record<SkillLevel, SkillPreset> = {
     config_overrides: {
       'workflow.explanation_level': 'standard',
       'workflow.show_hints': false,
-      'workflow.verbose_gates': true
+      'workflow.verbose_gates': true,
     },
     recommendations: [
       'Run /jumpstart.status to see project progress at any time',
       'Use /jumpstart.pitcrew for multi-agent advisory discussions',
-      'Review specs/ artifacts before advancing phases'
-    ]
+      'Review specs/ artifacts before advancing phases',
+    ],
   },
   expert: {
     explanation_depth: 'minimal',
@@ -80,14 +80,14 @@ export const SKILL_PRESETS: Record<SkillLevel, SkillPreset> = {
     config_overrides: {
       'workflow.explanation_level': 'minimal',
       'workflow.show_hints': false,
-      'workflow.verbose_gates': false
+      'workflow.verbose_gates': false,
     },
     recommendations: [
       'Use /jumpstart.quick for small changes that skip full flow',
       'Run /jumpstart.crossref to validate spec linkage',
-      'Consider /jumpstart.scan for brownfield projects'
-    ]
-  }
+      'Consider /jumpstart.scan for brownfield projects',
+    ],
+  },
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -123,6 +123,6 @@ export function generateInitConfig(input: GenerateInitConfigInput): InitConfig {
     verbose_gates: preset.verbose_gates,
     auto_hints: preset.auto_hints,
     config_overrides: preset.config_overrides,
-    recommendations
+    recommendations,
   };
 }

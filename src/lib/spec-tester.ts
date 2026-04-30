@@ -9,18 +9,41 @@
  * ADR-006: no process.exit.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 // ─── Ambiguity Detection ──────────────────────────────────────────────────────
 
 export const VAGUE_ADJECTIVES: string[] = [
-  'scalable', 'fast', 'easy', 'robust', 'flexible', 'efficient',
-  'user-friendly', 'seamless', 'intuitive', 'modern', 'simple',
-  'lightweight', 'powerful', 'reliable', 'secure', 'performant',
-  'responsive', 'clean', 'elegant', 'smart', 'quick', 'high-quality',
-  'enterprise-grade', 'production-ready', 'best-in-class', 'world-class',
-  'cutting-edge', 'next-generation', 'state-of-the-art'
+  'scalable',
+  'fast',
+  'easy',
+  'robust',
+  'flexible',
+  'efficient',
+  'user-friendly',
+  'seamless',
+  'intuitive',
+  'modern',
+  'simple',
+  'lightweight',
+  'powerful',
+  'reliable',
+  'secure',
+  'performant',
+  'responsive',
+  'clean',
+  'elegant',
+  'smart',
+  'quick',
+  'high-quality',
+  'enterprise-grade',
+  'production-ready',
+  'best-in-class',
+  'world-class',
+  'cutting-edge',
+  'next-generation',
+  'state-of-the-art',
 ];
 
 export const METRIC_PATTERNS: RegExp[] = [
@@ -31,7 +54,7 @@ export const METRIC_PATTERNS: RegExp[] = [
   /\d+\s*(?:users?|connections?|concurrent)/i,
   /\d+\s*(?:nines?|9s)/i,
   /(?:99|99\.9|99\.99)\s*%\s*(?:uptime|availability|SLA)/i,
-  /(?:within|under|below|less than|at most|at least|no more than)\s+\d+/i
+  /(?:within|under|below|less than|at most|at least|no more than)\s+\d+/i,
 ];
 
 export const PASSIVE_PATTERNS: RegExp[] = [
@@ -41,7 +64,7 @@ export const PASSIVE_PATTERNS: RegExp[] = [
   /\bmust be\s+(?:\w+ed|done|handled|managed|processed|created|updated|deleted|performed|executed|configured|implemented|deployed)\b/gi,
   /\bcan be\s+(?:\w+ed|done|handled|managed|processed|created|updated|deleted|performed|executed|configured|implemented|deployed)\b/gi,
   /\bneeds to be\s+\w+ed\b/gi,
-  /\bhas to be\s+\w+ed\b/gi
+  /\bhas to be\s+\w+ed\b/gi,
 ];
 
 export interface AmbiguityIssue {
@@ -122,11 +145,20 @@ export function checkAmbiguity(content: string): AmbiguityResult {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? '';
 
-    if (line.trim().startsWith('```')) { inCodeBlock = !inCodeBlock; continue; }
+    if (line.trim().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
     if (inCodeBlock) continue;
 
-    if (i === 0 && line.trim() === '---') { inFrontmatter = true; continue; }
-    if (inFrontmatter) { if (line.trim() === '---') inFrontmatter = false; continue; }
+    if (i === 0 && line.trim() === '---') {
+      inFrontmatter = true;
+      continue;
+    }
+    if (inFrontmatter) {
+      if (line.trim() === '---') inFrontmatter = false;
+      continue;
+    }
 
     if (line.startsWith('#')) continue;
 
@@ -135,7 +167,7 @@ export function checkAmbiguity(content: string): AmbiguityResult {
       if (regex.test(line)) {
         const nextLine = lines[i + 1] ?? '';
         const context = line + nextLine;
-        const hasMetric = METRIC_PATTERNS.some(p => p.test(context));
+        const hasMetric = METRIC_PATTERNS.some((p) => p.test(context));
         const hasTag = /\[MEASURABLE\]|\[NEEDS CLARIFICATION\]|\[METRIC\]/i.test(context);
 
         if (!hasMetric && !hasTag) {
@@ -159,11 +191,20 @@ export function checkPassiveVoice(content: string): PassiveResult {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? '';
 
-    if (line.trim().startsWith('```')) { inCodeBlock = !inCodeBlock; continue; }
+    if (line.trim().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
     if (inCodeBlock) continue;
 
-    if (i === 0 && line.trim() === '---') { inFrontmatter = true; continue; }
-    if (inFrontmatter) { if (line.trim() === '---') inFrontmatter = false; continue; }
+    if (i === 0 && line.trim() === '---') {
+      inFrontmatter = true;
+      continue;
+    }
+    if (inFrontmatter) {
+      if (line.trim() === '---') inFrontmatter = false;
+      continue;
+    }
 
     if (line.startsWith('#')) continue;
 
@@ -174,7 +215,7 @@ export function checkPassiveVoice(content: string): PassiveResult {
         issues.push({
           pattern: match[0],
           line: i + 1,
-          context: line.trim().substring(0, 120)
+          context: line.trim().substring(0, 120),
         });
       }
     }
@@ -202,7 +243,7 @@ export function checkMetricCoverage(content: string): MetricCoverageResult {
     const idMatch = section.match(/####?\s+(E\d+-S\d+|FR-\d+)/);
     if (!idMatch) continue;
 
-    const hasQuantified = METRIC_PATTERNS.some(p => p.test(section));
+    const hasQuantified = METRIC_PATTERNS.some((p) => p.test(section));
     const hasMeasurableTag = /\[MEASURABLE\]/i.test(section);
 
     if (hasQuantified || hasMeasurableTag) {
@@ -212,11 +253,15 @@ export function checkMetricCoverage(content: string): MetricCoverageResult {
     }
   }
 
-  const coveragePct = totalRequirements > 0
-    ? Math.round((withMetrics / totalRequirements) * 100)
-    : 100;
+  const coveragePct =
+    totalRequirements > 0 ? Math.round((withMetrics / totalRequirements) * 100) : 100;
 
-  return { total_requirements: totalRequirements, with_metrics: withMetrics, coverage_pct: coveragePct, gaps };
+  return {
+    total_requirements: totalRequirements,
+    with_metrics: withMetrics,
+    coverage_pct: coveragePct,
+    gaps,
+  };
 }
 
 // ─── checkTerminologyDrift ────────────────────────────────────────────────────
@@ -226,11 +271,12 @@ export function checkTerminologyDrift(specsDir: string): TerminologyDriftResult 
     return { drifts: [], count: 0 };
   }
 
-  const files = fs.readdirSync(specsDir)
-    .filter(f => f.endsWith('.md'))
-    .map(f => ({
+  const files = fs
+    .readdirSync(specsDir)
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => ({
       name: f,
-      content: fs.readFileSync(path.join(specsDir, f), 'utf8').toLowerCase()
+      content: fs.readFileSync(path.join(specsDir, f), 'utf8').toLowerCase(),
     }));
 
   const driftGroups = [
@@ -239,7 +285,7 @@ export function checkTerminologyDrift(specsDir: string): TerminologyDriftResult 
     ['api', 'endpoint', 'route', 'service'],
     ['database', 'datastore', 'data store', 'db', 'data layer'],
     ['login', 'sign in', 'sign-in', 'signin', 'authentication', 'log in'],
-    ['signup', 'sign up', 'sign-up', 'register', 'registration', 'create account']
+    ['signup', 'sign up', 'sign-up', 'register', 'registration', 'create account'],
   ];
 
   const drifts: Array<{ term: string; variants: string[]; files: string[] }> = [];
@@ -263,11 +309,13 @@ export function checkTerminologyDrift(specsDir: string): TerminologyDriftResult 
 
     if (usedVariants.size > 1) {
       const allFiles: string[] = [];
-      usedVariants.forEach(fileList => { allFiles.push(...fileList); });
+      usedVariants.forEach((fileList) => {
+        allFiles.push(...fileList);
+      });
       drifts.push({
         term: group[0] ?? '',
         variants: Array.from(usedVariants.keys()),
-        files: Array.from(new Set(allFiles))
+        files: Array.from(new Set(allFiles)),
       });
     }
   }
@@ -292,10 +340,16 @@ export function checkGWTFormat(content: string): GWTResult {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? '';
 
-    if (line.trim().startsWith('```')) { inCodeBlock = !inCodeBlock; continue; }
+    if (line.trim().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
     if (inCodeBlock) continue;
 
-    if (AC_HEADING.test(line)) { inAcceptanceCriteria = true; continue; }
+    if (AC_HEADING.test(line)) {
+      inAcceptanceCriteria = true;
+      continue;
+    }
     if (inAcceptanceCriteria && ANY_HEADING.test(line) && !AC_HEADING.test(line)) {
       inAcceptanceCriteria = false;
       continue;
@@ -319,12 +373,31 @@ export function checkGWTFormat(content: string): GWTResult {
 // ─── checkGuessingLanguage ────────────────────────────────────────────────────
 
 export const GUESSING_WORDS: string[] = [
-  'probably', 'maybe', 'perhaps', 'presumably', 'I think',
-  'I believe', 'I assume', 'might work', 'should work',
-  'not sure', 'unclear', 'TBD', 'TODO', 'FIXME',
-  'we could try', 'possibly', 'it seems', 'apparently',
-  'I guess', 'more or less', 'sort of', 'kind of',
-  'roughly', 'ballpark', 'approximately'
+  'probably',
+  'maybe',
+  'perhaps',
+  'presumably',
+  'I think',
+  'I believe',
+  'I assume',
+  'might work',
+  'should work',
+  'not sure',
+  'unclear',
+  'TBD',
+  'TODO',
+  'FIXME',
+  'we could try',
+  'possibly',
+  'it seems',
+  'apparently',
+  'I guess',
+  'more or less',
+  'sort of',
+  'kind of',
+  'roughly',
+  'ballpark',
+  'approximately',
 ];
 
 export function checkGuessingLanguage(content: string): GuessingResult {
@@ -336,10 +409,19 @@ export function checkGuessingLanguage(content: string): GuessingResult {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? '';
 
-    if (line.trim().startsWith('```')) { inCodeBlock = !inCodeBlock; continue; }
+    if (line.trim().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
     if (inCodeBlock) continue;
-    if (i === 0 && line.trim() === '---') { inFrontmatter = true; continue; }
-    if (inFrontmatter) { if (line.trim() === '---') inFrontmatter = false; continue; }
+    if (i === 0 && line.trim() === '---') {
+      inFrontmatter = true;
+      continue;
+    }
+    if (inFrontmatter) {
+      if (line.trim() === '---') inFrontmatter = false;
+      continue;
+    }
     if (line.startsWith('#')) continue;
 
     for (const word of GUESSING_WORDS) {
@@ -390,7 +472,7 @@ export function runAllChecks(content: string, options: RunAllChecksOptions = {})
     metric_coverage: metricCoverage,
     terminology_drift: terminologyDrift,
     gwt_format: gwtFormat,
-    guessing_language: guessingLanguage
+    guessing_language: guessingLanguage,
   };
 }
 

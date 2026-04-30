@@ -2,35 +2,32 @@
  * tests/test-init.test.ts — vitest suite for src/lib/init.ts
  */
 
-import { describe, it, expect } from 'vitest';
-import {
-  SKILL_PRESETS,
-  generateInitConfig,
-} from '../src/lib/init.js';
+import { describe, expect, it } from 'vitest';
+import { generateInitConfig, SKILL_PRESETS } from '../src/lib/init.js';
 
 // ─── SKILL_PRESETS ────────────────────────────────────────────────────────────
 
 describe('SKILL_PRESETS', () => {
   it('has presets for beginner, intermediate, expert', () => {
-    expect(SKILL_PRESETS['beginner']).toBeDefined();
-    expect(SKILL_PRESETS['intermediate']).toBeDefined();
-    expect(SKILL_PRESETS['expert']).toBeDefined();
+    expect(SKILL_PRESETS.beginner).toBeDefined();
+    expect(SKILL_PRESETS.intermediate).toBeDefined();
+    expect(SKILL_PRESETS.expert).toBeDefined();
   });
 
   it('beginner preset has detailed explanation depth', () => {
-    expect(SKILL_PRESETS['beginner']?.explanation_depth).toBe('detailed');
+    expect(SKILL_PRESETS.beginner?.explanation_depth).toBe('detailed');
   });
 
   it('expert preset has minimal explanation depth', () => {
-    expect(SKILL_PRESETS['expert']?.explanation_depth).toBe('minimal');
+    expect(SKILL_PRESETS.expert?.explanation_depth).toBe('minimal');
   });
 
   it('beginner preset has auto_hints enabled', () => {
-    expect(SKILL_PRESETS['beginner']?.auto_hints).toBe(true);
+    expect(SKILL_PRESETS.beginner?.auto_hints).toBe(true);
   });
 
   it('expert preset has verbose_gates disabled', () => {
-    expect(SKILL_PRESETS['expert']?.verbose_gates).toBe(false);
+    expect(SKILL_PRESETS.expert?.verbose_gates).toBe(false);
   });
 });
 
@@ -117,10 +114,14 @@ describe('generateInitConfig', () => {
 
 describe('pollution-key safety', () => {
   it('generateInitConfig does not crash on __proto__ in skill_level string', () => {
-    expect(() => generateInitConfig({ skill_level: '__proto__', project_type: 'greenfield' })).not.toThrow();
+    expect(() =>
+      generateInitConfig({ skill_level: '__proto__', project_type: 'greenfield' })
+    ).not.toThrow();
   });
 
   it('generateInitConfig does not crash on constructor in project_type string', () => {
-    expect(() => generateInitConfig({ skill_level: 'beginner', project_type: 'constructor' })).not.toThrow();
+    expect(() =>
+      generateInitConfig({ skill_level: 'beginner', project_type: 'constructor' })
+    ).not.toThrow();
   });
 });

@@ -1,15 +1,16 @@
 /**
  * tests/test-simplicity-gate.test.ts -- vitest suite for src/lib/simplicity-gate.ts
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  EXCLUDED_DIRS,
-  countTopLevelDirs,
-  extractPlannedDirs,
   check,
+  countTopLevelDirs,
+  EXCLUDED_DIRS,
+  extractPlannedDirs,
 } from '../src/lib/simplicity-gate.js';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -150,7 +151,9 @@ describe('check', () => {
 
 describe('pollution-key safety', () => {
   it('countTopLevelDirs does not crash on __proto__ bytes in path', () => {
-    expect(() => countTopLevelDirs(Buffer.from('{"__proto__":{"evil":1}}').toString())).not.toThrow();
+    expect(() =>
+      countTopLevelDirs(Buffer.from('{"__proto__":{"evil":1}}').toString())
+    ).not.toThrow();
   });
 
   it('extractPlannedDirs does not crash on constructor key in content', () => {

@@ -1,18 +1,19 @@
 /**
  * tests/test-template-watcher.test.ts -- vitest suite for src/lib/template-watcher.ts
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  fileHash,
   buildSnapshot,
+  checkForChanges,
+  compareSnapshots,
+  fileHash,
   loadSnapshot,
   saveSnapshot,
-  compareSnapshots,
   templateToSpec,
-  checkForChanges,
 } from '../src/lib/template-watcher.js';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -182,6 +183,6 @@ describe('checkForChanges', () => {
     checkForChanges(templatesDir, snapshotPath);
     writeTemplate('prd.md', '# PRD updated');
     const result = checkForChanges(templatesDir, snapshotPath);
-    expect(result.warnings.some(w => w.includes('prd.md'))).toBe(true);
+    expect(result.warnings.some((w) => w.includes('prd.md'))).toBe(true);
   });
 });

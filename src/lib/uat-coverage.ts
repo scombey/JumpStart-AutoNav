@@ -10,8 +10,8 @@
  * ADR-006: no process.exit.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 export interface StoryAC {
   story_id: string;
@@ -57,7 +57,7 @@ function walkTestFiles(dir: string): string[] {
   const results: string[] = [];
 
   function walk(currentDir: string): void {
-    let entries;
+    let entries: fs.Dirent<string>[];
     try {
       entries = fs.readdirSync(currentDir, { withFileTypes: true });
     } catch {
@@ -70,7 +70,7 @@ function walkTestFiles(dir: string): string[] {
           walk(fullPath);
         }
       } else {
-        const isTestFile = TEST_PATTERNS.some(p => entry.name.includes(p));
+        const isTestFile = TEST_PATTERNS.some((p) => entry.name.includes(p));
         if (isTestFile) {
           results.push(fullPath);
         }
@@ -96,10 +96,7 @@ export function extractAcceptanceCriteria(prdContent: string): StoryAC[] {
 
   for (const storyId of storyIds) {
     const escapedId = storyId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const sectionRegex = new RegExp(
-      `${escapedId}[\\s\\S]*?(?=E\\d+-S\\d+|## |$)`,
-      'g'
-    );
+    const sectionRegex = new RegExp(`${escapedId}[\\s\\S]*?(?=E\\d+-S\\d+|## |$)`, 'g');
     const section = sectionRegex.exec(prdContent);
 
     if (!section) {
@@ -112,8 +109,9 @@ export function extractAcceptanceCriteria(prdContent: string): StoryAC[] {
     // Extract Gherkin blocks
     const gherkinLines: string[] = [];
     const gherkinPattern = /^\s*(Given|When|Then|And|But)\s+(.+)/gm;
-    let gherkinMatch: RegExpExecArray | null;
-    while ((gherkinMatch = gherkinPattern.exec(sectionText)) !== null) {
+    for (;;) {
+      const gherkinMatch = gherkinPattern.exec(sectionText);
+      if (gherkinMatch === null) break;
       gherkinLines.push(`${gherkinMatch[1] ?? ''} ${(gherkinMatch[2] ?? '').trim()}`);
     }
 
@@ -125,16 +123,18 @@ export function extractAcceptanceCriteria(prdContent: string): StoryAC[] {
 
     if (acSection) {
       const bulletPattern = /^\s*[-*]\s+(.+)/gm;
-      let bulletMatch: RegExpExecArray | null;
-      while ((bulletMatch = bulletPattern.exec(acSection[1] ?? '')) !== null) {
+      for (;;) {
+        const bulletMatch = bulletPattern.exec(acSection[1] ?? '');
+        if (bulletMatch === null) break;
         criteria.push((bulletMatch[1] ?? '').trim());
       }
     }
 
     if (criteria.length === 0) {
       const bulletPattern = /^\s*[-*]\s+(.+)/gm;
-      let bulletMatch: RegExpExecArray | null;
-      while ((bulletMatch = bulletPattern.exec(sectionText)) !== null) {
+      for (;;) {
+        const bulletMatch = bulletPattern.exec(sectionText);
+        if (bulletMatch === null) break;
         const text = (bulletMatch[1] ?? '').trim();
         if (text.length > 10 && !text.startsWith('#') && !text.startsWith('|')) {
           criteria.push(text);
@@ -153,7 +153,10 @@ export function extractAcceptanceCriteria(prdContent: string): StoryAC[] {
 /**
  * Scan test files for references to story IDs.
  */
-export function scanTestCoverage(testDir: string, storyIds: string[]): Map<string, StoryCoverageEntry> {
+export function scanTestCoverage(
+  testDir: string,
+  storyIds: string[]
+): Map<string, StoryCoverageEntry> {
   const coverage = new Map<string, StoryCoverageEntry>();
   for (const id of storyIds) {
     coverage.set(id, { files: [], keywords: [] });
@@ -201,14 +204,69 @@ export function scanTestCoverage(testDir: string, storyIds: string[]): Map<strin
 // ─── extractKeywords ─────────────────────────────────────────────────────────
 
 const STOPWORDS = new Set([
-  'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
-  'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'shall',
-  'should', 'may', 'might', 'must', 'can', 'could', 'and', 'but', 'or',
-  'nor', 'not', 'so', 'yet', 'both', 'either', 'neither', 'each',
-  'every', 'all', 'any', 'few', 'more', 'most', 'other', 'some',
-  'such', 'than', 'too', 'very', 'just', 'that', 'this', 'these',
-  'those', 'with', 'from', 'into', 'for', 'about', 'given', 'when',
-  'then', 'user', 'system'
+  'the',
+  'a',
+  'an',
+  'is',
+  'are',
+  'was',
+  'were',
+  'be',
+  'been',
+  'being',
+  'have',
+  'has',
+  'had',
+  'do',
+  'does',
+  'did',
+  'will',
+  'would',
+  'shall',
+  'should',
+  'may',
+  'might',
+  'must',
+  'can',
+  'could',
+  'and',
+  'but',
+  'or',
+  'nor',
+  'not',
+  'so',
+  'yet',
+  'both',
+  'either',
+  'neither',
+  'each',
+  'every',
+  'all',
+  'any',
+  'few',
+  'more',
+  'most',
+  'other',
+  'some',
+  'such',
+  'than',
+  'too',
+  'very',
+  'just',
+  'that',
+  'this',
+  'these',
+  'those',
+  'with',
+  'from',
+  'into',
+  'for',
+  'about',
+  'given',
+  'when',
+  'then',
+  'user',
+  'system',
 ]);
 
 export function extractKeywords(text: string): string[] {
@@ -216,7 +274,7 @@ export function extractKeywords(text: string): string[] {
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
     .split(/\s+/)
-    .filter(w => w.length > 3 && !STOPWORDS.has(w));
+    .filter((w) => w.length > 3 && !STOPWORDS.has(w));
 }
 
 // ─── matchCriteriaToTests ────────────────────────────────────────────────────
@@ -254,10 +312,8 @@ export function matchCriteriaToTests(storyCriteria: StoryAC[], testDir: string):
       testContents.forEach((content, file) => {
         const hasStoryRef = content.includes(story.story_id.toLowerCase());
 
-        const keywordHits = keywords.filter(k => content.includes(k.toLowerCase()));
-        const keywordCoverage = keywords.length > 0
-          ? keywordHits.length / keywords.length
-          : 0;
+        const keywordHits = keywords.filter((k) => content.includes(k.toLowerCase()));
+        const keywordCoverage = keywords.length > 0 ? keywordHits.length / keywords.length : 0;
 
         if (hasStoryRef || keywordCoverage >= 0.5) {
           matchingFiles.push(path.relative(testDir, file));
@@ -268,7 +324,7 @@ export function matchCriteriaToTests(storyCriteria: StoryAC[], testDir: string):
         story_id: story.story_id,
         criterion,
         covered: matchingFiles.length > 0,
-        test_files: Array.from(new Set(matchingFiles))
+        test_files: Array.from(new Set(matchingFiles)),
       });
     }
   }
@@ -285,25 +341,23 @@ export function computeUATCoverage(prdPath: string, testDir: string): UATCoverag
 
   const prdContent = fs.readFileSync(prdPath, 'utf8');
   const storyCriteria = extractAcceptanceCriteria(prdContent);
-  const storyIds = storyCriteria.map(s => s.story_id);
+  const storyIds = storyCriteria.map((s) => s.story_id);
 
   const storyCoverage = scanTestCoverage(testDir, storyIds);
   const criteriaResults = matchCriteriaToTests(storyCriteria, testDir);
 
   const totalCriteria = criteriaResults.length;
-  const coveredCriteria = criteriaResults.filter(r => r.covered).length;
-  const criteriaCoveragePct = totalCriteria > 0
-    ? Math.round((coveredCriteria / totalCriteria) * 100)
-    : 100;
+  const coveredCriteria = criteriaResults.filter((r) => r.covered).length;
+  const criteriaCoveragePct =
+    totalCriteria > 0 ? Math.round((coveredCriteria / totalCriteria) * 100) : 100;
 
   const totalStories = storyIds.length;
-  const coveredStories = storyIds.filter(id => {
+  const coveredStories = storyIds.filter((id) => {
     const entry = storyCoverage.get(id);
     return entry && entry.files.length > 0;
   });
-  const storyCoveragePct = totalStories > 0
-    ? Math.round((coveredStories.length / totalStories) * 100)
-    : 100;
+  const storyCoveragePct =
+    totalStories > 0 ? Math.round((coveredStories.length / totalStories) * 100) : 100;
 
   return {
     total_stories: totalStories,
@@ -312,13 +366,13 @@ export function computeUATCoverage(prdPath: string, testDir: string): UATCoverag
     total_criteria: totalCriteria,
     covered_criteria: coveredCriteria,
     criteria_coverage_pct: criteriaCoveragePct,
-    story_details: storyCriteria.map(s => ({
+    story_details: storyCriteria.map((s) => ({
       story_id: s.story_id,
       criteria_count: s.criteria.length + s.gherkin.length,
-      test_files: (storyCoverage.get(s.story_id) ?? { files: [] }).files
+      test_files: (storyCoverage.get(s.story_id) ?? { files: [] }).files,
     })),
     criteria_details: criteriaResults,
-    pass: criteriaCoveragePct >= 80
+    pass: criteriaCoveragePct >= 80,
   };
 }
 
@@ -338,13 +392,11 @@ export function generateUATReport(prdPath: string, testDir: string): string {
 
   for (const story of result.story_details) {
     const status = story.test_files.length > 0 ? 'PASS' : 'FAIL';
-    const files = story.test_files.length > 0
-      ? story.test_files.join(', ')
-      : '_none_';
+    const files = story.test_files.length > 0 ? story.test_files.join(', ') : '_none_';
     report += `| ${story.story_id} | ${story.criteria_count} | ${files} | ${status} |\n`;
   }
 
-  const uncovered = result.criteria_details.filter(c => !c.covered);
+  const uncovered = result.criteria_details.filter((c) => !c.covered);
   if (uncovered.length > 0) {
     report += `\n## Uncovered Acceptance Criteria\n\n`;
     for (const item of uncovered) {
@@ -352,7 +404,7 @@ export function generateUATReport(prdPath: string, testDir: string): string {
     }
   }
 
-  const covered = result.criteria_details.filter(c => c.covered);
+  const covered = result.criteria_details.filter((c) => c.covered);
   if (covered.length > 0) {
     report += `\n## Covered Acceptance Criteria\n\n`;
     for (const item of covered) {

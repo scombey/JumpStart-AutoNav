@@ -1,14 +1,15 @@
 /**
  * tests/test-coverage.test.ts — vitest suite for src/lib/coverage.ts
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
+  computeCoverage,
   extractStoryIds,
   extractTaskMappings,
-  computeCoverage,
   generateCoverageReport,
 } from '../src/lib/coverage.js';
 
@@ -41,7 +42,7 @@ describe('extractStoryIds', () => {
 
   it('deduplicates repeated IDs', () => {
     const ids = extractStoryIds('E01-S01 appears twice: E01-S01');
-    expect(ids.filter(x => x === 'E01-S01').length).toBe(1);
+    expect(ids.filter((x) => x === 'E01-S01').length).toBe(1);
   });
 
   it('returns empty array for no stories', () => {
@@ -112,7 +113,9 @@ describe('computeCoverage', () => {
 
   it('throws when plan not found', () => {
     const prd = write('prd.md', '');
-    expect(() => computeCoverage(prd, '/nonexistent/plan.md')).toThrow('Implementation plan not found');
+    expect(() => computeCoverage(prd, '/nonexistent/plan.md')).toThrow(
+      'Implementation plan not found'
+    );
   });
 
   it('includes total_tasks in result', () => {

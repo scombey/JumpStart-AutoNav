@@ -69,7 +69,7 @@ export const PHASE_MAP: Record<string, PhaseTransition> = {
     next_phase: 0,
     next_agent: 'challenger',
     next_artifacts: ['specs/challenger-brief.md', 'specs/insights/challenger-brief-insights.md'],
-    next_context: ['.jumpstart/config.yaml', '.jumpstart/roadmap.md', 'specs/codebase-context.md']
+    next_context: ['.jumpstart/config.yaml', '.jumpstart/roadmap.md', 'specs/codebase-context.md'],
   },
   '0': {
     name: 'Challenger',
@@ -77,7 +77,7 @@ export const PHASE_MAP: Record<string, PhaseTransition> = {
     next_phase: 1,
     next_agent: 'analyst',
     next_artifacts: ['specs/product-brief.md', 'specs/insights/product-brief-insights.md'],
-    next_context: ['.jumpstart/config.yaml', '.jumpstart/roadmap.md', 'specs/challenger-brief.md']
+    next_context: ['.jumpstart/config.yaml', '.jumpstart/roadmap.md', 'specs/challenger-brief.md'],
   },
   '1': {
     name: 'Analyst',
@@ -85,15 +85,30 @@ export const PHASE_MAP: Record<string, PhaseTransition> = {
     next_phase: 2,
     next_agent: 'pm',
     next_artifacts: ['specs/prd.md', 'specs/insights/prd-insights.md'],
-    next_context: ['.jumpstart/config.yaml', '.jumpstart/roadmap.md', 'specs/challenger-brief.md', 'specs/product-brief.md']
+    next_context: [
+      '.jumpstart/config.yaml',
+      '.jumpstart/roadmap.md',
+      'specs/challenger-brief.md',
+      'specs/product-brief.md',
+    ],
   },
   '2': {
     name: 'PM',
     artifact: 'specs/prd.md',
     next_phase: 3,
     next_agent: 'architect',
-    next_artifacts: ['specs/architecture.md', 'specs/implementation-plan.md', 'specs/insights/architecture-insights.md'],
-    next_context: ['.jumpstart/config.yaml', '.jumpstart/roadmap.md', 'specs/challenger-brief.md', 'specs/product-brief.md', 'specs/prd.md']
+    next_artifacts: [
+      'specs/architecture.md',
+      'specs/implementation-plan.md',
+      'specs/insights/architecture-insights.md',
+    ],
+    next_context: [
+      '.jumpstart/config.yaml',
+      '.jumpstart/roadmap.md',
+      'specs/challenger-brief.md',
+      'specs/product-brief.md',
+      'specs/prd.md',
+    ],
   },
   '3': {
     name: 'Architect',
@@ -101,7 +116,13 @@ export const PHASE_MAP: Record<string, PhaseTransition> = {
     next_phase: 4,
     next_agent: 'developer',
     next_artifacts: ['specs/insights/implementation-insights.md'],
-    next_context: ['.jumpstart/config.yaml', '.jumpstart/roadmap.md', 'specs/prd.md', 'specs/architecture.md', 'specs/implementation-plan.md']
+    next_context: [
+      '.jumpstart/config.yaml',
+      '.jumpstart/roadmap.md',
+      'specs/prd.md',
+      'specs/architecture.md',
+      'specs/implementation-plan.md',
+    ],
   },
   '4': {
     name: 'Developer',
@@ -109,8 +130,8 @@ export const PHASE_MAP: Record<string, PhaseTransition> = {
     next_phase: null,
     next_agent: null,
     next_artifacts: [],
-    next_context: []
-  }
+    next_context: [],
+  },
 };
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -125,7 +146,8 @@ export function isArtifactApproved(content: string): boolean {
 
   // Check that "Approved by" is not "Pending"
   const approvedByMatch = content.match(/\*\*Approved by:\*\*\s*(.+)/i);
-  if (!approvedByMatch || (approvedByMatch[1] ?? '').trim().toLowerCase() === 'pending') return false;
+  if (!approvedByMatch || (approvedByMatch[1] ?? '').trim().toLowerCase() === 'pending')
+    return false;
 
   // Check all checkboxes are checked
   const gateSection = content.split(/## Phase Gate Approval/i)[1] ?? '';
@@ -150,7 +172,7 @@ export function getHandoff(currentPhase: number): HandoffResult | HandoffErrorRe
       next_phase: null,
       next_agent: null,
       message: 'Phase 4 is the final phase. No further handoff needed.',
-      ready: false
+      ready: false,
     };
   }
 
@@ -161,7 +183,7 @@ export function getHandoff(currentPhase: number): HandoffResult | HandoffErrorRe
     next_agent: transition.next_agent,
     artifacts_to_create: transition.next_artifacts,
     context_files: transition.next_context,
-    ready: true
+    ready: true,
   };
 }
 
@@ -181,8 +203,8 @@ export function executeHandoff(currentPhase: number): HandoffResult | HandoffErr
         source_phase: currentPhase,
         target_phase: r.next_phase,
         next_agent: r.next_agent,
-        context_files: r.context_files
-      }
+        context_files: r.context_files,
+      },
     });
   }
 

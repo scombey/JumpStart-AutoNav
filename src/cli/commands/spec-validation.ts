@@ -25,13 +25,16 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { defineCommand } from 'citty';
-import { writeResult } from '../../lib/io.js';
 import { generateAuditReport } from '../../lib/freshness-gate.js';
 import { generateReport as generateInvariantsReport } from '../../lib/invariants-check.js';
-import { shouldShard, extractEpics, generateShard, generateIndex } from '../../lib/sharder.js';
+import { writeResult } from '../../lib/io.js';
+import { extractEpics, generateIndex, generateShard, shouldShard } from '../../lib/sharder.js';
 import { check as simplicityCheck } from '../../lib/simplicity-gate.js';
+import {
+  generateReport as specTesterGenerateReport,
+  runAllChecks as specTesterRunAllChecks,
+} from '../../lib/spec-tester.js';
 import { checkForChanges as templateCheckForChanges } from '../../lib/template-watcher.js';
-import { runAllChecks as specTesterRunAllChecks, generateReport as specTesterGenerateReport } from '../../lib/spec-tester.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 

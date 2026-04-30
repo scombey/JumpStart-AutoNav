@@ -2,14 +2,11 @@
  * tests/test-self-evolve.test.ts — vitest suite for src/lib/self-evolve.ts
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import {
-  analyzeAndPropose,
-  generateProposalArtifact,
-} from '../src/lib/self-evolve.js';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { analyzeAndPropose, generateProposalArtifact } from '../src/lib/self-evolve.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -89,27 +86,27 @@ describe('analyzeAndPropose', () => {
     setupProject('workflow:\n');
     for (let i = 0; i < 4; i++) writeSpec(`spec-${i}.md`);
     const result = analyzeAndPropose(tmpDir);
-    expect(result.proposals.some(p => p.setting === 'usage_tracking')).toBe(true);
+    expect(result.proposals.some((p) => p.setting === 'usage_tracking')).toBe(true);
   });
 
   it('proposes skill_level when config has skill_level: null', () => {
     setupProject('user:\n  skill_level: null\n');
     const result = analyzeAndPropose(tmpDir);
-    expect(result.proposals.some(p => p.setting === 'user.skill_level')).toBe(true);
+    expect(result.proposals.some((p) => p.setting === 'user.skill_level')).toBe(true);
   });
 
   it('proposes diagram verification when > 5 ADRs and auto_verify_at_gate is false', () => {
     setupProject('diagram_verification:\n  auto_verify_at_gate: false\n');
     for (let i = 0; i < 6; i++) writeADR(`adr-00${i}.md`);
     const result = analyzeAndPropose(tmpDir);
-    expect(result.proposals.some(p => p.setting.includes('auto_verify_at_gate'))).toBe(true);
+    expect(result.proposals.some((p) => p.setting.includes('auto_verify_at_gate'))).toBe(true);
   });
 
   it('proposes peer_review_required when > 4 specs and peer_review is false', () => {
     setupProject('testing:\n  peer_review_required: false\n');
     for (let i = 0; i < 5; i++) writeSpec(`spec-${i}.md`);
     const result = analyzeAndPropose(tmpDir);
-    expect(result.proposals.some(p => p.setting.includes('peer_review_required'))).toBe(true);
+    expect(result.proposals.some((p) => p.setting.includes('peer_review_required'))).toBe(true);
   });
 });
 
@@ -117,15 +114,39 @@ describe('analyzeAndPropose', () => {
 
 describe('generateProposalArtifact', () => {
   it('returns "no changes" message when proposals is empty', () => {
-    const result = { proposals: [], analysis: { specs_found: 0, adrs_found: 0, has_usage_log: false, has_correction_log: false, quality_score: null, modules_loaded: 0 } };
+    const result = {
+      proposals: [],
+      analysis: {
+        specs_found: 0,
+        adrs_found: 0,
+        has_usage_log: false,
+        has_correction_log: false,
+        quality_score: null,
+        modules_loaded: 0,
+      },
+    };
     const md = generateProposalArtifact(result);
     expect(md).toContain('No changes proposed');
   });
 
   it('generates markdown with proposal table when proposals exist', () => {
     const result = {
-      proposals: [{ setting: 'usage_tracking', current: 'disabled', proposed: 'enabled', rationale: 'Enable to track usage' }],
-      analysis: { specs_found: 5, adrs_found: 0, has_usage_log: false, has_correction_log: false, quality_score: null, modules_loaded: 0 }
+      proposals: [
+        {
+          setting: 'usage_tracking',
+          current: 'disabled',
+          proposed: 'enabled',
+          rationale: 'Enable to track usage',
+        },
+      ],
+      analysis: {
+        specs_found: 5,
+        adrs_found: 0,
+        has_usage_log: false,
+        has_correction_log: false,
+        quality_score: null,
+        modules_loaded: 0,
+      },
     };
     const md = generateProposalArtifact(result);
     expect(md).toContain('## Proposed Changes');
@@ -135,7 +156,14 @@ describe('generateProposalArtifact', () => {
   it('includes analysis table in output', () => {
     const result = {
       proposals: [{ setting: 'x', current: 1, proposed: 2, rationale: 'reason' }],
-      analysis: { specs_found: 3, adrs_found: 0, has_usage_log: false, has_correction_log: false, quality_score: null, modules_loaded: 0 }
+      analysis: {
+        specs_found: 3,
+        adrs_found: 0,
+        has_usage_log: false,
+        has_correction_log: false,
+        quality_score: null,
+        modules_loaded: 0,
+      },
     };
     const md = generateProposalArtifact(result);
     expect(md).toContain('## Project Analysis');
@@ -144,7 +172,14 @@ describe('generateProposalArtifact', () => {
   it('includes approval section', () => {
     const result = {
       proposals: [{ setting: 'x', current: 1, proposed: 2, rationale: 'reason' }],
-      analysis: { specs_found: 0, adrs_found: 0, has_usage_log: false, has_correction_log: false, quality_score: null, modules_loaded: 0 }
+      analysis: {
+        specs_found: 0,
+        adrs_found: 0,
+        has_usage_log: false,
+        has_correction_log: false,
+        quality_score: null,
+        modules_loaded: 0,
+      },
     };
     const md = generateProposalArtifact(result);
     expect(md).toContain('Pending');

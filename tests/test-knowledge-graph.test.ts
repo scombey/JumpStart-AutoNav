@@ -1,21 +1,21 @@
 /**
  * tests/test-knowledge-graph.test.ts — vitest suite for src/lib/knowledge-graph.ts
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  NODE_TYPES,
-  EDGE_TYPES,
-  defaultState,
-  loadState,
-  saveState,
-  addNode,
   addEdge,
-  queryGraph,
+  addNode,
+  defaultState,
+  EDGE_TYPES,
   generateReport,
-  type KGState,
+  loadState,
+  NODE_TYPES,
+  queryGraph,
+  saveState,
 } from '../src/lib/knowledge-graph.js';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -68,7 +68,14 @@ describe('loadState / saveState', () => {
 
   it('round-trips state through save/load', () => {
     const orig = defaultState();
-    orig.nodes.push({ id: 'KG-1', name: 'test', type: 'pattern', tags: [], metadata: {}, created_at: 'now' });
+    orig.nodes.push({
+      id: 'KG-1',
+      name: 'test',
+      type: 'pattern',
+      tags: [],
+      metadata: {},
+      created_at: 'now',
+    });
     saveState(orig, stateFile);
     const loaded = loadState(stateFile);
     expect(loaded.nodes.length).toBe(1);
@@ -85,14 +92,22 @@ describe('loadState / saveState', () => {
 
   it('returns defaultState when file contains __proto__ pollution key', () => {
     // Raw bytes that JSON.parse would see as __proto__ key
-    fs.writeFileSync(stateFile, '{"__proto__":{"evil":1},"version":"1.0.0","nodes":[],"edges":[],"last_updated":null}', 'utf8');
+    fs.writeFileSync(
+      stateFile,
+      '{"__proto__":{"evil":1},"version":"1.0.0","nodes":[],"edges":[],"last_updated":null}',
+      'utf8'
+    );
     const s = loadState(stateFile);
     // Should fall back to defaultState due to pollution detection
     expect(s.nodes).toEqual([]);
   });
 
   it('returns defaultState when file contains constructor pollution key', () => {
-    fs.writeFileSync(stateFile, '{"constructor":{"prototype":{}},"version":"1.0.0","nodes":[],"edges":[],"last_updated":null}', 'utf8');
+    fs.writeFileSync(
+      stateFile,
+      '{"constructor":{"prototype":{}},"version":"1.0.0","nodes":[],"edges":[],"last_updated":null}',
+      'utf8'
+    );
     const s = loadState(stateFile);
     expect(s.nodes).toEqual([]);
   });
@@ -192,7 +207,7 @@ describe('generateReport', () => {
     addNode('P2', 'pattern', { stateFile });
     addNode('S1', 'skill', { stateFile });
     const result = generateReport({ stateFile });
-    expect(result.by_type['pattern']).toBe(2);
-    expect(result.by_type['skill']).toBe(1);
+    expect(result.by_type.pattern).toBe(2);
+    expect(result.by_type.skill).toBe(1);
   });
 });

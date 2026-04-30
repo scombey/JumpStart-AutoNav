@@ -1,17 +1,17 @@
 /**
  * tests/test-uat-coverage.test.ts -- vitest suite for src/lib/uat-coverage.ts
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  extractAcceptanceCriteria,
-  scanTestCoverage,
-  matchCriteriaToTests,
-  extractKeywords,
   computeUATCoverage,
+  extractAcceptanceCriteria,
+  extractKeywords,
   generateUATReport,
+  scanTestCoverage,
   walkTestFiles,
 } from '../src/lib/uat-coverage.js';
 
@@ -66,7 +66,7 @@ describe('walkTestFiles', () => {
     write('node_modules/pkg/test.test.js', 'test code');
     write('tests/login.test.ts', 'test code');
     const files = walkTestFiles(tmpDir);
-    expect(files.every(f => !f.includes('node_modules'))).toBe(true);
+    expect(files.every((f) => !f.includes('node_modules'))).toBe(true);
   });
 });
 
@@ -101,14 +101,14 @@ describe('extractAcceptanceCriteria', () => {
 
   it('extracts story IDs from PRD', () => {
     const result = extractAcceptanceCriteria(SAMPLE_PRD);
-    const ids = result.map(s => s.story_id);
+    const ids = result.map((s) => s.story_id);
     expect(ids).toContain('E01-S01');
     expect(ids).toContain('E01-S02');
   });
 
   it('extracts acceptance criteria from AC section', () => {
     const result = extractAcceptanceCriteria(SAMPLE_PRD);
-    const s01 = result.find(s => s.story_id === 'E01-S01');
+    const s01 = result.find((s) => s.story_id === 'E01-S01');
     if (!s01) throw new Error('expected E01-S01');
     expect(s01.criteria.length).toBeGreaterThan(0);
   });
@@ -121,7 +121,7 @@ When they submit credentials
 Then they are redirected
 `;
     const result = extractAcceptanceCriteria(prd);
-    const s01 = result.find(s => s.story_id === 'E02-S01');
+    const s01 = result.find((s) => s.story_id === 'E02-S01');
     if (!s01) throw new Error('expected E02-S01');
     expect(s01.gherkin.length).toBeGreaterThan(0);
   });

@@ -1,23 +1,24 @@
 /**
  * tests/test-spec-tester.test.ts -- vitest suite for src/lib/spec-tester.ts
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  VAGUE_ADJECTIVES,
+  checkAmbiguity,
+  checkGuessingLanguage,
+  checkGWTFormat,
+  checkMetricCoverage,
+  checkPassiveVoice,
+  checkTerminologyDrift,
+  GUESSING_WORDS,
+  generateReport,
   METRIC_PATTERNS,
   PASSIVE_PATTERNS,
-  GUESSING_WORDS,
-  checkAmbiguity,
-  checkPassiveVoice,
-  checkMetricCoverage,
-  checkTerminologyDrift,
-  checkGWTFormat,
-  checkGuessingLanguage,
   runAllChecks,
-  generateReport,
+  VAGUE_ADJECTIVES,
 } from '../src/lib/spec-tester.js';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -74,7 +75,7 @@ describe('checkAmbiguity', () => {
   it('detects vague adjective without metric', () => {
     const result = checkAmbiguity('The system should be fast and scalable.');
     expect(result.count).toBeGreaterThan(0);
-    const words = result.issues.map(i => i.word);
+    const words = result.issues.map((i) => i.word);
     expect(words).toContain('fast');
     expect(words).toContain('scalable');
   });
@@ -82,7 +83,7 @@ describe('checkAmbiguity', () => {
   it('ignores vague adjective when metric follows in same line', () => {
     const result = checkAmbiguity('The system should be fast (under 200ms response time).');
     // "fast" with "200ms" on same line should not be flagged
-    const fastIssues = result.issues.filter(i => i.word === 'fast');
+    const fastIssues = result.issues.filter((i) => i.word === 'fast');
     expect(fastIssues.length).toBe(0);
   });
 

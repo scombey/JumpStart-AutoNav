@@ -2,12 +2,12 @@
  * tests/test-handoff.test.ts — vitest suite for src/lib/handoff.ts
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  PHASE_MAP,
-  isArtifactApproved,
-  getHandoff,
   executeHandoff,
+  getHandoff,
+  isArtifactApproved,
+  PHASE_MAP,
   setHandoffTimelineHook,
 } from '../src/lib/handoff.js';
 
@@ -68,7 +68,7 @@ describe('getHandoff', () => {
 
   it('returns phase -1 handoff (Scout → Challenger)', () => {
     const result = getHandoff(-1);
-    if ('error' in result) throw new Error('unexpected error: ' + result.error);
+    if ('error' in result) throw new Error(`unexpected error: ${result.error}`);
     expect(result.ready).toBe(true);
     expect(result.next_phase).toBe(0);
     expect(result.next_agent).toBe('challenger');
@@ -78,14 +78,14 @@ describe('getHandoff', () => {
 
   it('returns phase 0 handoff (Challenger → Analyst)', () => {
     const result = getHandoff(0);
-    if ('error' in result) throw new Error('unexpected error: ' + result.error);
+    if ('error' in result) throw new Error(`unexpected error: ${result.error}`);
     expect(result.next_phase).toBe(1);
     expect(result.next_agent).toBe('analyst');
   });
 
   it('returns phase 1 handoff (Analyst → PM)', () => {
     const result = getHandoff(1);
-    if ('error' in result) throw new Error('unexpected error: ' + result.error);
+    if ('error' in result) throw new Error(`unexpected error: ${result.error}`);
     expect(result.next_phase).toBe(2);
     expect(result.next_agent).toBe('pm');
     expect(result.context_files).toContain('specs/product-brief.md');
@@ -93,7 +93,7 @@ describe('getHandoff', () => {
 
   it('returns phase 2 handoff (PM → Architect)', () => {
     const result = getHandoff(2);
-    if ('error' in result) throw new Error('unexpected error: ' + result.error);
+    if ('error' in result) throw new Error(`unexpected error: ${result.error}`);
     expect(result.next_phase).toBe(3);
     expect(result.next_agent).toBe('architect');
     expect(result.artifacts_to_create).toContain('specs/architecture.md');
@@ -101,14 +101,14 @@ describe('getHandoff', () => {
 
   it('returns phase 3 handoff (Architect → Developer)', () => {
     const result = getHandoff(3);
-    if ('error' in result) throw new Error('unexpected error: ' + result.error);
+    if ('error' in result) throw new Error(`unexpected error: ${result.error}`);
     expect(result.next_phase).toBe(4);
     expect(result.next_agent).toBe('developer');
   });
 
   it('returns terminal state for phase 4 (Developer)', () => {
     const result = getHandoff(4);
-    if ('error' in result) throw new Error('unexpected error: ' + result.error);
+    if ('error' in result) throw new Error(`unexpected error: ${result.error}`);
     expect(result.ready).toBe(false);
     expect(result.next_phase).toBeNull();
     expect(result.next_agent).toBeNull();
@@ -149,17 +149,25 @@ describe('executeHandoff', () => {
 
   it('records timeline event when hook is set and result is ready', () => {
     const events: unknown[] = [];
-    setHandoffTimelineHook({ recordEvent: (e) => { events.push(e); } });
+    setHandoffTimelineHook({
+      recordEvent: (e) => {
+        events.push(e);
+      },
+    });
     executeHandoff(1);
     expect(events.length).toBe(1);
     const ev = events[0] as Record<string, unknown>;
-    expect(ev['event_type']).toBe('handoff');
-    expect(ev['phase']).toBe(1);
+    expect(ev.event_type).toBe('handoff');
+    expect(ev.phase).toBe(1);
   });
 
   it('does not record timeline event when result is not ready', () => {
     const events: unknown[] = [];
-    setHandoffTimelineHook({ recordEvent: (e) => { events.push(e); } });
+    setHandoffTimelineHook({
+      recordEvent: (e) => {
+        events.push(e);
+      },
+    });
     executeHandoff(4); // terminal phase
     expect(events.length).toBe(0);
   });
@@ -171,11 +179,15 @@ describe('executeHandoff', () => {
 
   it('timeline event action string references source and target phases', () => {
     const events: unknown[] = [];
-    setHandoffTimelineHook({ recordEvent: (e) => { events.push(e); } });
+    setHandoffTimelineHook({
+      recordEvent: (e) => {
+        events.push(e);
+      },
+    });
     executeHandoff(2);
     const ev = events[0] as Record<string, unknown>;
-    expect(String(ev['action'])).toContain('Phase 2');
-    expect(String(ev['action'])).toContain('Phase 3');
+    expect(String(ev.action)).toContain('Phase 2');
+    expect(String(ev.action)).toContain('Phase 3');
   });
 });
 
@@ -183,13 +195,13 @@ describe('executeHandoff', () => {
 
 describe('PHASE_MAP', () => {
   it('has entries for phases -1 through 4', () => {
-    ['-1', '0', '1', '2', '3', '4'].forEach(key => {
+    ['-1', '0', '1', '2', '3', '4'].forEach((key) => {
       expect(PHASE_MAP[key]).toBeDefined();
     });
   });
 
   it('all non-terminal phases have non-null next_agent', () => {
-    ['-1', '0', '1', '2', '3'].forEach(key => {
+    ['-1', '0', '1', '2', '3'].forEach((key) => {
       expect(PHASE_MAP[key]?.next_agent).not.toBeNull();
     });
   });
@@ -204,7 +216,9 @@ describe('PHASE_MAP', () => {
 
 describe('pollution-key safety', () => {
   it('isArtifactApproved does not crash on __proto__ bytes in content', () => {
-    const raw = Buffer.from('{"__proto__":{"evil":1}} ## Phase Gate Approval\n**Approved by:** Sam\n').toString();
+    const raw = Buffer.from(
+      '{"__proto__":{"evil":1}} ## Phase Gate Approval\n**Approved by:** Sam\n'
+    ).toString();
     expect(() => isArtifactApproved(raw)).not.toThrow();
   });
 

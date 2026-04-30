@@ -40,18 +40,19 @@ export interface ShardDescriptor {
  * Extract epics from a PRD file.
  */
 export function extractEpics(content: string): Epic[] {
-  const epicPattern = /### Epic (E\d+):\s*(.+)[\s\S]*?(?=### Epic E\d+:|## Non-Functional|---\s*\n## |$)/g;
+  const epicPattern =
+    /### Epic (E\d+):\s*(.+)[\s\S]*?(?=### Epic E\d+:|## Non-Functional|---\s*\n## |$)/g;
   const epics: Epic[] = [];
-  let match: RegExpExecArray | null;
-
-  while ((match = epicPattern.exec(content)) !== null) {
+  for (;;) {
+    const match = epicPattern.exec(content);
+    if (match === null) break;
     const epicContent = match[0];
     const storyMatches = epicContent.match(/#### Story E\d+-S\d+/g);
     epics.push({
       id: match[1] ?? '',
       name: (match[2] ?? '').trim(),
       content: epicContent,
-      storyCount: storyMatches ? storyMatches.length : 0
+      storyCount: storyMatches ? storyMatches.length : 0,
     });
   }
 
@@ -62,11 +63,7 @@ export function extractEpics(content: string): Epic[] {
  * Determine if a PRD should be sharded based on size heuristics.
  */
 export function shouldShard(content: string, thresholds: ShardThresholds = {}): ShardDecision {
-  const {
-    maxEpics = 5,
-    maxStories = 15,
-    maxLines = 800
-  } = thresholds;
+  const { maxEpics = 5, maxStories = 15, maxLines = 800 } = thresholds;
 
   const epics = extractEpics(content);
   const totalStories = epics.reduce((sum, e) => sum + e.storyCount, 0);
@@ -82,20 +79,24 @@ export function shouldShard(content: string, thresholds: ShardThresholds = {}): 
     reason: reasons.length > 0 ? reasons.join('; ') : 'Within limits',
     epicCount: epics.length,
     storyCount: totalStories,
-    lineCount
+    lineCount,
   };
 }
 
 /**
  * Generate a PRD shard for a specific epic or group of epics.
  */
-export function generateShard(parentPrdContent: string, epicIds: string[], shardIndex: number): string {
+export function generateShard(
+  parentPrdContent: string,
+  epicIds: string[],
+  shardIndex: number
+): string {
   const epics = extractEpics(parentPrdContent);
-  const shardEpics = epics.filter(e => epicIds.includes(e.id));
+  const shardEpics = epics.filter((e) => epicIds.includes(e.id));
 
   if (shardEpics.length === 0) return '';
 
-  const epicTitles = shardEpics.map(e => `${e.id} - ${e.name}`).join(', ');
+  const epicTitles = shardEpics.map((e) => `${e.id} - ${e.name}`).join(', ');
   const header = [
     `# PRD Shard ${shardIndex}: ${epicTitles}`,
     '',
@@ -108,7 +109,7 @@ export function generateShard(parentPrdContent: string, epicIds: string[], shard
     '',
   ].join('\n');
 
-  const body = shardEpics.map(e => e.content).join('\n\n---\n\n');
+  const body = shardEpics.map((e) => e.content).join('\n\n---\n\n');
 
   return header + body;
 }
@@ -136,7 +137,15 @@ export function generateIndex(shards: ShardDescriptor[], projectName?: string | 
     lines.push(`| ${shard.index} | ${epicList} | [${shard.filePath}](${shard.filePath}) | Draft |`);
   }
 
-  lines.push('', '---', '', '## Cross-References', '', '<!-- Auto-generated cross-reference links between shards -->', '');
+  lines.push(
+    '',
+    '---',
+    '',
+    '## Cross-References',
+    '',
+    '<!-- Auto-generated cross-reference links between shards -->',
+    ''
+  );
 
   return lines.join('\n');
 }

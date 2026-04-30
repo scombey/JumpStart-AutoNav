@@ -9,8 +9,8 @@
  * ADR-006: no process.exit.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 export interface Boundary {
   type: string;
@@ -81,7 +81,11 @@ export function extractBoundaries(content: string): Boundary[] {
       }
     }
 
-    if (inBoundarySection && /^#{1,4}\s+/.test(line) && !BOUNDARY_HEADERS.some(p => p.test(line))) {
+    if (
+      inBoundarySection &&
+      /^#{1,4}\s+/.test(line) &&
+      !BOUNDARY_HEADERS.some((p) => p.test(line))
+    ) {
       inBoundarySection = false;
       continue;
     }
@@ -101,7 +105,8 @@ export function extractBoundaries(content: string): Boundary[] {
   return boundaries;
 }
 
-const TECH_REGEX = /\b((?:React|Angular|Vue|Svelte|Next|Nuxt|Express|Fastify|Django|Flask|Rails|Spring|Laravel|Prisma|Sequelize|TypeORM|MongoDB|PostgreSQL|MySQL|Redis|GraphQL|REST|gRPC|Docker|Kubernetes|AWS|Azure|GCP|Firebase|Supabase|Vercel|Netlify|Heroku)(?:\.js)?)\b/gi;
+const TECH_REGEX =
+  /\b((?:React|Angular|Vue|Svelte|Next|Nuxt|Express|Fastify|Django|Flask|Rails|Spring|Laravel|Prisma|Sequelize|TypeORM|MongoDB|PostgreSQL|MySQL|Redis|GraphQL|REST|gRPC|Docker|Kubernetes|AWS|Azure|GCP|Firebase|Supabase|Vercel|Netlify|Heroku)(?:\.js)?)\b/gi;
 
 /**
  * Extract task descriptions and scope indicators from the implementation plan.
@@ -119,8 +124,9 @@ export function extractPlanScope(content: string): PlanTask[] {
 
     const scopeTerms: string[] = [];
     TECH_REGEX.lastIndex = 0;
-    let tm: RegExpExecArray | null;
-    while ((tm = TECH_REGEX.exec(section)) !== null) {
+    for (;;) {
+      const tm = TECH_REGEX.exec(section);
+      if (tm === null) break;
       scopeTerms.push(tm[1] ?? '');
     }
 
@@ -131,12 +137,64 @@ export function extractPlanScope(content: string): PlanTask[] {
 }
 
 // Stop-words to skip when extracting key terms from exclusion phrases.
-const STOP_WORDS = new Set(['the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'but', 'not', 'use', 'using', 'with', 'from', 'any', 'this', 'that', 'it', 'its', 'be', 'is', 'are', 'was', 'been', 'our', 'we', 'will', 'do', 'as', 'no', 'into', 'all', 'within', 'without', 'should', 'must', 'only', 'also', 'when', 'implementation', 'codebase', 'project', 'solution', 'code', 'system', 'service', 'app']);
+const STOP_WORDS = new Set([
+  'the',
+  'a',
+  'an',
+  'in',
+  'on',
+  'at',
+  'to',
+  'for',
+  'of',
+  'and',
+  'or',
+  'but',
+  'not',
+  'use',
+  'using',
+  'with',
+  'from',
+  'any',
+  'this',
+  'that',
+  'it',
+  'its',
+  'be',
+  'is',
+  'are',
+  'was',
+  'been',
+  'our',
+  'we',
+  'will',
+  'do',
+  'as',
+  'no',
+  'into',
+  'all',
+  'within',
+  'without',
+  'should',
+  'must',
+  'only',
+  'also',
+  'when',
+  'implementation',
+  'codebase',
+  'project',
+  'solution',
+  'code',
+  'system',
+  'service',
+  'app',
+]);
 
 function extractKeyTerms(phrase: string): string[] {
-  return phrase.split(/\s+/)
-    .map(w => w.replace(/[^a-z0-9_\-]/g, '').toLowerCase())
-    .filter(w => w.length > 3 && !STOP_WORDS.has(w));
+  return phrase
+    .split(/\s+/)
+    .map((w) => w.replace(/[^a-z0-9_-]/g, '').toLowerCase())
+    .filter((w) => w.length > 3 && !STOP_WORDS.has(w));
 }
 
 /**
@@ -146,7 +204,7 @@ export function checkBoundaries(input: CheckBoundariesInput): BoundaryCheckResul
   const {
     brief = 'specs/product-brief.md',
     plan = 'specs/implementation-plan.md',
-    root = '.'
+    root = '.',
   } = input;
 
   const briefPath = path.resolve(root, brief);
@@ -158,13 +216,31 @@ export function checkBoundaries(input: CheckBoundariesInput): BoundaryCheckResul
   try {
     briefContent = fs.readFileSync(briefPath, 'utf8');
   } catch {
-    return { error: `Cannot read brief: ${briefPath}`, pass: false, score: 0, boundaries: [], violations: [], warnings: [], task_count: 0, boundary_count: 0 };
+    return {
+      error: `Cannot read brief: ${briefPath}`,
+      pass: false,
+      score: 0,
+      boundaries: [],
+      violations: [],
+      warnings: [],
+      task_count: 0,
+      boundary_count: 0,
+    };
   }
 
   try {
     planContent = fs.readFileSync(planPath, 'utf8');
   } catch {
-    return { error: `Cannot read plan: ${planPath}`, pass: false, score: 0, boundaries: [], violations: [], warnings: [], task_count: 0, boundary_count: 0 };
+    return {
+      error: `Cannot read plan: ${planPath}`,
+      pass: false,
+      score: 0,
+      boundaries: [],
+      violations: [],
+      warnings: [],
+      task_count: 0,
+      boundary_count: 0,
+    };
   }
 
   const boundaries = extractBoundaries(briefContent);
@@ -187,8 +263,9 @@ export function checkBoundaries(input: CheckBoundariesInput): BoundaryCheckResul
     ];
 
     for (const pattern of exclusionPatterns) {
-      let em: RegExpExecArray | null;
-      while ((em = pattern.exec(stmt)) !== null) {
+      for (;;) {
+        const em = pattern.exec(stmt);
+        if (em === null) break;
         const captured = (em[1] ?? '').trim().replace(/[.,;]$/, '');
 
         // For single-word captures (e.g. "no mongodb"), check the word directly.
@@ -199,7 +276,7 @@ export function checkBoundaries(input: CheckBoundariesInput): BoundaryCheckResul
               boundary_type: boundary.type,
               excluded_term: captured,
               found_in: 'implementation-plan.md',
-              severity: 'major'
+              severity: 'major',
             });
           }
         } else {
@@ -212,7 +289,7 @@ export function checkBoundaries(input: CheckBoundariesInput): BoundaryCheckResul
                 boundary_type: boundary.type,
                 excluded_term: term,
                 found_in: 'implementation-plan.md',
-                severity: 'major'
+                severity: 'major',
               });
               break; // one violation per boundary statement per pattern match
             }
@@ -224,8 +301,9 @@ export function checkBoundaries(input: CheckBoundariesInput): BoundaryCheckResul
 
   if (boundaries.length === 0) {
     warnings.push({
-      message: 'No boundary statements found in product brief. Consider adding a "Constraints and Boundaries" section.',
-      severity: 'minor'
+      message:
+        'No boundary statements found in product brief. Consider adding a "Constraints and Boundaries" section.',
+      severity: 'minor',
     });
   }
 
@@ -239,6 +317,6 @@ export function checkBoundaries(input: CheckBoundariesInput): BoundaryCheckResul
     task_count: tasks.length,
     boundary_count: boundaries.length,
     score,
-    pass: violations.filter(v => v.severity === 'major').length === 0
+    pass: violations.filter((v) => v.severity === 'major').length === 0,
   };
 }

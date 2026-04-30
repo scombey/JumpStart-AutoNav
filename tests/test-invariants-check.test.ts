@@ -1,16 +1,17 @@
 /**
  * tests/test-invariants-check.test.ts — vitest suite for src/lib/invariants-check.ts
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
-  loadInvariants,
   checkAgainstArchitecture,
   checkAgainstPlan,
   generateReport,
   type Invariant,
+  loadInvariants,
 } from '../src/lib/invariants-check.js';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -50,7 +51,8 @@ describe('loadInvariants', () => {
   });
 
   it('parses table rows into invariant objects', () => {
-    const content = TABLE_HEADER + tableRow('INV-01', 'Encryption', 'Security', 'Data must be encrypted at rest');
+    const content =
+      TABLE_HEADER + tableRow('INV-01', 'Encryption', 'Security', 'Data must be encrypted at rest');
     const fp = write('invariants.md', content);
     const result = loadInvariants(fp);
     expect(result.length).toBe(1);
@@ -63,7 +65,7 @@ describe('loadInvariants', () => {
 
   it('uses "Manual review" as default verification when 5th cell absent', () => {
     // Row has 5 pipes but only 4 non-empty cells (no verification cell value)
-    const content = TABLE_HEADER + '| INV-02 | Audit | Compliance | Must log all actions |  |\n';
+    const content = `${TABLE_HEADER}| INV-02 | Audit | Compliance | Must log all actions |  |\n`;
     const fp = write('invariants.md', content);
     const result = loadInvariants(fp);
     const inv = result[0];
@@ -77,7 +79,13 @@ describe('loadInvariants', () => {
 
 describe('checkAgainstArchitecture', () => {
   const invariants: Invariant[] = [
-    { id: 'INV-01', name: 'Encryption', category: 'Security', requirement: 'encrypt data at rest using AES', verification: 'Auto' },
+    {
+      id: 'INV-01',
+      name: 'Encryption',
+      category: 'Security',
+      requirement: 'encrypt data at rest using AES',
+      verification: 'Auto',
+    },
   ];
 
   it('passes invariant when keywords are found in architecture', () => {
@@ -106,8 +114,20 @@ describe('checkAgainstArchitecture', () => {
 
 describe('checkAgainstPlan', () => {
   const invariants: Invariant[] = [
-    { id: 'INV-01', name: 'Encryption at Rest', category: 'Security', requirement: 'encrypt', verification: 'Auto' },
-    { id: 'INV-02', name: 'Audit Logging', category: 'Compliance', requirement: 'log', verification: 'Auto' },
+    {
+      id: 'INV-01',
+      name: 'Encryption at Rest',
+      category: 'Security',
+      requirement: 'encrypt',
+      verification: 'Auto',
+    },
+    {
+      id: 'INV-02',
+      name: 'Audit Logging',
+      category: 'Compliance',
+      requirement: 'log',
+      verification: 'Auto',
+    },
   ];
 
   it('marks invariant as addressed when name words appear in plan', () => {
@@ -164,7 +184,7 @@ describe('generateReport', () => {
 
 describe('pollution-key safety (no JSON state)', () => {
   it('loadInvariants does not crash on raw __proto__ bytes in file', () => {
-    const content = Buffer.from('{"__proto__":{"evil":1}}\n' + TABLE_HEADER).toString();
+    const content = Buffer.from(`{"__proto__":{"evil":1}}\n${TABLE_HEADER}`).toString();
     const fp = write('inv.md', content);
     expect(() => loadInvariants(fp)).not.toThrow();
   });
@@ -172,7 +192,7 @@ describe('pollution-key safety (no JSON state)', () => {
   it('checkAgainstArchitecture does not crash on constructor key in content', () => {
     const content = Buffer.from('{"constructor":{"prototype":{}}} We encrypt data').toString();
     const invariants: Invariant[] = [
-      { id: 'INV-01', name: 'Enc', category: 'Sec', requirement: 'encrypt', verification: 'Auto' }
+      { id: 'INV-01', name: 'Enc', category: 'Sec', requirement: 'encrypt', verification: 'Auto' },
     ];
     expect(() => checkAgainstArchitecture(content, invariants)).not.toThrow();
   });

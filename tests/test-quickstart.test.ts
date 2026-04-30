@@ -2,15 +2,14 @@
  * tests/test-quickstart.test.ts — vitest suite for src/lib/quickstart.ts
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
-  DOMAIN_OPTIONS,
-  CEREMONY_OPTIONS,
-  buildQuickstartConfig,
-  getFirstCommand,
-  generateQuickstartSummary,
-  getConfigPatches,
   applyConfigPatches,
+  buildQuickstartConfig,
+  CEREMONY_OPTIONS,
+  DOMAIN_OPTIONS,
+  generateQuickstartSummary,
+  getFirstCommand,
 } from '../src/lib/quickstart.js';
 
 // ─── DOMAIN_OPTIONS / CEREMONY_OPTIONS ───────────────────────────────────────
@@ -35,7 +34,7 @@ describe('DOMAIN_OPTIONS', () => {
 
 describe('CEREMONY_OPTIONS', () => {
   it('has exactly 3 options: light, standard, rigorous', () => {
-    const values = CEREMONY_OPTIONS.map(o => o.value);
+    const values = CEREMONY_OPTIONS.map((o) => o.value);
     expect(values).toContain('light');
     expect(values).toContain('standard');
     expect(values).toContain('rigorous');
@@ -122,13 +121,13 @@ describe('generateQuickstartSummary', () => {
   it('includes project name in summary lines', () => {
     const config = buildQuickstartConfig({ projectName: 'my-project' });
     const summary = generateQuickstartSummary(config);
-    expect(summary.lines.some(l => l.includes('my-project'))).toBe(true);
+    expect(summary.lines.some((l) => l.includes('my-project'))).toBe(true);
   });
 
   it('includes ceremony in summary lines', () => {
     const config = buildQuickstartConfig({ ceremony: 'rigorous' });
     const summary = generateQuickstartSummary(config);
-    expect(summary.lines.some(l => l.includes('rigorous'))).toBe(true);
+    expect(summary.lines.some((l) => l.includes('rigorous'))).toBe(true);
   });
 });
 
@@ -168,11 +167,15 @@ describe('applyConfigPatches', () => {
 
 describe('pollution-key safety', () => {
   it('buildQuickstartConfig does not crash on __proto__ in domain', () => {
-    expect(() => buildQuickstartConfig({ domain: '__proto__', ceremony: 'standard' })).not.toThrow();
+    expect(() =>
+      buildQuickstartConfig({ domain: '__proto__', ceremony: 'standard' })
+    ).not.toThrow();
   });
 
   it('applyConfigPatches does not crash on __proto__ bytes in content', () => {
-    const raw = Buffer.from('{"__proto__":{"evil":1}}\nceremony:\n  profile: standard\n').toString();
+    const raw = Buffer.from(
+      '{"__proto__":{"evil":1}}\nceremony:\n  profile: standard\n'
+    ).toString();
     const config = buildQuickstartConfig({ ceremony: 'light' });
     expect(() => applyConfigPatches(raw, config)).not.toThrow();
   });

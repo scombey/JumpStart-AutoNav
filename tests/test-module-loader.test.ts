@@ -2,15 +2,15 @@
  * tests/test-module-loader.test.ts — vitest suite for src/lib/module-loader.ts
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   discoverModules,
-  validateManifest,
-  loadModule,
   loadAllModules,
+  loadModule,
+  validateManifest,
 } from '../src/lib/module-loader.js';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -89,33 +89,48 @@ describe('validateManifest', () => {
   });
 
   it('rejects missing name', () => {
-    const result = validateManifest({ version: '1.0.0', description: 'A long enough description' } as never);
+    const result = validateManifest({
+      version: '1.0.0',
+      description: 'A long enough description',
+    } as never);
     expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.includes('name'))).toBe(true);
+    expect(result.errors.some((e) => e.includes('name'))).toBe(true);
   });
 
   it('rejects non-kebab-case name', () => {
-    const result = validateManifest({ name: 'My_Module', version: '1.0.0', description: 'A long enough description' } as never);
+    const result = validateManifest({
+      name: 'My_Module',
+      version: '1.0.0',
+      description: 'A long enough description',
+    } as never);
     expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.includes('kebab'))).toBe(true);
+    expect(result.errors.some((e) => e.includes('kebab'))).toBe(true);
   });
 
   it('rejects invalid semver version', () => {
-    const result = validateManifest({ name: 'mod', version: 'v1', description: 'A long enough description' } as never);
+    const result = validateManifest({
+      name: 'mod',
+      version: 'v1',
+      description: 'A long enough description',
+    } as never);
     expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.includes('semver'))).toBe(true);
+    expect(result.errors.some((e) => e.includes('semver'))).toBe(true);
   });
 
   it('rejects short description', () => {
-    const result = validateManifest({ name: 'mod', version: '1.0.0', description: 'Short' } as never);
+    const result = validateManifest({
+      name: 'mod',
+      version: '1.0.0',
+      description: 'Short',
+    } as never);
     expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.includes('description'))).toBe(true);
+    expect(result.errors.some((e) => e.includes('description'))).toBe(true);
   });
 
   it('rejects non-array agents field', () => {
     const result = validateManifest({ ...VALID_MANIFEST, agents: 'not-array' } as never);
     expect(result.valid).toBe(false);
-    expect(result.errors.some(e => e.includes('"agents"'))).toBe(true);
+    expect(result.errors.some((e) => e.includes('"agents"'))).toBe(true);
   });
 });
 
@@ -152,7 +167,11 @@ describe('loadModule', () => {
   });
 
   it('resolves resource paths, filtering out non-existent files', () => {
-    setupModule('res-mod', { ...VALID_MANIFEST, name: 'res-mod', agents: ['agent.md', 'missing.md'] });
+    setupModule('res-mod', {
+      ...VALID_MANIFEST,
+      name: 'res-mod',
+      agents: ['agent.md', 'missing.md'],
+    });
     // Create only agent.md
     const modDir = path.join(tmpDir, 'res-mod');
     fs.writeFileSync(path.join(modDir, 'agent.md'), 'agent content');
@@ -201,8 +220,11 @@ describe('pollution-key safety', () => {
     const modDir = path.join(tmpDir, 'poison-mod');
     fs.mkdirSync(modDir);
     // Raw bytes with __proto__ key — must not cause object pollution
-    fs.writeFileSync(path.join(modDir, 'module.json'), '{"__proto__":{"evil":1},"name":"poison","version":"1.0.0","description":"A long enough description"}');
-    const mods = discoverModules(tmpDir);
+    fs.writeFileSync(
+      path.join(modDir, 'module.json'),
+      '{"__proto__":{"evil":1},"name":"poison","version":"1.0.0","description":"A long enough description"}'
+    );
+    const _mods = discoverModules(tmpDir);
     // Should be skipped or returned without crashing
     expect(() => discoverModules(tmpDir)).not.toThrow();
   });
@@ -210,7 +232,10 @@ describe('pollution-key safety', () => {
   it('loadModule rejects constructor key in manifest', () => {
     const modDir = path.join(tmpDir, 'constructor-mod');
     fs.mkdirSync(modDir);
-    fs.writeFileSync(path.join(modDir, 'module.json'), '{"constructor":{"evil":1},"name":"constructor-mod","version":"1.0.0","description":"A long enough description"}');
+    fs.writeFileSync(
+      path.join(modDir, 'module.json'),
+      '{"constructor":{"evil":1},"name":"constructor-mod","version":"1.0.0","description":"A long enough description"}'
+    );
     const result = loadModule(tmpDir, 'constructor-mod');
     expect(result.loaded).toBe(false);
   });

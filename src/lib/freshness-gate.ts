@@ -10,8 +10,8 @@
  * ADR-006: no process.exit.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 /**
  * Context7 citation pattern: [Context7: library@version] or <!-- c7:library -->
@@ -26,20 +26,71 @@ export const CITATION_PATTERNS: RegExp[] = [
  * Technology keywords that SHOULD trigger a Context7 lookup.
  */
 export const TECH_KEYWORDS: string[] = [
-  'react', 'next.js', 'nextjs', 'vue', 'angular', 'svelte',
-  'express', 'fastify', 'koa', 'hono', 'nest.js', 'nestjs',
-  'prisma', 'drizzle', 'typeorm', 'sequelize', 'mongoose',
-  'tailwind', 'bootstrap', 'material-ui', 'chakra',
-  'jest', 'vitest', 'playwright', 'cypress', 'mocha',
-  'webpack', 'vite', 'esbuild', 'rollup', 'turbopack',
-  'docker', 'kubernetes', 'terraform', 'pulumi',
-  'aws', 'azure', 'gcp', 'vercel', 'netlify', 'cloudflare',
-  'postgresql', 'mysql', 'mongodb', 'redis', 'sqlite',
-  'graphql', 'trpc', 'grpc', 'openapi',
-  'typescript', 'python', 'rust', 'go', 'java',
-  'supabase', 'firebase', 'clerk', 'auth0',
-  'stripe', 'twilio', 'sendgrid',
-  'langchain', 'openai', 'anthropic',
+  'react',
+  'next.js',
+  'nextjs',
+  'vue',
+  'angular',
+  'svelte',
+  'express',
+  'fastify',
+  'koa',
+  'hono',
+  'nest.js',
+  'nestjs',
+  'prisma',
+  'drizzle',
+  'typeorm',
+  'sequelize',
+  'mongoose',
+  'tailwind',
+  'bootstrap',
+  'material-ui',
+  'chakra',
+  'jest',
+  'vitest',
+  'playwright',
+  'cypress',
+  'mocha',
+  'webpack',
+  'vite',
+  'esbuild',
+  'rollup',
+  'turbopack',
+  'docker',
+  'kubernetes',
+  'terraform',
+  'pulumi',
+  'aws',
+  'azure',
+  'gcp',
+  'vercel',
+  'netlify',
+  'cloudflare',
+  'postgresql',
+  'mysql',
+  'mongodb',
+  'redis',
+  'sqlite',
+  'graphql',
+  'trpc',
+  'grpc',
+  'openapi',
+  'typescript',
+  'python',
+  'rust',
+  'go',
+  'java',
+  'supabase',
+  'firebase',
+  'clerk',
+  'auth0',
+  'stripe',
+  'twilio',
+  'sendgrid',
+  'langchain',
+  'openai',
+  'anthropic',
 ];
 
 export interface DocumentAuditResult {
@@ -65,7 +116,7 @@ export interface SpecsAuditResult {
 export function auditDocument(content: string): DocumentAuditResult {
   const contentLower = content.toLowerCase();
 
-  const techs = TECH_KEYWORDS.filter(kw => contentLower.includes(kw.toLowerCase()));
+  const techs = TECH_KEYWORDS.filter((kw) => contentLower.includes(kw.toLowerCase()));
 
   const citations: string[] = [];
   for (const pattern of CITATION_PATTERNS) {
@@ -77,14 +128,13 @@ export function auditDocument(content: string): DocumentAuditResult {
     }
   }
 
-  const citedTechsLower = citations.map(c => c.toLowerCase());
-  const uncited = techs.filter(tech => {
-    return !citedTechsLower.some(c => c.includes(tech.toLowerCase()));
+  const citedTechsLower = citations.map((c) => c.toLowerCase());
+  const uncited = techs.filter((tech) => {
+    return !citedTechsLower.some((c) => c.includes(tech.toLowerCase()));
   });
 
-  const score = techs.length === 0
-    ? 100
-    : Math.round(((techs.length - uncited.length) / techs.length) * 100);
+  const score =
+    techs.length === 0 ? 100 : Math.round(((techs.length - uncited.length) / techs.length) * 100);
 
   return { techs, citations, uncited, score };
 }
@@ -101,7 +151,7 @@ export function auditSpecs(specsDir: string): SpecsAuditResult {
     return { files, overallScore: 100, warnings: ['Specs directory not found.'] };
   }
 
-  const specFiles = walkDir(specsDir).filter(f => f.endsWith('.md'));
+  const specFiles = walkDir(specsDir).filter((f) => f.endsWith('.md'));
 
   for (const filePath of specFiles) {
     const content = fs.readFileSync(filePath, 'utf8');
@@ -113,16 +163,15 @@ export function auditSpecs(specsDir: string): SpecsAuditResult {
     if (result.uncited.length > 0) {
       warnings.push(
         `${relativePath}: Uncited technologies: ${result.uncited.join(', ')}. ` +
-        `Use Context7 MCP to fetch live docs.`
+          `Use Context7 MCP to fetch live docs.`
       );
     }
   }
 
   const totalTechs = files.reduce((sum, f) => sum + f.techs.length, 0);
   const totalUncited = files.reduce((sum, f) => sum + f.uncited.length, 0);
-  const overallScore = totalTechs === 0
-    ? 100
-    : Math.round(((totalTechs - totalUncited) / totalTechs) * 100);
+  const overallScore =
+    totalTechs === 0 ? 100 : Math.round(((totalTechs - totalUncited) / totalTechs) * 100);
 
   return { files, overallScore, warnings };
 }

@@ -12,9 +12,9 @@
  * to prevent shell injection (same pattern as smoke-tester.ts).
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { spawnSync } from 'child_process';
+import { spawnSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -83,8 +83,8 @@ export function detectLinter(root: string): LinterInfo | null {
   if (fs.existsSync(pkgPath)) {
     try {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as Record<string, unknown>;
-      const scripts = pkg['scripts'] as Record<string, unknown> | undefined;
-      if (scripts && typeof scripts['lint'] === 'string') {
+      const scripts = pkg.scripts as Record<string, unknown> | undefined;
+      if (scripts && typeof scripts.lint === 'string') {
         return { command: 'npm run lint --', name: 'npm lint script' };
       }
     } catch {
@@ -119,7 +119,7 @@ export function parseFindings(output: string): LintFinding[] {
         file: eslintMatch[1] ?? '',
         line: parseInt(eslintMatch[2] ?? '0', 10),
         severity: eslintMatch[3] ?? 'error',
-        message: (eslintMatch[4] ?? '').trim()
+        message: (eslintMatch[4] ?? '').trim(),
       });
       continue;
     }
@@ -131,7 +131,7 @@ export function parseFindings(output: string): LintFinding[] {
         file: genericMatch[1] ?? '',
         line: parseInt(genericMatch[2] ?? '0', 10),
         severity: 'error',
-        message: (genericMatch[3] ?? '').trim()
+        message: (genericMatch[3] ?? '').trim(),
       });
     }
   }
@@ -150,7 +150,10 @@ function runCommand(
   extraArgs: string[],
   cwd: string
 ): { output: string; exitCode: number } {
-  const parts = command.trim().split(/\s+/).filter(p => p.length > 0);
+  const parts = command
+    .trim()
+    .split(/\s+/)
+    .filter((p) => p.length > 0);
   const head = parts[0];
   if (!head) return { output: 'Empty command', exitCode: 1 };
   const tail = [...parts.slice(1), ...extraArgs];
@@ -176,8 +179,7 @@ function runCommand(
  */
 export function runLint(input: RunLintInput | string): LintResult {
   // Accept a plain string root path for backward compat with CLI callers.
-  const normalised: RunLintInput =
-    typeof input === 'string' ? { root: input } : input;
+  const normalised: RunLintInput = typeof input === 'string' ? { root: input } : input;
 
   const { files = [], root = '.', config = {} } = normalised;
   const resolvedRoot = path.resolve(root);
@@ -199,17 +201,15 @@ export function runLint(input: RunLintInput | string): LintResult {
       pass: true,
       fix_tasks: [],
       linter: null,
-      message: 'No linter detected. Consider adding ESLint, Pylint, or a similar tool.'
+      message: 'No linter detected. Consider adding ESLint, Pylint, or a similar tool.',
     };
   }
 
   // Append --fix flag if requested
-  const baseCommand = config.fix
-    ? `${linterInfo.command} --fix`
-    : linterInfo.command;
+  const baseCommand = config.fix ? `${linterInfo.command} --fix` : linterInfo.command;
 
   // Filter to existing files
-  const existingFiles = files.filter(f => {
+  const existingFiles = files.filter((f) => {
     const fp = path.isAbsolute(f) ? f : path.join(resolvedRoot, f);
     return fs.existsSync(fp);
   });
@@ -224,7 +224,7 @@ export function runLint(input: RunLintInput | string): LintResult {
       pass: true,
       fix_tasks: [],
       linter: linterInfo.name,
-      message: 'No existing files to lint.'
+      message: 'No existing files to lint.',
     };
   }
 
@@ -232,8 +232,8 @@ export function runLint(input: RunLintInput | string): LintResult {
   const { output, exitCode } = runCommand(baseCommand, existingFiles, resolvedRoot);
 
   const findings = parseFindings(output);
-  const errors = findings.filter(f => f.severity === 'error').length;
-  const warnings = findings.filter(f => f.severity === 'warning').length;
+  const errors = findings.filter((f) => f.severity === 'error').length;
+  const warnings = findings.filter((f) => f.severity === 'warning').length;
 
   // Generate fix tasks for errors grouped by file
   const fixTasks: FixTask[] = [];
@@ -254,7 +254,7 @@ export function runLint(input: RunLintInput | string): LintResult {
       file,
       error_count: errs.length,
       description: `Fix ${errs.length} lint error(s) in ${file}`,
-      errors: errs.map(e => ({ line: e.line, message: e.message }))
+      errors: errs.map((e) => ({ line: e.line, message: e.message })),
     });
   });
 
@@ -266,6 +266,6 @@ export function runLint(input: RunLintInput | string): LintResult {
     pass: errors === 0,
     fix_tasks: fixTasks,
     linter: linterInfo.name,
-    exit_code: exitCode
+    exit_code: exitCode,
   };
 }

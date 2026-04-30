@@ -9,8 +9,8 @@
  * ADR-006: no process.exit.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 export interface Invariant {
   id: string;
@@ -52,10 +52,13 @@ export function loadInvariants(invariantsPath: string): Invariant[] {
   const tableMatch = content.match(/\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|/gm);
   if (!tableMatch) return invariants;
 
-  const rows = tableMatch.filter(row => !row.includes('---') && !row.includes('Category'));
+  const rows = tableMatch.filter((row) => !row.includes('---') && !row.includes('Category'));
 
   for (const row of rows) {
-    const cells = row.split('|').map(c => c.trim()).filter(c => c);
+    const cells = row
+      .split('|')
+      .map((c) => c.trim())
+      .filter((c) => c);
     if (cells.length >= 4) {
       const id = cells[0] ?? '';
       const name = cells[1] ?? '';
@@ -72,7 +75,10 @@ export function loadInvariants(invariantsPath: string): Invariant[] {
 /**
  * Check architecture document against invariants.
  */
-export function checkAgainstArchitecture(archContent: string, invariants: Invariant[]): ArchCoverage {
+export function checkAgainstArchitecture(
+  archContent: string,
+  invariants: Invariant[]
+): ArchCoverage {
   const passed: Array<Invariant & { coverage: number }> = [];
   const failed: Array<Invariant & { coverage: number }> = [];
   const warnings: string[] = [];
@@ -83,9 +89,9 @@ export function checkAgainstArchitecture(archContent: string, invariants: Invari
     const keywords = inv.requirement
       .toLowerCase()
       .split(/[\s,;.]+/)
-      .filter(w => w.length > 4);
+      .filter((w) => w.length > 4);
 
-    const keywordHits = keywords.filter(kw => contentLower.includes(kw));
+    const keywordHits = keywords.filter((kw) => contentLower.includes(kw));
     const coverage = keywords.length > 0 ? keywordHits.length / keywords.length : 0;
 
     if (coverage >= 0.3) {
@@ -94,7 +100,7 @@ export function checkAgainstArchitecture(archContent: string, invariants: Invari
       failed.push({ ...inv, coverage: Math.round(coverage * 100) });
       warnings.push(
         `Invariant "${inv.name}" (${inv.id}) — ${inv.category}: ` +
-        `Architecture document may not address: "${inv.requirement}"`
+          `Architecture document may not address: "${inv.requirement}"`
       );
     }
   }
@@ -112,7 +118,7 @@ export function checkAgainstPlan(planContent: string, invariants: Invariant[]): 
 
   for (const inv of invariants) {
     const nameWords = inv.name.toLowerCase().split(/\s+/);
-    const found = nameWords.some(w => w.length > 3 && contentLower.includes(w));
+    const found = nameWords.some((w) => w.length > 3 && contentLower.includes(w));
 
     if (found) {
       addressed.push(inv.id);
@@ -135,7 +141,7 @@ export function generateReport(invariantsPath: string, specsDir: string): Invari
       invariantCount: 0,
       archCoverage: null,
       planCoverage: null,
-      summary: 'No invariants defined.'
+      summary: 'No invariants defined.',
     };
   }
 
@@ -154,9 +160,10 @@ export function generateReport(invariantsPath: string, specsDir: string): Invari
   }
 
   const failedCount = archCoverage ? archCoverage.failed.length : invariants.length;
-  const summary = failedCount === 0
-    ? `All ${invariants.length} invariant(s) addressed in architecture.`
-    : `${failedCount}/${invariants.length} invariant(s) may not be addressed in architecture.`;
+  const summary =
+    failedCount === 0
+      ? `All ${invariants.length} invariant(s) addressed in architecture.`
+      : `${failedCount}/${invariants.length} invariant(s) may not be addressed in architecture.`;
 
   return { invariantCount: invariants.length, archCoverage, planCoverage, summary };
 }

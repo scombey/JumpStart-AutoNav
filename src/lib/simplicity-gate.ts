@@ -9,15 +9,32 @@
  * ADR-006: no process.exit.
  */
 
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 
 // Directories excluded from the simplicity gate count
 export const EXCLUDED_DIRS: Set<string> = new Set([
-  'node_modules', '.git', '.jumpstart', 'specs', '.github',
-  '.vscode', '.cursor', '.idea', '__pycache__', '.mypy_cache',
-  '.pytest_cache', 'dist', 'build', 'out', 'coverage',
-  '.next', '.nuxt', '.svelte-kit', '.cache',
-  'bin', 'docs', '.devcontainer'
+  'node_modules',
+  '.git',
+  '.jumpstart',
+  'specs',
+  '.github',
+  '.vscode',
+  '.cursor',
+  '.idea',
+  '__pycache__',
+  '.mypy_cache',
+  '.pytest_cache',
+  'dist',
+  'build',
+  'out',
+  'coverage',
+  '.next',
+  '.nuxt',
+  '.svelte-kit',
+  '.cache',
+  'bin',
+  'docs',
+  '.devcontainer',
 ]);
 
 export interface DirCount {
@@ -35,8 +52,8 @@ export function countTopLevelDirs(projectDir: string): DirCount {
 
   const entries = fs.readdirSync(projectDir, { withFileTypes: true });
   const directories = entries
-    .filter(e => e.isDirectory() && !EXCLUDED_DIRS.has(e.name))
-    .map(e => e.name);
+    .filter((e) => e.isDirectory() && !EXCLUDED_DIRS.has(e.name))
+    .map((e) => e.name);
 
   return { count: directories.length, directories };
 }
@@ -104,9 +121,10 @@ export function check(options: CheckOptions = {}): CheckResult {
     const plural = count === 1 ? 'y' : 'ies';
     message = `Simplicity gate passed: ${count} top-level director${plural} (max ${maxDirs}).`;
   } else {
-    message = `Simplicity gate FAILED: ${count} top-level directories exceeds maximum of ${maxDirs}. ` +
-              `Directories: ${directories.join(', ')}. ` +
-              `Justification required in architecture document.`;
+    message =
+      `Simplicity gate FAILED: ${count} top-level directories exceeds maximum of ${maxDirs}. ` +
+      `Directories: ${directories.join(', ')}. ` +
+      `Justification required in architecture document.`;
   }
 
   return { passed, count, directories, justificationRequired, message };

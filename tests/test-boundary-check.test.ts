@@ -1,15 +1,12 @@
 /**
  * tests/test-boundary-check.test.ts -- vitest suite for src/lib/boundary-check.ts
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import {
-  extractBoundaries,
-  extractPlanScope,
-  checkBoundaries,
-} from '../src/lib/boundary-check.js';
+
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { checkBoundaries, extractBoundaries, extractPlanScope } from '../src/lib/boundary-check.js';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -111,7 +108,11 @@ Use React for frontend.
 
 describe('checkBoundaries', () => {
   it('returns error when brief file not found', () => {
-    const result = checkBoundaries({ brief: '/nonexistent/brief.md', plan: '/nonexistent/plan.md', root: '.' });
+    const result = checkBoundaries({
+      brief: '/nonexistent/brief.md',
+      plan: '/nonexistent/plan.md',
+      root: '.',
+    });
     expect(result.pass).toBe(false);
     expect(result.error).toContain('Cannot read brief');
   });
@@ -124,29 +125,41 @@ describe('checkBoundaries', () => {
   });
 
   it('passes when plan does not contain excluded terms', () => {
-    const brief = write('brief.md', `
+    const brief = write(
+      'brief.md',
+      `
 ## Constraints
 - No MongoDB
 - Avoid Redis
-`);
-    const plan = write('plan.md', `
+`
+    );
+    const plan = write(
+      'plan.md',
+      `
 ### M1-T01: Build API
 Use PostgreSQL for storage.
-`);
+`
+    );
     const result = checkBoundaries({ brief, plan, root: tmpDir });
     expect(result.pass).toBe(true);
     expect(result.violations.length).toBe(0);
   });
 
   it('detects violations when plan contains excluded terms', () => {
-    const brief = write('brief.md', `
+    const brief = write(
+      'brief.md',
+      `
 ## Constraints
 - Do not use mongodb in the implementation
-`);
-    const plan = write('plan.md', `
+`
+    );
+    const plan = write(
+      'plan.md',
+      `
 ### M1-T01: Build API
 Set up mongodb for persistence.
-`);
+`
+    );
     const result = checkBoundaries({ brief, plan, root: tmpDir });
     expect(result.violations.length).toBeGreaterThan(0);
   });
@@ -172,7 +185,9 @@ Set up mongodb for persistence.
 
 describe('pollution-key safety', () => {
   it('extractBoundaries does not crash on __proto__ bytes in content', () => {
-    const content = Buffer.from('{"__proto__":{"evil":1}}\n## Constraints\n- No MongoDB\n').toString();
+    const content = Buffer.from(
+      '{"__proto__":{"evil":1}}\n## Constraints\n- No MongoDB\n'
+    ).toString();
     expect(() => extractBoundaries(content)).not.toThrow();
   });
 

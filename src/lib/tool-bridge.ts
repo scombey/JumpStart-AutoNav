@@ -68,8 +68,8 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { assertInsideRoot } from './path-safety.js';
-import { computeUATCoverage } from './uat-coverage.js';
 import type { TimelineLike } from './simulation-tracer.js';
+import { computeUATCoverage } from './uat-coverage.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // Public types

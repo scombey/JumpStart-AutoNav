@@ -9,8 +9,8 @@
  * M3 hardening: no JSON state parsed — reads .md and .yaml files only.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +48,7 @@ export function analyzeAndPropose(projectDir: string): AnalyzeResult {
     has_usage_log: false,
     has_correction_log: false,
     quality_score: null,
-    modules_loaded: 0
+    modules_loaded: 0,
   };
 
   const configPath = path.join(projectDir, '.jumpstart', 'config.yaml');
@@ -61,14 +61,14 @@ export function analyzeAndPropose(projectDir: string): AnalyzeResult {
   // Count specs
   const specsDir = path.join(projectDir, 'specs');
   if (fs.existsSync(specsDir)) {
-    const specFiles = fs.readdirSync(specsDir).filter(f => f.endsWith('.md'));
+    const specFiles = fs.readdirSync(specsDir).filter((f) => f.endsWith('.md'));
     analysis.specs_found = specFiles.length;
   }
 
   // Count ADRs
   const adrsDir = path.join(projectDir, 'specs', 'decisions');
   if (fs.existsSync(adrsDir)) {
-    analysis.adrs_found = fs.readdirSync(adrsDir).filter(f => f.endsWith('.md')).length;
+    analysis.adrs_found = fs.readdirSync(adrsDir).filter((f) => f.endsWith('.md')).length;
   }
 
   // Check usage log
@@ -87,7 +87,7 @@ export function analyzeAndPropose(projectDir: string): AnalyzeResult {
       setting: 'diagram_verification.auto_verify_at_gate',
       current: false,
       proposed: true,
-      rationale: `Project has ${analysis.adrs_found} ADRs, suggesting complexity. Auto-verifying diagrams at gates would catch inconsistencies earlier.`
+      rationale: `Project has ${analysis.adrs_found} ADRs, suggesting complexity. Auto-verifying diagrams at gates would catch inconsistencies earlier.`,
     });
   }
 
@@ -97,7 +97,8 @@ export function analyzeAndPropose(projectDir: string): AnalyzeResult {
       setting: 'usage_tracking',
       current: 'disabled',
       proposed: 'enabled',
-      rationale: 'Project has multiple spec artifacts. Enabling usage tracking would provide visibility into agent session costs and help optimize workflow.'
+      rationale:
+        'Project has multiple spec artifacts. Enabling usage tracking would provide visibility into agent session costs and help optimize workflow.',
     });
   }
 
@@ -107,7 +108,8 @@ export function analyzeAndPropose(projectDir: string): AnalyzeResult {
       setting: 'user.skill_level',
       current: null,
       proposed: 'intermediate',
-      rationale: 'Skill level is unset. Setting it to "intermediate" would enable adaptive explanations and hints tailored to experience level.'
+      rationale:
+        'Skill level is unset. Setting it to "intermediate" would enable adaptive explanations and hints tailored to experience level.',
     });
   }
 
@@ -121,7 +123,7 @@ export function analyzeAndPropose(projectDir: string): AnalyzeResult {
           setting: 'testing.spec_quality.overall_score_min',
           current: 70,
           proposed: 80,
-          rationale: `Correction log has ${entryCount} entries. Raising the minimum quality score from 70 to 80 would catch more issues before they require correction.`
+          rationale: `Correction log has ${entryCount} entries. Raising the minimum quality score from 70 to 80 would catch more issues before they require correction.`,
         });
       }
     } catch {
@@ -135,7 +137,7 @@ export function analyzeAndPropose(projectDir: string): AnalyzeResult {
       setting: 'testing.peer_review_required',
       current: false,
       proposed: true,
-      rationale: `Project has ${analysis.specs_found} spec artifacts. Enabling peer review would add an additional quality layer as complexity grows.`
+      rationale: `Project has ${analysis.specs_found} spec artifacts. Enabling peer review would add an additional quality layer as complexity grows.`,
     });
   }
 

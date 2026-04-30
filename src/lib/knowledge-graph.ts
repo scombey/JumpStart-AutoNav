@@ -12,16 +12,23 @@
  * defaultState fallback: loadState returns defaultState() on parse failure.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 const DEFAULT_STATE_FILE = path.join('.jumpstart', 'state', 'knowledge-graph.json');
 
-export const NODE_TYPES = ['pattern', 'decision', 'control', 'component', 'skill', 'module'] as const;
+export const NODE_TYPES = [
+  'pattern',
+  'decision',
+  'control',
+  'component',
+  'skill',
+  'module',
+] as const;
 export const EDGE_TYPES = ['uses', 'implements', 'depends-on', 'related-to', 'supersedes'] as const;
 
-export type NodeType = typeof NODE_TYPES[number];
-export type EdgeType = typeof EDGE_TYPES[number];
+export type NodeType = (typeof NODE_TYPES)[number];
+export type EdgeType = (typeof EDGE_TYPES)[number];
 
 export interface KGNode {
   id: string;
@@ -84,7 +91,7 @@ export function saveState(state: KGState, stateFile?: string | null | undefined)
   const dir = path.dirname(fp);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
   state.last_updated = new Date().toISOString();
-  fs.writeFileSync(fp, JSON.stringify(state, null, 2) + '\n', 'utf8');
+  fs.writeFileSync(fp, `${JSON.stringify(state, null, 2)}\n`, 'utf8');
 }
 
 export interface AddNodeOptions {
@@ -114,7 +121,7 @@ export function addNode(name: string, type: string, options: AddNodeOptions = {}
     type: type as NodeType,
     tags: options.tags ?? [],
     metadata: options.metadata ?? {},
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
   };
 
   state.nodes.push(node);
@@ -133,16 +140,30 @@ export interface AddEdgeResult {
   error?: string | undefined;
 }
 
-export function addEdge(fromId: string, toId: string, edgeType: string, options: AddEdgeOptions = {}): AddEdgeResult {
-  if (!fromId || !toId || !edgeType) return { success: false, error: 'fromId, toId, and edgeType are required' };
+export function addEdge(
+  fromId: string,
+  toId: string,
+  edgeType: string,
+  options: AddEdgeOptions = {}
+): AddEdgeResult {
+  if (!fromId || !toId || !edgeType)
+    return { success: false, error: 'fromId, toId, and edgeType are required' };
   if (!(EDGE_TYPES as readonly string[]).includes(edgeType)) {
-    return { success: false, error: `Unknown edge type: ${edgeType}. Valid: ${EDGE_TYPES.join(', ')}` };
+    return {
+      success: false,
+      error: `Unknown edge type: ${edgeType}. Valid: ${EDGE_TYPES.join(', ')}`,
+    };
   }
 
   const stateFile = options.stateFile;
   const state = loadState(stateFile);
 
-  const edge: KGEdge = { from: fromId, to: toId, type: edgeType as EdgeType, created_at: new Date().toISOString() };
+  const edge: KGEdge = {
+    from: fromId,
+    to: toId,
+    type: edgeType as EdgeType,
+    created_at: new Date().toISOString(),
+  };
   state.edges.push(edge);
   saveState(state, stateFile);
 
@@ -168,20 +189,20 @@ export function queryGraph(options: QueryOptions = {}): QueryResult {
   const state = loadState(options.stateFile);
 
   let nodes = state.nodes;
-  if (options.type) nodes = nodes.filter(n => n.type === options.type);
-  if (options.tag) nodes = nodes.filter(n => n.tags.includes(options.tag as string));
+  if (options.type) nodes = nodes.filter((n) => n.type === options.type);
+  if (options.tag) nodes = nodes.filter((n) => n.tags.includes(options.tag as string));
   if (options.search) {
     const q = options.search.toLowerCase();
-    nodes = nodes.filter(n => n.name.toLowerCase().includes(q));
+    nodes = nodes.filter((n) => n.name.toLowerCase().includes(q));
   }
 
-  const nodeIds = new Set(nodes.map(n => n.id));
+  const nodeIds = new Set(nodes.map((n) => n.id));
   return {
     success: true,
     nodes: nodes.length,
     edges: state.edges.length,
     results: nodes,
-    related_edges: state.edges.filter(e => nodeIds.has(e.from) || nodeIds.has(e.to))
+    related_edges: state.edges.filter((e) => nodeIds.has(e.from) || nodeIds.has(e.to)),
   };
 }
 
@@ -208,6 +229,6 @@ export function generateReport(options: ReportOptions = {}): ReportResult {
     success: true,
     total_nodes: state.nodes.length,
     total_edges: state.edges.length,
-    by_type: byType
+    by_type: byType,
   };
 }

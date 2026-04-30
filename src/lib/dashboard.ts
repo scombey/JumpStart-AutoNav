@@ -39,10 +39,10 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
-import { buildFromSpecs, getCoverage } from './graph.js';
-import { runAllChecks as specTesterRunAllChecks } from './spec-tester.js';
 import { computeCoverage as coverageComputeCoverage } from './coverage.js';
+import { buildFromSpecs, getCoverage } from './graph.js';
 import { isArtifactApproved as handoffIsArtifactApproved } from './handoff.js';
+import { runAllChecks as specTesterRunAllChecks } from './spec-tester.js';
 import { loadState } from './state-store.js';
 import { getTimelineSummary } from './timeline.js';
 import { summarizeUsage } from './usage.js';

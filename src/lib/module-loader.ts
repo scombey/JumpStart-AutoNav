@@ -10,8 +10,8 @@
  * ADR-009: modulesDir validated by caller.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -103,7 +103,7 @@ export function discoverModules(modulesDir: string): DiscoveredModule[] {
       modules.push({
         name: (manifest.name as string | undefined) || entry.name,
         path: modDir,
-        manifest
+        manifest,
       });
     } catch {
       // Skip modules with invalid or dangerous manifests
@@ -174,13 +174,13 @@ export function loadModule(modulesDir: string, moduleName: string): LoadModuleRe
       return {
         loaded: false,
         module: null,
-        error: `Invalid manifest: ${validation.errors.join('; ')}`
+        error: `Invalid manifest: ${validation.errors.join('; ')}`,
       };
     }
 
     // Resolve resource paths — only include files that actually exist
     const resolve = (arr: string[] | undefined): string[] =>
-      (arr ?? []).map(f => path.join(modDir, f)).filter(f => fs.existsSync(f));
+      (arr ?? []).map((f) => path.join(modDir, f)).filter((f) => fs.existsSync(f));
 
     return {
       loaded: true,
@@ -194,9 +194,9 @@ export function loadModule(modulesDir: string, moduleName: string): LoadModuleRe
         commands: resolve(manifest.commands),
         checks: resolve(manifest.checks),
         skills: resolve(manifest.skills),
-        manifest
+        manifest,
       },
-      error: null
+      error: null,
     };
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
@@ -216,9 +216,7 @@ export function loadAllModules(
   const errors: string[] = [];
   const modules: LoadedModule[] = [];
 
-  const toLoad = enabledList
-    ? discovered.filter(m => enabledList.includes(m.name))
-    : discovered;
+  const toLoad = enabledList ? discovered.filter((m) => enabledList.includes(m.name)) : discovered;
 
   for (const mod of toLoad) {
     const result = loadModule(modulesDir, mod.name);

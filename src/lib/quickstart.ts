@@ -11,7 +11,7 @@
  * M3 hardening: no JSON state — pure data transformation.
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,15 +71,39 @@ export interface ConfigPatchResult {
 // ─── Domain Options ───────────────────────────────────────────────────────────
 
 export const DOMAIN_OPTIONS: DomainOption[] = [
-  { value: 'web-app',       title: 'Web Application',       description: 'Browser-based UI with backend services' },
-  { value: 'mobile-app',    title: 'Mobile Application',    description: 'iOS, Android, or cross-platform mobile app' },
-  { value: 'api-service',   title: 'API / Microservice',    description: 'REST or GraphQL backend service' },
-  { value: 'cli-tool',      title: 'CLI Tool',              description: 'Command-line utility or developer tool' },
-  { value: 'library',       title: 'Library / SDK',         description: 'Reusable package consumed by other projects' },
-  { value: 'data-pipeline', title: 'Data Pipeline',         description: 'ETL, streaming, or analytics pipeline' },
-  { value: 'ecommerce',     title: 'E-Commerce',            description: 'Online store, payments, inventory' },
-  { value: 'saas',          title: 'SaaS Platform',         description: 'Multi-tenant software-as-a-service product' },
-  { value: 'other',         title: 'Other',                 description: 'Custom domain — enter your own' },
+  {
+    value: 'web-app',
+    title: 'Web Application',
+    description: 'Browser-based UI with backend services',
+  },
+  {
+    value: 'mobile-app',
+    title: 'Mobile Application',
+    description: 'iOS, Android, or cross-platform mobile app',
+  },
+  {
+    value: 'api-service',
+    title: 'API / Microservice',
+    description: 'REST or GraphQL backend service',
+  },
+  { value: 'cli-tool', title: 'CLI Tool', description: 'Command-line utility or developer tool' },
+  {
+    value: 'library',
+    title: 'Library / SDK',
+    description: 'Reusable package consumed by other projects',
+  },
+  {
+    value: 'data-pipeline',
+    title: 'Data Pipeline',
+    description: 'ETL, streaming, or analytics pipeline',
+  },
+  { value: 'ecommerce', title: 'E-Commerce', description: 'Online store, payments, inventory' },
+  {
+    value: 'saas',
+    title: 'SaaS Platform',
+    description: 'Multi-tenant software-as-a-service product',
+  },
+  { value: 'other', title: 'Other', description: 'Custom domain — enter your own' },
 ];
 
 // ─── Ceremony Options ─────────────────────────────────────────────────────────
@@ -88,17 +112,19 @@ export const CEREMONY_OPTIONS: CeremonyOption[] = [
   {
     value: 'light',
     title: 'Light — Fast prototyping',
-    description: 'Minimal docs, skip optional gates, fast iteration. Best for proofs of concept and experiments.'
+    description:
+      'Minimal docs, skip optional gates, fast iteration. Best for proofs of concept and experiments.',
   },
   {
     value: 'standard',
     title: 'Standard — Balanced (recommended)',
-    description: 'Full spec workflow with all quality gates. Good default for most projects.'
+    description: 'Full spec workflow with all quality gates. Good default for most projects.',
   },
   {
     value: 'rigorous',
     title: 'Rigorous — Enterprise grade',
-    description: 'Maximum ceremony: adversarial review, peer review, strict TDD, security audits. For regulated or high-risk projects.'
+    description:
+      'Maximum ceremony: adversarial review, peer review, strict TDD, security audits. For regulated or high-risk projects.',
   },
 ];
 
@@ -134,12 +160,13 @@ export function getFirstCommand(config: QuickstartConfig): { command: string; me
   if (config.projectType === 'brownfield') {
     return {
       command: '/jumpstart.scout',
-      message: 'Brownfield project detected. The Scout will analyze your existing codebase first.'
+      message: 'Brownfield project detected. The Scout will analyze your existing codebase first.',
     };
   }
   return {
     command: '/jumpstart.challenge',
-    message: 'Ready to begin! The Challenger will interrogate your problem space and sharpen the project vision.'
+    message:
+      'Ready to begin! The Challenger will interrogate your problem space and sharpen the project vision.',
   };
 }
 
@@ -175,7 +202,7 @@ export function getConfigPatches(config: QuickstartConfig): ConfigPatchResult {
       key: 'domain',
       value: config.domain,
       pattern: /^(\s*type:\s*\S+)$/m,
-      replacement: `$1\n  domain: ${config.domain}`
+      replacement: `$1\n  domain: ${config.domain}`,
     });
   }
 
@@ -185,7 +212,7 @@ export function getConfigPatches(config: QuickstartConfig): ConfigPatchResult {
       key: 'profile',
       value: config.ceremony,
       pattern: /^(\s*profile:\s*)\S+/m,
-      replacement: `$1${config.ceremony}`
+      replacement: `$1${config.ceremony}`,
     });
   }
 

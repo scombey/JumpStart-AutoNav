@@ -45,20 +45,20 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, basename as pathBasename } from 'node:path';
-import { validateCrossRefs } from './crossref.js';
-import {
-  runAllChecks as specTesterRunAllChecks,
-  checkGWTFormat as specTesterCheckGWT,
-  checkMetricCoverage as specTesterCheckMetrics,
-  checkGuessingLanguage as specTesterCheckGuessing,
-} from './spec-tester.js';
 import { computeCoverage as coverageComputeCoverage } from './coverage.js';
+import { validateCrossRefs } from './crossref.js';
 import { detectSmells } from './smell-detector.js';
 import { checkSpecDrift } from './spec-drift.js';
+import {
+  checkGuessingLanguage as specTesterCheckGuessing,
+  checkGWTFormat as specTesterCheckGWT,
+  checkMetricCoverage as specTesterCheckMetrics,
+  runAllChecks as specTesterRunAllChecks,
+} from './spec-tester.js';
 import { buildNFRMap } from './traceability.js';
 import { checkApproval, validateArtifact } from './validator.js';
 
-const require = createRequire(import.meta.url);
+const _require = createRequire(import.meta.url);
 
 // ─── Sibling-loader for legacy CJS modules without TS ports ──────────────────
 
@@ -109,17 +109,24 @@ function loadSpecTester(): SpecTesterModule {
     checkPassiveVoice: (content) => specTesterRunAllChecks(content).passive_voice,
     checkGWTFormat: (content) => {
       const r = specTesterCheckGWT(content);
-      return { issues: r.issues.map(i => ({ line: i.line, criterion: i.context })), count: r.issues.length };
+      return {
+        issues: r.issues.map((i) => ({ line: i.line, criterion: i.context })),
+        count: r.issues.length,
+      };
     },
     checkMetricCoverage: (content) => {
       const r = specTesterCheckMetrics(content);
-      return { gaps: r.gaps.map(g => ({ requirement: g })), coverage: r.coverage_pct };
+      return { gaps: r.gaps.map((g) => ({ requirement: g })), coverage: r.coverage_pct };
     },
     checkGuessingLanguage: (content) => {
       const r = specTesterCheckGuessing(content);
       return { issues: r.issues, count: r.count };
     },
-    runAllChecks: (content, options) => specTesterRunAllChecks(content, options) as unknown as { score: number; [key: string]: unknown },
+    runAllChecks: (content, options) =>
+      specTesterRunAllChecks(content, options) as unknown as {
+        score: number;
+        [key: string]: unknown;
+      },
   };
 }
 

@@ -9,7 +9,7 @@
  * ADR-006: no process.exit — throws Error on unreadable files.
  */
 
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 
 /**
  * Extract all story IDs from a PRD document.
@@ -81,8 +81,8 @@ export function computeCoverage(prdPath: string, planPath: string): CoverageResu
   const planStoryRefsArr = planContent.match(/\bE\d+-S\d+\b/g) ?? [];
   const planStoryRefs = new Set<string>(planStoryRefsArr);
 
-  const covered = storyIds.filter(id => coveredStories.has(id) || planStoryRefs.has(id));
-  const uncovered = storyIds.filter(id => !coveredStories.has(id) && !planStoryRefs.has(id));
+  const covered = storyIds.filter((id) => coveredStories.has(id) || planStoryRefs.has(id));
+  const uncovered = storyIds.filter((id) => !coveredStories.has(id) && !planStoryRefs.has(id));
 
   const totalStories = storyIds.length;
   const coveragePct = totalStories > 0 ? Math.round((covered.length / totalStories) * 100) : 100;
@@ -92,7 +92,7 @@ export function computeCoverage(prdPath: string, planPath: string): CoverageResu
     uncovered,
     total_stories: totalStories,
     total_tasks: taskMappings.size,
-    coverage_pct: coveragePct
+    coverage_pct: coveragePct,
   };
 }
 

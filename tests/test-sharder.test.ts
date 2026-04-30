@@ -1,13 +1,13 @@
 /**
  * tests/test-sharder.test.ts -- vitest suite for src/lib/sharder.ts
  */
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   extractEpics,
-  shouldShard,
-  generateShard,
   generateIndex,
+  generateShard,
   type ShardDescriptor,
+  shouldShard,
 } from '../src/lib/sharder.js';
 
 // ─── sample PRD content ─────────────────────────────────────────────────────
@@ -43,21 +43,21 @@ describe('extractEpics', () => {
   it('extracts epic IDs and names', () => {
     const epics = extractEpics(SAMPLE_PRD);
     expect(epics.length).toBeGreaterThanOrEqual(2);
-    const ids = epics.map(e => e.id);
+    const ids = epics.map((e) => e.id);
     expect(ids).toContain('E01');
     expect(ids).toContain('E02');
   });
 
   it('counts stories within each epic', () => {
     const epics = extractEpics(SAMPLE_PRD);
-    const e01 = epics.find(e => e.id === 'E01');
+    const e01 = epics.find((e) => e.id === 'E01');
     if (!e01) throw new Error('expected E01');
     expect(e01.storyCount).toBe(2);
   });
 
   it('includes epic content', () => {
     const epics = extractEpics(SAMPLE_PRD);
-    const e01 = epics.find(e => e.id === 'E01');
+    const e01 = epics.find((e) => e.id === 'E01');
     if (!e01) throw new Error('expected E01');
     expect(e01.content).toContain('Authentication');
   });
@@ -156,9 +156,7 @@ describe('generateIndex', () => {
   });
 
   it('shows total shard count', () => {
-    const shards: ShardDescriptor[] = [
-      { index: 1, epicIds: ['E01'], filePath: 'a.md' },
-    ];
+    const shards: ShardDescriptor[] = [{ index: 1, epicIds: ['E01'], filePath: 'a.md' }];
     const result = generateIndex(shards);
     expect(result).toContain('1');
   });
@@ -168,7 +166,9 @@ describe('generateIndex', () => {
 
 describe('pollution-key safety', () => {
   it('extractEpics does not crash on __proto__ bytes in content', () => {
-    const content = Buffer.from('{"__proto__":{"evil":1}}\n### Epic E01: Test\nContent\n').toString();
+    const content = Buffer.from(
+      '{"__proto__":{"evil":1}}\n### Epic E01: Test\nContent\n'
+    ).toString();
     expect(() => extractEpics(content)).not.toThrow();
   });
 

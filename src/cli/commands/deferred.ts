@@ -39,11 +39,19 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import { generateContextPacket, renderContextMarkdown } from '../../lib/context-summarizer.js';
 import { writeResult } from '../../lib/io.js';
 import * as legacyProactiveValidator from '../../lib/proactive-validator.js';
+import {
+  applyConfigPatches as qsApplyConfigPatches,
+  buildQuickstartConfig as qsBuildConfig,
+  generateQuickstartSummary as qsGenerateSummary,
+} from '../../lib/quickstart.js';
+import {
+  analyzeAndPropose as selfEvolveAnalyze,
+  generateProposalArtifact as selfEvolveGenerateArtifact,
+} from '../../lib/self-evolve.js';
 import {
   clearTimeline,
   generateTimelineReport,
@@ -52,15 +60,6 @@ import {
   renderMarkdown as renderTimelineMarkdown,
   type TimelineFilters,
 } from '../../lib/timeline.js';
-import {
-  buildQuickstartConfig as qsBuildConfig,
-  applyConfigPatches as qsApplyConfigPatches,
-  generateQuickstartSummary as qsGenerateSummary,
-} from '../../lib/quickstart.js';
-import {
-  analyzeAndPropose as selfEvolveAnalyze,
-  generateProposalArtifact as selfEvolveGenerateArtifact,
-} from '../../lib/self-evolve.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { asRest, hasFlag, parseFlag, safeJoin } from './_helpers.js';
 
