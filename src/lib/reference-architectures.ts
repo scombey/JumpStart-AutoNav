@@ -149,14 +149,7 @@ export const BUILTIN_PATTERNS: Pattern[] = [
     name: 'Agent Application',
     category: 'agent-app',
     description: 'Multi-agent application with tool use, memory, and planning capabilities.',
-    components: [
-      'agent-core',
-      'tool-registry',
-      'memory-store',
-      'planner',
-      'executor',
-      'api-layer',
-    ],
+    components: ['agent-core', 'tool-registry', 'memory-store', 'planner', 'executor', 'api-layer'],
     tech_stack: { suggested: ['openai', 'langchain', 'redis', 'express'] },
     structure: {
       'src/agents/': 'Agent definitions and personas',
@@ -166,11 +159,7 @@ export const BUILTIN_PATTERNS: Pattern[] = [
       'src/api/': 'API endpoints',
       'tests/': 'Test suites',
     },
-    nfrs: [
-      'response time < 5s',
-      'tool execution timeout 30s',
-      'conversation history management',
-    ],
+    nfrs: ['response time < 5s', 'tool execution timeout 30s', 'conversation history management'],
   },
   {
     id: 'api-platform',
@@ -200,8 +189,7 @@ export const BUILTIN_PATTERNS: Pattern[] = [
     id: 'event-driven',
     name: 'Event-Driven System',
     category: 'event-driven',
-    description:
-      'Event-driven microservice architecture with message broker and event sourcing.',
+    description: 'Event-driven microservice architecture with message broker and event sourcing.',
     components: [
       'event-producer',
       'message-broker',
@@ -219,11 +207,7 @@ export const BUILTIN_PATTERNS: Pattern[] = [
       'src/api/': 'Query API',
       'tests/': 'Test suites',
     },
-    nfrs: [
-      'event processing < 100ms',
-      'at-least-once delivery',
-      'event ordering guarantees',
-    ],
+    nfrs: ['event processing < 100ms', 'at-least-once delivery', 'event ordering guarantees'],
   },
 ];
 
@@ -319,21 +303,19 @@ export function loadRegistry(registryFile?: string): Registry {
   if (!isPlainObject(parsed)) return defaultRegistry();
   if (hasForbiddenKey(parsed)) return defaultRegistry();
   const base = defaultRegistry();
-  const patterns = Array.isArray(parsed['patterns'])
-    ? (parsed['patterns'] as Pattern[])
+  const patterns = Array.isArray(parsed.patterns)
+    ? (parsed.patterns as Pattern[])
     : BUILTIN_PATTERNS.map((p) => ({ ...p }));
   return {
-    version: typeof parsed['version'] === 'string' ? (parsed['version'] as string) : base.version,
+    version: typeof parsed.version === 'string' ? (parsed.version as string) : base.version,
     created_at:
-      typeof parsed['created_at'] === 'string'
-        ? (parsed['created_at'] as string)
-        : base.created_at,
+      typeof parsed.created_at === 'string' ? (parsed.created_at as string) : base.created_at,
     patterns,
-    custom_patterns: Array.isArray(parsed['custom_patterns'])
-      ? (parsed['custom_patterns'] as Pattern[])
+    custom_patterns: Array.isArray(parsed.custom_patterns)
+      ? (parsed.custom_patterns as Pattern[])
       : [],
-    instantiation_history: Array.isArray(parsed['instantiation_history'])
-      ? (parsed['instantiation_history'] as InstantiationHistoryEntry[])
+    instantiation_history: Array.isArray(parsed.instantiation_history)
+      ? (parsed.instantiation_history as InstantiationHistoryEntry[])
       : [],
   };
 }
@@ -352,10 +334,7 @@ export function saveRegistry(registry: Registry, registryFile?: string): void {
  * List available reference architectures (built-in + custom). Returns
  * compact summaries with `components` reduced to a count.
  */
-export function listPatterns(
-  filter: ListFilter = {},
-  options: CommonOptions = {}
-): ListResult {
+export function listPatterns(filter: ListFilter = {}, options: CommonOptions = {}): ListResult {
   const registryFile = options.registryFile ?? DEFAULT_REGISTRY_FILE;
   const registry = loadRegistry(registryFile);
 
@@ -404,7 +383,7 @@ export function registerPattern(
   pattern: RegisterPatternInput | null | undefined,
   options: CommonOptions = {}
 ): RegisterResult {
-  if (!pattern || !pattern.name || !pattern.description) {
+  if (!pattern?.name || !pattern.description) {
     return { success: false, error: 'name and description are required' };
   }
 

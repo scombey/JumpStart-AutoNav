@@ -116,7 +116,7 @@ describe('fitness-functions — loadRegistry / saveRegistry', () => {
     const r = loadRegistry(registryFile);
     expect(r.functions).toEqual([]);
     // Pollution should not have leaked into the default shape.
-    expect((r as unknown as Record<string, unknown>)['polluted']).toBeUndefined();
+    expect((r as unknown as Record<string, unknown>).polluted).toBeUndefined();
   });
 
   it('M3 hardening: rejects raw constructor payload, returns default', () => {
@@ -421,10 +421,7 @@ describe('fitness-functions — evaluateFitness', () => {
   });
 
   it('records last_evaluated timestamp', () => {
-    addFitnessFunction(
-      { name: 'X', description: 'd', category: 'structure' },
-      { registryFile }
-    );
+    addFitnessFunction({ name: 'X', description: 'd', category: 'structure' }, { registryFile });
     evaluateFitness(tmpDir, { registryFile });
     const reloaded = loadRegistry(registryFile);
     expect(typeof reloaded.last_evaluated).toBe('string');
@@ -440,27 +437,15 @@ describe('fitness-functions — evaluateFitness', () => {
 
 describe('fitness-functions — listFitnessFunctions', () => {
   it('lists all when no filter', () => {
-    addFitnessFunction(
-      { name: 'A', description: 'd', category: 'structure' },
-      { registryFile }
-    );
-    addFitnessFunction(
-      { name: 'B', description: 'd', category: 'security' },
-      { registryFile }
-    );
+    addFitnessFunction({ name: 'A', description: 'd', category: 'structure' }, { registryFile });
+    addFitnessFunction({ name: 'B', description: 'd', category: 'security' }, { registryFile });
     const r = listFitnessFunctions({}, { registryFile });
     expect(r.total).toBe(2);
   });
 
   it('filters by category', () => {
-    addFitnessFunction(
-      { name: 'A', description: 'd', category: 'structure' },
-      { registryFile }
-    );
-    addFitnessFunction(
-      { name: 'B', description: 'd', category: 'security' },
-      { registryFile }
-    );
+    addFitnessFunction({ name: 'A', description: 'd', category: 'structure' }, { registryFile });
+    addFitnessFunction({ name: 'B', description: 'd', category: 'security' }, { registryFile });
     const r = listFitnessFunctions({ category: 'security' }, { registryFile });
     expect(r.total).toBe(1);
     expect(r.functions[0]?.name).toBe('B');
@@ -501,10 +486,7 @@ describe('fitness-functions — listFitnessFunctions', () => {
   });
 
   it('persists across save+load round-trip', () => {
-    addFitnessFunction(
-      { name: 'A', description: 'd', category: 'structure' },
-      { registryFile }
-    );
+    addFitnessFunction({ name: 'A', description: 'd', category: 'structure' }, { registryFile });
     const raw = readFileSync(registryFile, 'utf8');
     expect(raw).toContain('"name": "A"');
   });

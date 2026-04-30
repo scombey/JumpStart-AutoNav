@@ -175,10 +175,7 @@ describe('reference-architectures — listPatterns', () => {
   });
 
   it('includes custom patterns alongside built-ins', () => {
-    registerPattern(
-      { name: 'Custom A', description: 'd', category: 'other' },
-      { registryFile }
-    );
+    registerPattern({ name: 'Custom A', description: 'd', category: 'other' }, { registryFile });
     const r = listPatterns({}, { registryFile });
     expect(r.total).toBe(5);
   });
@@ -251,10 +248,7 @@ describe('reference-architectures — registerPattern', () => {
 
   it('rejects duplicate id', () => {
     registerPattern({ name: 'Test', description: 'd', id: 't1' }, { registryFile });
-    const r = registerPattern(
-      { name: 'Test 2', description: 'd2', id: 't1' },
-      { registryFile }
-    );
+    const r = registerPattern({ name: 'Test 2', description: 'd2', id: 't1' }, { registryFile });
     expect(r.success).toBe(false);
     if (!r.success) expect(r.error).toMatch(/already exists/);
   });
@@ -268,19 +262,13 @@ describe('reference-architectures — registerPattern', () => {
   });
 
   it('normalizes unknown category to "other"', () => {
-    const r = registerPattern(
-      { name: 'Q', description: 'd', category: 'bogus' },
-      { registryFile }
-    );
+    const r = registerPattern({ name: 'Q', description: 'd', category: 'bogus' }, { registryFile });
     expect(r.success).toBe(true);
     if (r.success) expect(r.pattern.category).toBe('other');
   });
 
   it('preserves known categories verbatim', () => {
-    const r = registerPattern(
-      { name: 'P', description: 'd', category: 'rag' },
-      { registryFile }
-    );
+    const r = registerPattern({ name: 'P', description: 'd', category: 'rag' }, { registryFile });
     expect(r.success).toBe(true);
     if (r.success) expect(r.pattern.category).toBe('rag');
   });

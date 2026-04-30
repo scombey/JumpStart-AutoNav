@@ -53,13 +53,13 @@ describe('finops-planner — constants', () => {
   });
 
   it('exports CLOUD_PRICING_ESTIMATES with low/medium/high tiers', () => {
-    expect(CLOUD_PRICING_ESTIMATES['compute']).toEqual({
+    expect(CLOUD_PRICING_ESTIMATES.compute).toEqual({
       unit: 'vCPU-hour',
       low: 0.02,
       medium: 0.05,
       high: 0.1,
     });
-    expect(CLOUD_PRICING_ESTIMATES['storage']?.medium).toBe(0.023);
+    expect(CLOUD_PRICING_ESTIMATES.storage?.medium).toBe(0.023);
     expect(CLOUD_PRICING_ESTIMATES['ai-ml']?.high).toBe(0.06);
   });
 });
@@ -124,11 +124,7 @@ describe('finops-planner — loadState / saveState', () => {
   });
 
   it('M3 hardening: rejects nested __proto__ in estimates', () => {
-    writeFileSync(
-      stateFile,
-      '{"version":"1.0.0","estimates":[{"__proto__":{"x":1}}]}',
-      'utf8'
-    );
+    writeFileSync(stateFile, '{"version":"1.0.0","estimates":[{"__proto__":{"x":1}}]}', 'utf8');
     const s = loadState(stateFile);
     expect(s.estimates).toEqual([]);
   });
@@ -240,8 +236,7 @@ describe('finops-planner — createEstimate', () => {
     const r = createEstimate(
       {
         name: 'X',
-        // biome-ignore lint/suspicious/noExplicitAny: testing legacy fallback
-        components: [{ name: 'srv', category: 'compute', tier: 'bogus' as any, quantity: 1 }],
+        components: [{ name: 'srv', category: 'compute', tier: 'bogus' as 'low', quantity: 1 }],
       },
       { stateFile }
     );

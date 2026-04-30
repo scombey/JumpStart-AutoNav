@@ -245,10 +245,7 @@ describe('plan-executor — getExecutionStatus', () => {
   });
 
   it('next_tasks excludes tasks blocked by uncompleted dependencies', () => {
-    writeFileSync(
-      planPath,
-      '- **M01-T01**: x\n- **M01-T02**: y, depends on M01-T01\n'
-    );
+    writeFileSync(planPath, '- **M01-T01**: x\n- **M01-T02**: y, depends on M01-T01\n');
     initializeExecution(tmpDir, { stateFile });
     const r = getExecutionStatus({ stateFile });
     if (r.initialized) {
@@ -378,9 +375,7 @@ describe('plan-executor — verifyJob', () => {
     expect(r.success).toBe(true);
     // The traversal path should be reported as failed (file_exists: false).
     if (r.success) {
-      const traversalCheck = r.checks.find((c) =>
-        c.check.startsWith('file_exists: ../')
-      );
+      const traversalCheck = r.checks.find((c) => c.check.startsWith('file_exists: ../'));
       expect(traversalCheck?.passed).toBe(false);
     }
   });
@@ -398,9 +393,9 @@ describe('plan-executor — resetExecution', () => {
 
     const status = getExecutionStatus({ stateFile });
     if (status.initialized) {
-      expect(status.status_counts['completed']).toBe(0);
-      expect(status.status_counts['in_progress']).toBe(0);
-      expect(status.status_counts['pending']).toBe(2);
+      expect(status.status_counts.completed).toBe(0);
+      expect(status.status_counts.in_progress).toBe(0);
+      expect(status.status_counts.pending).toBe(2);
     }
   });
 

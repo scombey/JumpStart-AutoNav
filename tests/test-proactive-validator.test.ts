@@ -285,9 +285,7 @@ describe('proactive-validator — validateAllArtifacts', () => {
     writeSpec('vague.md', makeVagueArtifact());
     const result = await validateAllArtifacts(join(tmpDir, 'specs'), { root: tmpDir });
     expect(typeof result.summary.avg_score).toBe('number');
-    expect(result.summary.pass_count + result.summary.fail_count).toBe(
-      result.summary.total_files
-    );
+    expect(result.summary.pass_count + result.summary.fail_count).toBe(result.summary.total_files);
   });
 
   it('skips non-md files in specs dir', async () => {

@@ -44,7 +44,7 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { basename as pathBasename, dirname, join } from 'node:path';
+import { dirname, join, basename as pathBasename } from 'node:path';
 import { validateCrossRefs } from './crossref.js';
 import { detectSmells } from './smell-detector.js';
 import { checkSpecDrift } from './spec-drift.js';
@@ -549,9 +549,7 @@ export async function validateAllArtifacts(
   const passCount = files.filter((f) => f.pass).length;
   const failCount = files.filter((f) => !f.pass).length;
   const avgScore =
-    files.length > 0
-      ? Math.round(files.reduce((sum, f) => sum + f.score, 0) / files.length)
-      : null;
+    files.length > 0 ? Math.round(files.reduce((sum, f) => sum + f.score, 0) / files.length) : null;
 
   return {
     files,

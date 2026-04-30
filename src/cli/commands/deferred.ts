@@ -53,7 +53,7 @@ import {
   type TimelineFilters,
 } from '../../lib/timeline.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
-import { asRest, hasFlag, legacyRequire, parseFlag, safeJoin } from './_helpers.js';
+import { asRest, hasFlag, parseFlag, safeJoin } from './_helpers.js';
 
 // ─────────────────────────────────────────────────────────────────────────
 // self-evolve

@@ -38,7 +38,7 @@
  * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { assertInsideRoot } from './path-safety.js';
 
@@ -219,20 +219,14 @@ export function loadRegistry(registryFile?: string): Registry {
   // partial shapes.
   const base = defaultRegistry();
   const out: Registry = {
-    version: typeof parsed['version'] === 'string' ? (parsed['version'] as string) : base.version,
+    version: typeof parsed.version === 'string' ? (parsed.version as string) : base.version,
     created_at:
-      typeof parsed['created_at'] === 'string'
-        ? (parsed['created_at'] as string)
-        : base.created_at,
+      typeof parsed.created_at === 'string' ? (parsed.created_at as string) : base.created_at,
     last_evaluated:
-      typeof parsed['last_evaluated'] === 'string'
-        ? (parsed['last_evaluated'] as string)
-        : null,
-    functions: Array.isArray(parsed['functions'])
-      ? (parsed['functions'] as FitnessFunction[])
-      : [],
-    evaluation_history: Array.isArray(parsed['evaluation_history'])
-      ? (parsed['evaluation_history'] as EvaluationSummary[])
+      typeof parsed.last_evaluated === 'string' ? (parsed.last_evaluated as string) : null,
+    functions: Array.isArray(parsed.functions) ? (parsed.functions as FitnessFunction[]) : [],
+    evaluation_history: Array.isArray(parsed.evaluation_history)
+      ? (parsed.evaluation_history as EvaluationSummary[])
       : [],
   };
   return out;
@@ -258,7 +252,7 @@ export function addFitnessFunction(
   func: AddFitnessFunctionInput | null | undefined,
   options: AddOptions = {}
 ): AddResult {
-  if (!func || !func.name || !func.description) {
+  if (!func?.name || !func.description) {
     return { success: false, error: 'name and description are required' };
   }
 
@@ -315,13 +309,12 @@ export const BUILTIN_CHECKS = {
     const funcPattern = /function\s+\w+\s*\(([^)]*)\)/g;
     const arrowPattern = /\(([^)]*)\)\s*(?:=>|{)/g;
     let maxParams = 0;
-    let m: RegExpExecArray | null;
-    while ((m = funcPattern.exec(content)) !== null) {
+    for (const m of content.matchAll(funcPattern)) {
       const captured = m[1] ?? '';
       const params = captured.split(',').filter((p) => p.trim().length > 0).length;
       if (params > maxParams) maxParams = params;
     }
-    while ((m = arrowPattern.exec(content)) !== null) {
+    for (const m of content.matchAll(arrowPattern)) {
       const captured = m[1] ?? '';
       const params = captured.split(',').filter((p) => p.trim().length > 0).length;
       if (params > maxParams) maxParams = params;
@@ -387,11 +380,7 @@ export function evaluateFitness(root: string, options: EvaluateOptions = {}): Ev
               } else if (func.check_type === 'max_function_params') {
                 checkResult = BUILTIN_CHECKS.max_function_params(content, func.threshold);
               } else if (func.check_type === 'pattern' && func.pattern) {
-                checkResult = BUILTIN_CHECKS.pattern_match(
-                  content,
-                  func.threshold,
-                  func.pattern
-                );
+                checkResult = BUILTIN_CHECKS.pattern_match(content, func.threshold, func.pattern);
               } else {
                 checkResult = { passed: true, value: 0 };
               }

@@ -885,7 +885,7 @@ export function planExecutorImpl(deps: Deps, args: PlanExecutorArgs): CommandRes
   } else if (result.initialized) {
     deps.logger.info(`Plan Execution: ${result.progress}%`);
     deps.logger.info(
-      `  Total: ${result.total_jobs}  Completed: ${result.status_counts['completed'] ?? 0}  In Progress: ${result.status_counts['in_progress'] ?? 0}  Pending: ${result.status_counts['pending'] ?? 0}`
+      `  Total: ${result.total_jobs}  Completed: ${result.status_counts.completed ?? 0}  In Progress: ${result.status_counts.in_progress ?? 0}  Pending: ${result.status_counts.pending ?? 0}`
     );
     if (result.next_tasks.length > 0) {
       deps.logger.info('  Next tasks:');

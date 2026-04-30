@@ -44,8 +44,8 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
-import { assertInsideRoot } from './path-safety.js';
 import { ValidationError } from './errors.js';
+import { assertInsideRoot } from './path-safety.js';
 
 const DEFAULT_EXECUTION_FILE = join('.jumpstart', 'state', 'plan-execution.json');
 
@@ -229,18 +229,14 @@ export function loadExecutionState(stateFile?: string): ExecutionState {
   if (hasForbiddenKey(parsed)) return defaultExecutionState();
   const base = defaultExecutionState();
   return {
-    version: typeof parsed['version'] === 'string' ? (parsed['version'] as string) : base.version,
+    version: typeof parsed.version === 'string' ? (parsed.version as string) : base.version,
     created_at:
-      typeof parsed['created_at'] === 'string'
-        ? (parsed['created_at'] as string)
-        : base.created_at,
-    last_updated:
-      typeof parsed['last_updated'] === 'string' ? (parsed['last_updated'] as string) : null,
-    plan_source:
-      typeof parsed['plan_source'] === 'string' ? (parsed['plan_source'] as string) : null,
-    jobs: Array.isArray(parsed['jobs']) ? (parsed['jobs'] as Job[]) : [],
-    execution_log: Array.isArray(parsed['execution_log'])
-      ? (parsed['execution_log'] as ExecutionLogEntry[])
+      typeof parsed.created_at === 'string' ? (parsed.created_at as string) : base.created_at,
+    last_updated: typeof parsed.last_updated === 'string' ? (parsed.last_updated as string) : null,
+    plan_source: typeof parsed.plan_source === 'string' ? (parsed.plan_source as string) : null,
+    jobs: Array.isArray(parsed.jobs) ? (parsed.jobs as Job[]) : [],
+    execution_log: Array.isArray(parsed.execution_log)
+      ? (parsed.execution_log as ExecutionLogEntry[])
       : [],
   };
 }
@@ -270,14 +266,10 @@ export function parsePlanToJobs(planContent: string): Job[] {
   let currentMilestone: string | null = null;
 
   for (const line of lines) {
-    const milestoneMatch = line.match(
-      /^#{2,3}\s+(?:Milestone\s+)?(\d+|M\d+)[:\s—–-]+\s*(.+)$/i
-    );
+    const milestoneMatch = line.match(/^#{2,3}\s+(?:Milestone\s+)?(\d+|M\d+)[:\s—–-]+\s*(.+)$/i);
     if (milestoneMatch) {
       const captured = milestoneMatch[1] ?? '';
-      currentMilestone = captured.startsWith('M')
-        ? captured
-        : `M${captured.padStart(2, '0')}`;
+      currentMilestone = captured.startsWith('M') ? captured : `M${captured.padStart(2, '0')}`;
       continue;
     }
 
@@ -297,7 +289,7 @@ export function parsePlanToJobs(planContent: string): Job[] {
       jobs.push({
         id: taskId,
         title,
-        milestone: currentMilestone ?? (taskId.split('-')[0] ?? taskId),
+        milestone: currentMilestone ?? taskId.split('-')[0] ?? taskId,
         status: 'pending',
         story_refs: [...new Set(storyRefs)],
         dependencies,
@@ -376,13 +368,11 @@ export function getExecutionStatus(options: StatusOptions = {}): StatusResult {
     statusCounts[status] = state.jobs.filter((j) => j.status === status).length;
   }
 
-  const completed = statusCounts['completed'] ?? 0;
+  const completed = statusCounts.completed ?? 0;
   const completedPct =
     state.jobs.length > 0 ? Math.round((completed / state.jobs.length) * 100) : 0;
 
-  const completedIds = new Set(
-    state.jobs.filter((j) => j.status === 'completed').map((j) => j.id)
-  );
+  const completedIds = new Set(state.jobs.filter((j) => j.status === 'completed').map((j) => j.id));
   const nextTasks = state.jobs.filter(
     (j) => j.status === 'pending' && j.dependencies.every((dep) => completedIds.has(dep))
   );
@@ -472,11 +462,7 @@ export function updateJobStatus(
  * `root` before fs.existsSync — defends against a malicious state file
  * injecting `../../../etc/passwd`.
  */
-export function verifyJob(
-  jobId: string,
-  root: string,
-  options: VerifyOptions = {}
-): VerifyResult {
+export function verifyJob(jobId: string, root: string, options: VerifyOptions = {}): VerifyResult {
   // Path-safety: gate root before any fs probe.
   assertInsideRoot(root, root, { schemaId: 'plan-executor:verifyJob:root' });
 

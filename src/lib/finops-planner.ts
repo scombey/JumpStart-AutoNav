@@ -206,17 +206,14 @@ export function loadState(stateFile?: string): State {
   if (hasForbiddenKey(parsed)) return defaultState();
   const base = defaultState();
   return {
-    version: typeof parsed['version'] === 'string' ? (parsed['version'] as string) : base.version,
+    version: typeof parsed.version === 'string' ? (parsed.version as string) : base.version,
     created_at:
-      typeof parsed['created_at'] === 'string'
-        ? (parsed['created_at'] as string)
-        : base.created_at,
-    last_updated:
-      typeof parsed['last_updated'] === 'string' ? (parsed['last_updated'] as string) : null,
-    estimates: Array.isArray(parsed['estimates']) ? (parsed['estimates'] as Estimate[]) : [],
-    budgets: Array.isArray(parsed['budgets']) ? (parsed['budgets'] as Budget[]) : [],
-    optimizations: Array.isArray(parsed['optimizations'])
-      ? (parsed['optimizations'] as OptimizationItem[])
+      typeof parsed.created_at === 'string' ? (parsed.created_at as string) : base.created_at,
+    last_updated: typeof parsed.last_updated === 'string' ? (parsed.last_updated as string) : null,
+    estimates: Array.isArray(parsed.estimates) ? (parsed.estimates as Estimate[]) : [],
+    budgets: Array.isArray(parsed.budgets) ? (parsed.budgets as Budget[]) : [],
+    optimizations: Array.isArray(parsed.optimizations)
+      ? (parsed.optimizations as OptimizationItem[])
       : [],
   };
 }
@@ -245,7 +242,7 @@ export function createEstimate(
   estimate: EstimateInput | null | undefined,
   options: CommonOptions = {}
 ): CreateEstimateResult {
-  if (!estimate || !estimate.name) {
+  if (!estimate?.name) {
     return { success: false, error: 'estimate.name is required' };
   }
 
