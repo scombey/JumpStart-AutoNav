@@ -27,6 +27,7 @@ import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import { writeResult } from '../../lib/io.js';
 import { generateAuditReport } from '../../lib/freshness-gate.js';
+import { generateReport as generateInvariantsReport } from '../../lib/invariants-check.js';
 import { type CommandResult, createRealDeps, type Deps } from '../deps.js';
 import { assertUserPath, legacyRequire, safeJoin } from './_helpers.js';
 
@@ -290,12 +291,9 @@ export const scanWrappersCommand = defineCommand({
 // ─────────────────────────────────────────────────────────────────────────
 
 export function invariantsImpl(deps: Deps): CommandResult {
-  const invariants = legacyRequire<{
-    generateReport: (invariantsPath: string, specsDir: string) => Record<string, unknown>;
-  }>('invariants-check');
   const invariantsPath = safeJoin(deps, '.jumpstart', 'invariants.md');
   const specsDir = safeJoin(deps, 'specs');
-  const report = invariants.generateReport(invariantsPath, specsDir);
+  const report = generateInvariantsReport(invariantsPath, specsDir);
   writeResult(report);
   return { exitCode: 0 };
 }
