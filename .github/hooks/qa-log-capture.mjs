@@ -6,8 +6,8 @@
  * the session remains traceable even before an agent asks a follow-up question.
  */
 
-const path = require('path');
-const {
+import path from 'node:path';
+import {
   runCli,
   loadState,
   loadHookState,
@@ -17,7 +17,7 @@ const {
   readTextSafe,
   extractSessionId,
   promptMatchesSignal,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 function qaLogEnabled(root) {
   const configText = readTextSafe(path.join(root, '.jumpstart', 'config.yaml')) || '';
@@ -155,7 +155,7 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   qaLogEnabled,
   ensureQaLogFile,
@@ -165,6 +165,6 @@ module.exports = {
   buildQaEntry,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

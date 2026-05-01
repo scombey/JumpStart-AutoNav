@@ -7,8 +7,8 @@
  * not cite the traced identifiers.
  */
 
-const path = require('path');
-const {
+import path from 'node:path';
+import {
   runCli,
   readJsonSafe,
   loadHookState,
@@ -17,7 +17,7 @@ const {
   extractTargetPath,
   extractSessionId,
   TRACE_ID_RE,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 function normalizeGraph(raw) {
   const nodes = Array.isArray(raw && raw.nodes)
@@ -84,7 +84,7 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   normalizeGraph,
   collectRelatedTraceIds,
@@ -92,6 +92,6 @@ module.exports = {
   inputMentionsTraceIds,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

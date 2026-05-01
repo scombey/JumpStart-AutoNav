@@ -10,10 +10,8 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { execSync } from 'child_process';
-import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 
-const require = createRequire(import.meta.url);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -24,30 +22,33 @@ const HOOKS_DIR = path.join(
   'hooks'
 );
 
-const sessionStart = require(path.join(HOOKS_DIR, 'session-start.js'));
-const preCompact = require(path.join(HOOKS_DIR, 'pre-compact.js'));
-const blockSelfMod = require(path.join(HOOKS_DIR, 'block-agent-self-modification.js'));
-const injectAdr = require(path.join(HOOKS_DIR, 'inject-adr-context.js'));
-const capturePlan = require(path.join(HOOKS_DIR, 'capture-plan.js'));
-const retryEsc = require(path.join(HOOKS_DIR, 'retry-escalation.js'));
-const testCochange = require(path.join(HOOKS_DIR, 'enforce-test-cochange.js'));
-const draftChangelog = require(path.join(HOOKS_DIR, 'draft-changelog.js'));
-const phaseBoundaryGuard = require(path.join(HOOKS_DIR, 'phase-boundary-guard.js'));
-const qaLogCapture = require(path.join(HOOKS_DIR, 'qa-log-capture.js'));
-const schemaOnWriteValidator = require(path.join(HOOKS_DIR, 'schema-on-write-validator.js'));
-const specGraphUpdater = require(path.join(HOOKS_DIR, 'spec-graph-updater.js'));
-const sessionAnalytics = require(path.join(HOOKS_DIR, 'session-analytics.js'));
-const common = require(path.join(HOOKS_DIR, 'lib', 'common.js'));
-const workspaceFingerprint = require(path.join(HOOKS_DIR, 'workspace-fingerprint.js'));
-const phaseGateStatus = require(path.join(HOOKS_DIR, 'phase-gate-status.js'));
-const timelineWarmup = require(path.join(HOOKS_DIR, 'timeline-warmup.js'));
-const promptClassifier = require(path.join(HOOKS_DIR, 'prompt-classifier.js'));
-const ambiguityDetector = require(path.join(HOOKS_DIR, 'ambiguity-detector.js'));
-const specDriftGuard = require(path.join(HOOKS_DIR, 'spec-drift-guard.js'));
-const dangerousOperationEscalator = require(path.join(HOOKS_DIR, 'dangerous-operation-escalator.js'));
-const dependencyRiskPrecheck = require(path.join(HOOKS_DIR, 'dependency-risk-precheck.js'));
-const secretsPathBlocker = require(path.join(HOOKS_DIR, 'secrets-path-blocker.js'));
-const simplicityGateGuard = require(path.join(HOOKS_DIR, 'simplicity-gate-guard.js'));
+// Hooks are now ESM (.mjs) — load them with dynamic import (top-level await).
+const h = (name) => `file://${path.join(HOOKS_DIR, name)}`;
+
+const sessionStart = await import(h('session-start.mjs'));
+const preCompact = await import(h('pre-compact.mjs'));
+const blockSelfMod = await import(h('block-agent-self-modification.mjs'));
+const injectAdr = await import(h('inject-adr-context.mjs'));
+const capturePlan = await import(h('capture-plan.mjs'));
+const retryEsc = await import(h('retry-escalation.mjs'));
+const testCochange = await import(h('enforce-test-cochange.mjs'));
+const draftChangelog = await import(h('draft-changelog.mjs'));
+const phaseBoundaryGuard = await import(h('phase-boundary-guard.mjs'));
+const qaLogCapture = await import(h('qa-log-capture.mjs'));
+const schemaOnWriteValidator = await import(h('schema-on-write-validator.mjs'));
+const specGraphUpdater = await import(h('spec-graph-updater.mjs'));
+const sessionAnalytics = await import(h('session-analytics.mjs'));
+const common = await import(h('lib/common.mjs'));
+const workspaceFingerprint = await import(h('workspace-fingerprint.mjs'));
+const phaseGateStatus = await import(h('phase-gate-status.mjs'));
+const timelineWarmup = await import(h('timeline-warmup.mjs'));
+const promptClassifier = await import(h('prompt-classifier.mjs'));
+const ambiguityDetector = await import(h('ambiguity-detector.mjs'));
+const specDriftGuard = await import(h('spec-drift-guard.mjs'));
+const dangerousOperationEscalator = await import(h('dangerous-operation-escalator.mjs'));
+const dependencyRiskPrecheck = await import(h('dependency-risk-precheck.mjs'));
+const secretsPathBlocker = await import(h('secrets-path-blocker.mjs'));
+const simplicityGateGuard = await import(h('simplicity-gate-guard.mjs'));
 
 function makeSandbox() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'autonav-hooks-'));
@@ -63,7 +64,7 @@ function ctx(root) {
   return { root, now: new Date('2026-04-21T12:00:00Z') };
 }
 
-// ─── session-start.js ────────────────────────────────────────────────────────
+// ─── session-start.mjs ───────────────────────────────────────────────────────
 
 describe('session-start hook', () => {
   let root;

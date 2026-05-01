@@ -1,4 +1,0 @@
-{
-  "type": "commonjs",
-  "_comment": "M9 ESM cutover: every script under .github/hooks/ uses CommonJS syntax (`require`/`module.exports`). The root package.json sets `\"type\": \"module\"`, so without this nested override Node would fail to load these hook scripts as ESM. They are not ported to TS in M9 — they're driven by the outer agent runtime, not by jumpstart-mode itself."
-}

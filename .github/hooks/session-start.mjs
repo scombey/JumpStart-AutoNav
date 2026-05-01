@@ -10,8 +10,8 @@
  * approved artifacts, and resume_context if present.
  */
 
-const path = require('path');
-const {
+import path from 'node:path';
+import {
   runCli,
   loadState,
   readJsonSafe,
@@ -19,7 +19,7 @@ const {
   saveHookState,
   ensureSessionRecord,
   extractSessionId,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 function handle(input, ctx) {
   const state = loadState(ctx.root);
@@ -86,8 +86,8 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = { handle };
+export {handle};
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

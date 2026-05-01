@@ -6,14 +6,14 @@
  * general and records the classification in hook state.
  */
 
-const {
+import {
   runCli,
   loadHookState,
   saveHookState,
   ensureSessionRecord,
   extractSessionId,
   promptMatchesSignal,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 function classifyPrompt(prompt) {
   const text = String(prompt || '').toLowerCase();
@@ -56,11 +56,11 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   classifyPrompt,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

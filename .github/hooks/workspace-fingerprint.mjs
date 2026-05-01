@@ -7,16 +7,16 @@
  * execution context.
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-const {
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
+import {
   runCli,
   loadHookState,
   saveHookState,
   ensureSessionRecord,
   extractSessionId,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 function detectPackageManager(root) {
   if (fs.existsSync(path.join(root, 'pnpm-lock.yaml'))) return 'pnpm';
@@ -84,12 +84,12 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   collectWorkspaceFingerprint,
   detectPackageManager,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

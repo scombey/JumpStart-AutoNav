@@ -16,9 +16,9 @@
  * in-session reminder.
  */
 
-const path = require('path');
-const fs = require('fs');
-const {
+import path from 'node:path';
+import fs from 'node:fs';
+import {
   runCli,
   loadState,
   loadHookState,
@@ -28,7 +28,7 @@ const {
   extractSessionId,
   pathMatchesAny,
   readTextSafe,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const SOURCE_PREFIXES = ['src/', 'bin/', 'lib/'];
 const TEST_PREFIXES = ['tests/', 'test/', '__tests__/'];
@@ -99,7 +99,7 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   isSourceEdit,
   isTestEdit,
@@ -107,6 +107,6 @@ module.exports = {
   TEST_PREFIXES,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

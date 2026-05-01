@@ -9,15 +9,15 @@
  * (Roadmap §IV Upstream Traceability).
  */
 
-const fs = require('fs');
-const path = require('path');
-const {
+import fs from 'node:fs';
+import path from 'node:path';
+import {
   runCli,
   readJsonSafe,
   readTextSafe,
   extractTargetPath,
   pathMatchesAny,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const WATCHED_PREFIXES = ['src/', 'specs/', 'tests/', 'bin/'];
 
@@ -129,8 +129,8 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = { handle, scoreAdrRelevance, WATCHED_PREFIXES };
+export {handle, scoreAdrRelevance, WATCHED_PREFIXES};
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

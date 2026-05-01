@@ -6,14 +6,14 @@
  * beyond the configured simplicity-gate limit.
  */
 
-const fs = require('fs');
-const path = require('path');
-const {
+import fs from 'node:fs';
+import path from 'node:path';
+import {
   runCli,
   extractTargetPath,
   readTextSafe,
-} = require('./lib/common');
-const { countTopLevelDirs, EXCLUDED_DIRS } = require('../../bin/lib/simplicity-gate.js');
+} from './lib/common.mjs';
+import {countTopLevelDirs, EXCLUDED_DIRS} from '../../dist/lib/simplicity-gate.mjs';
 
 function readMaxDirs(root) {
   const config = readTextSafe(path.join(root, '.jumpstart', 'config.yaml')) || '';
@@ -66,12 +66,12 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   analyzePath,
   readMaxDirs,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

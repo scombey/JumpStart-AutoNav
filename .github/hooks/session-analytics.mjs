@@ -7,15 +7,15 @@
  * retried actions. The report lives under `.jumpstart/state/session-analytics/`.
  */
 
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const {
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {
   runCli,
   loadHookState,
   saveHookState,
   extractSessionId,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 function formatDateIsoYearMonthDay(d) {
   return d.toISOString().slice(0, 10);
@@ -146,7 +146,7 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   buildAnalyticsReport,
   countItemsByKey,
@@ -154,6 +154,6 @@ module.exports = {
   safeSessionFileName,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

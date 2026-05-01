@@ -13,14 +13,14 @@
  * that subsequent SessionStart invocations can re-inject them.
  */
 
-const path = require('path');
-const fs = require('fs');
-const {
+import path from 'node:path';
+import fs from 'node:fs';
+import {
   runCli,
   loadState,
   writeJsonSafe,
   readTextSafe,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const NEEDS_CLARIFICATION_RE = /\[NEEDS CLARIFICATION:([^\]]+)\]/g;
 
@@ -128,8 +128,8 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = { handle };
+export {handle};
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

@@ -16,7 +16,7 @@
  * intentionally wants to let the agent modify these files.
  */
 
-const { runCli, extractTargetPath, pathMatchesAny } = require('./lib/common');
+import {runCli, extractTargetPath, pathMatchesAny} from './lib/common.mjs';
 
 const PROTECTED_PREFIXES = [
   '.jumpstart/agents',
@@ -65,8 +65,8 @@ function handle(input) {
   };
 }
 
-module.exports = { handle, PROTECTED_PREFIXES, PROTECTED_FILES };
+export {handle, PROTECTED_PREFIXES, PROTECTED_FILES};
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

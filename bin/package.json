@@ -1,4 +1,0 @@
-{
-  "type": "commonjs",
-  "_comment": "M9 ESM cutover: the root package.json sets `\"type\": \"module\"`, but every legacy script under bin/ (cli.js, bootstrap.js, holodeck.js, headless-runner.js, context7-setup.js, verify-diagrams.js) and every legacy library under bin/lib/*.js still uses CommonJS syntax (`require`/`module.exports`). This nested package.json scopes those .js files back to CommonJS so Node loads them correctly during the RC soak. The legacy strangler tail is removed in the M11 cleanup PR alongside the .test.js files that target it; at that point this file can be deleted."
-}
