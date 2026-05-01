@@ -350,7 +350,7 @@ sha256: null
 |---------|------|-------|-------------|
 | T6.1 | — | `[E6-S1]` | ✅ DONE 2026-04-24 — KU-04 spike integrated in PRD insights; no further action |
 | T6.2 | any | `[E6-S2][ADR-008]` `[Blocker]` | Run `npm owner ls jumpstart-mode`; document Samuel's publish status; coordinate with Jo Otey if not owner. **`[Blocker]` for M9** — must resolve before T5.4 (`npm publish --tag next`) starts; if unresolved, fork to `@scombey/jumpstart-mode` per ADR-008 path (c) |
-| T6.3 | any | `[E6-S3][ADR-008]` | Semver discipline ADR finalized: patch-per-module vs minor-per-migration-batch |
+| T6.3 ✅ | any | `[E6-S3][ADR-008][ADR-014]` | Semver discipline ADR finalized: patch-per-module vs minor-per-migration-batch — **DONE** (ADR-008 covered strangler phase; ADR-014 covers post-2.0 steady state) |
 | T6.4 | any | `[E6-S4]` | Author `docs/upgrade-to-2.0.md`: Node ≥24 requirement, ESM-only, breaking changes, migration examples |
 | T6.5 | any | `[E6-S5]` | Maintain `CHANGELOG.md` throughout: every 1.x release + 2.0 cutover |
 
@@ -358,7 +358,7 @@ sha256: null
 
 | Task ID | Description |
 |---------|-------------|
-| T6.6 `[P]` | Enable `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` in tsconfig; fix any new errors |
+| T6.6 `[P]` ✅ | Enable `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` in tsconfig; fix any new errors — **DONE** (flags enabled in `tsconfig.json:18-19`; `tsc --noEmit` clean) |
 | T6.7 `[P]` ✅ | Remove strangler scaffolding artifacts (unused PR templates, dual-resolution aliases if any linger) — **DONE** 2026-05-01 |
 | T6.8 `[P]` | Final retrospective: author `specs/retrospectives/rewrite-retrospective.md` capturing what worked, what didn't, lessons for future major migrations |
 | T6.9 `[P]` | **Architecture Turn-2 commitment**: author Level-3 Component Diagrams for `CLI Dispatcher` and `Core Lib` containers per architecture.md §Component Interaction Diagram diagram-level note. Output: `specs/architecture-l3-cli-dispatcher.md` + `specs/architecture-l3-core-lib.md` with `C4Component` Mermaid diagrams. Verifies via `node bin/verify-diagrams.js` |
