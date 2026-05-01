@@ -58,7 +58,10 @@ jobs:
             echo "::error::dist/cli/bin.mjs not emitted by tsdown"
             exit 1
           fi
-          head -c 19 dist/cli/bin.mjs | diff - <(echo '#!/usr/bin/env node') || {
+          # Compare exactly the first 19 bytes against the literal shebang
+          # via printf (no trailing newline) so the byte-for-byte cmp holds.
+          # Using `echo` would inject a trailing \n and false-positive.
+          head -c 19 dist/cli/bin.mjs | cmp - <(printf '%s' '#!/usr/bin/env node') || {
             echo "::error::dist/cli/bin.mjs shebang missing or corrupted (per SEC-005 NFR-R04)"
             exit 1
           }
