@@ -1,26 +1,21 @@
 /**
- * lifecycle.ts — Lifecycle / state cluster (T4.7.2 batch 2).
+ * lifecycle.ts — Lifecycle / state command cluster.
  *
- * Ports the following bin/cli.js subcommands into citty `defineCommand`s:
- *   - approve            (approve.approveArtifact, lib-ts)
- *   - reject             (approve.rejectArtifact, lib-ts)
- *   - checkpoint         (state-store.createCheckpoint/list/restore, lib-ts)
- *   - agent-checkpoint   (legacy bin/lib/agent-checkpoint.js)
- *   - focus              (focus.buildFocusConfig/writeFocusToConfig/clearFocusFromConfig/getFocusStatus, lib-ts)
- *   - init               (legacy bin/lib/init.mjs — ESM, dynamic import)
- *   - lock               (locks.acquireLock/releaseLock/lockStatus/listLocks, lib-ts)
- *   - memory             (legacy bin/lib/project-memory.js — but lib-ts port exists; uses legacyRequire to match cli.js)
- *   - rewind             (rewind.rewindToPhase, lib-ts)
- *   - next               (next-phase.determineNextAction, lib-ts)
- *   - plan-executor      (lib-ts: ported in M11 batch 5)
- *
- * **Skipped**: `status` is the marketplace-status branch in bin/cli.js
- * (lines ~1505-1528) — it's not a phase/framework status command. Kept
- * out of this cluster pending a separate marketplace-status port.
+ * Citty subcommands:
+ *   - approve            (approveArtifact)
+ *   - reject             (rejectArtifact)
+ *   - checkpoint         (createCheckpoint / list / restore)
+ *   - agent-checkpoint   (per-agent checkpoint state)
+ *   - focus              (buildFocusConfig + writeFocusToConfig + clearFocusFromConfig + getFocusStatus)
+ *   - init               (project init)
+ *   - lock               (acquireLock + releaseLock + lockStatus + listLocks)
+ *   - memory             (project-memory)
+ *   - rewind             (rewindToPhase)
+ *   - next               (determineNextAction)
+ *   - plan-executor      (plan-executor)
  *
  * Pattern: each leaf command is a `defineCommand` exported as
  * `<name>Command`. Pure logic lives in `<name>Impl(deps, args)`.
- *
  */
 
 import { existsSync } from 'node:fs';

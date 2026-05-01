@@ -44,7 +44,7 @@ Controls how much process rigor the framework applies:
 | **Standard** | Most projects | Full spec workflow with all quality gates |
 | **Rigorous** | Enterprise, regulated, high-risk | Adversarial review, peer review, strict TDD, security audits |
 
-See [Ceremony Profiles](../bin/lib/ceremony.js) for the full settings each profile applies.
+See [Ceremony Profiles](../src/lib/ceremony.ts) for the full settings each profile applies.
 
 ## What Happens After
 

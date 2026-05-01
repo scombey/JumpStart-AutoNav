@@ -128,9 +128,10 @@ type Handler = (args: Record<string, unknown>) => Promise<unknown> | unknown;
 
 /**
  * Try a list of module specifiers in order; return the first one that
- * resolves. Used by the item-tagged feature handlers so a partially-
- * ported sibling tree (some modules in `bin/lib-ts/`, others still in
- * `bin/lib/`) keeps working through the strangler phase.
+ * resolves. Lazy-loads sibling lib modules behind item-tagged feature
+ * handlers so the tool-bridge module's import graph stays narrow at
+ * load time — siblings only resolve when their tool is actually
+ * invoked.
  */
 async function dynImportFirst(specifiers: string[]): Promise<Record<string, unknown> | null> {
   for (const spec of specifiers) {
@@ -398,7 +399,6 @@ export function createToolBridge(options: ToolBridgeOptions): ToolBridge {
 
     async marketplace_install(args) {
       try {
-        // Prefer the TS port; fall back to legacy JS during strangler phase.
         const installModule = await dynImportFirst(['./install.js', '../lib/install.js']);
         if (!installModule) {
           return { success: false, error: 'install module unavailable' };

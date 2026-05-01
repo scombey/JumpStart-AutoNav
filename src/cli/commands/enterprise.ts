@@ -1,34 +1,18 @@
 /**
- * enterprise.ts — Enterprise / platform / codebase-intel / misc cluster
- * (T4.7.2 batch 9 — FINAL).
- *
- * Ports the residual `bin/cli.js` subcommands not covered by batches 1-8.
- * Per the strangler pattern, each command here is a **thin wrapper** that
- * delegates to its legacy `bin/lib/<name>.js` implementation via
- * `legacyRequire()`. Once a lib has a `src/lib/*.ts` port, the
- * top-level ES import takes over (see lifecycle.ts and runners.ts for
- * canonical examples).
+ * enterprise.ts — Enterprise / platform / codebase-intel / misc cluster.
  *
  * Per-command structure:
  *   - `<name>Args` interface — citty-style typed args.
  *   - `<name>Impl(deps, args)` — pure function returning `CommandResult`.
  *   - `<name>Command` — `defineCommand` with `meta.name` and `run()`.
  *
- * **Architectural rules** (per the request and ADR-006/-009):
+ * Architectural rules (per ADR-006/-009):
  *   1. Public surface preserved (every command name is reachable).
  *   2. Named exports for both `<name>Command` and `<name>Impl`.
- *   3. Any user-supplied path routed through `assertUserPath()`.
+ *   3. Any user-supplied path routes through `assertUserPath()`.
  *   4. No `process.exit()` — return `CommandResult { exitCode }`.
  *   5. `.js` extensions on all relative imports.
- *   6. Top-level ES imports for lib-ts (none in this batch — all use
- *      `legacyRequire`).
- *
- * **Skipped** (not in this batch):
- *   - `quickstart` — interactive prompts wizard, requires `prompts` lib
- *     and the install() entry point; out-of-scope for a thin port.
- *   - `self-evolve`, `summarize`, `validate-all`, `timeline` — also
- *     interactive / large-scope; deferred.
- *
+ *   6. Top-level ES imports for sibling lib modules.
  */
 
 import { defineCommand } from 'citty';

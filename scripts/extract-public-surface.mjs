@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 /**
- * extract-public-surface.mjs — T3.1 cross-module contract harness.
+ * extract-public-surface.mjs — cross-module contract harness.
  *
- * AST-based public-surface extractor for the strangler-phase codebase.
- * Walks `src/lib/**\/*.ts` (ported, preferred) and `bin/lib/**\/*.js`
- * (legacy) and cross-references method calls against class declarations
- * to detect drift of the form that bit us in v1.1.13: a class declared
- * 4 methods, the caller invoked 12, and CI never noticed because the
+ * AST-based public-surface extractor. Walks `src/lib/**\/*.ts` and
+ * cross-references method calls against class declarations to detect
+ * drift of the form that bit us in v1.1.13: a class declared 4
+ * methods, the caller invoked 12, and CI never noticed because the
  * missing methods only threw on the first phase-validation error.
  *
  * Detection scope (conservative — false-positive-averse):
@@ -346,9 +345,7 @@ for (const root of roots) {
     }
 
     for (const [name, methods] of result.declaredClasses) {
-      // First-declaration wins. Order is src/lib → bin/lib so the TS
-      // port (now canonical post-M9) replaces any legacy JS that lingers
-      // in a downstream consumer (Pit Crew Reviewer B1).
+      // First-declaration wins.
       if (!allClasses.has(name)) {
         allClasses.set(name, { file: relPath, methods });
       }
@@ -393,9 +390,9 @@ for (const { file, instantiations, methodCalls } of fileResults) {
 }
 
 // False-green guard: the default-roots scan must find at least one file.
-// If `src/lib/` and `bin/lib/` are both empty (deleted, mis-checked-out,
-// CI working dir wrong), the harness would otherwise report "0 drift" and
-// publish a forever-clean trend. (Pit Crew QA 3.)
+// If `src/lib/` is empty (deleted, mis-checked-out, CI working dir
+// wrong), the harness would otherwise report "0 drift" and publish a
+// forever-clean trend.
 const usingDefaultRoots = explicitRoots === null;
 const totalFiles = tsCount + jsCount;
 if (usingDefaultRoots && totalFiles === 0) {

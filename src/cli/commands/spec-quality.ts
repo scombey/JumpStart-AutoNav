@@ -1,27 +1,24 @@
 /**
- * spec-quality.ts — Spec-quality cluster (T4.7.2 batch 5).
+ * spec-quality.ts — Spec-quality command cluster.
  *
- * Ports the following bin/cli.js subcommands into citty `defineCommand`s:
- *   - ambiguity-heatmap     (lib-ts: scanFile + generateHeatmap)
- *   - complexity            (lib-ts: calculateComplexity)
- *   - context-chunker       (lib-ts: chunkImplementationPlan)
- *   - crossref              (lib-ts: validateCrossRefs)
- *   - ast-edit              (lib-ts: analyzeStructure)
- *   - dashboard             (lib-ts: gatherDashboardData + renderDashboardText)
- *   - ceremony              (lib-ts: getProfileSummary + getProfileDescription
+ * Citty subcommands:
+ *   - ambiguity-heatmap     (scanFile + generateHeatmap)
+ *   - complexity            (calculateComplexity)
+ *   - context-chunker       (chunkImplementationPlan)
+ *   - crossref              (validateCrossRefs)
+ *   - ast-edit              (analyzeStructure)
+ *   - dashboard             (gatherDashboardData + renderDashboardText)
+ *   - ceremony              (getProfileSummary + getProfileDescription
  *                              + compareProfiles + VALID_PROFILES)
- *   - refactor-planner      (lib-ts: generateReport)
- *   - quality-graph         (lib-ts: scanQuality)
- *   - bidirectional-trace   (lib-ts: scanTraceLinks + buildCoverageReport)
- *   - domain-ontology       (lib-ts: defineElement + queryOntology + generateReport)
- *   - event-modeling        (legacy bin/lib/event-modeling.js — NO lib-ts port,
- *                              loaded via legacyRequire)
+ *   - refactor-planner      (generateReport)
+ *   - quality-graph         (scanQuality)
+ *   - bidirectional-trace   (scanTraceLinks + buildCoverageReport)
+ *   - domain-ontology       (defineElement + queryOntology + generateReport)
+ *   - event-modeling        (full namespace import)
  *
  * Pattern: each leaf command is a `defineCommand` exported as
- * `<name>Command`. Pure logic lives in `<name>Impl(deps, args)`. All
- * lib-ts imports are TOP-LEVEL ES imports per lifecycle.ts canonical
- * pattern. Only `event-modeling` (no TS port) goes through legacyRequire.
- *
+ * `<name>Command`. Pure logic lives in `<name>Impl(deps, args)`. Lib
+ * imports are TOP-LEVEL ES imports per the canonical cluster pattern.
  */
 
 import { defineCommand } from 'citty';

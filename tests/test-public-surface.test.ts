@@ -1,19 +1,17 @@
 /**
- * test-public-surface.test.ts — T3.1 + T3.3 acceptance gate.
+ * test-public-surface.test.ts — cross-module drift harness gate.
  *
- * Two assertions per Checkpoint C3:
- *   1. Run harness against current `bin/lib/` + `src/lib/` (i.e. v1.1.14
- *      main + any sub-commits since the rewrite-baseline tag) — must
+ * Two assertions:
+ *   1. Run the harness against the current `src/lib/` tree — must
  *      report ZERO drift incidents.
- *   2. Run harness against the synthetic T3.2 fixture — must report
- *      EXACTLY 8 `missing_method` incidents, each with a `file:line`
- *      reference.
+ *   2. Run the harness against the synthetic drift fixture — must
+ *      report EXACTLY 8 `missing_method` incidents, each with a
+ *      `file:line` reference.
  *
- * If either fails, the harness has either (a) silently broken or (b)
- * accidentally surfaced a real drift in main that needs a fix-drift PR.
+ * If either fails, the harness has either silently broken or
+ * accidentally surfaced a real drift on main.
  *
  * @see scripts/extract-public-surface.mjs
- * @see specs/implementation-plan.md T3.1, T3.2, T3.3, Checkpoint C3
  * @see tests/fixtures/contract-drift/simulation-tracer-vs-holodeck/README.md
  */
 
@@ -91,17 +89,15 @@ describe('public-surface contract harness (T3.1 + T3.3 acceptance)', () => {
     }
   });
 
-  it('reports zero drift on current main (T3.3 acceptance #1)', () => {
-    // Default scan roots: src/lib + bin/lib (set by the script itself).
+  it('reports zero drift on current main', () => {
+    // Default scan roots: src/lib (set by the script itself).
     const { report, status } = runHarness(null);
     expect(status).toBe(0);
     if (!report) throw new Error('harness produced no report');
 
-    // The harness must have scanned SOMETHING. Hard-coded floors like
-    // "≥100 JS files" rot as ports complete in M5-M8 and legacy JS gets
-    // deleted; that would convert this test into a false-failure on
-    // every M2+ port PR. Pinning total > 0 is the actual invariant
-    // (Pit Crew Reviewer H4').
+    // The harness must have scanned SOMETHING. Pinning total > 0 is
+    // the actual invariant — any hard-coded floor would rot as the
+    // surface evolves.
     expect(report.scanned.tsFiles + report.scanned.jsFiles).toBeGreaterThan(0);
     expect(report.scanned.callSites).toBeGreaterThan(0);
 
@@ -177,15 +173,12 @@ describe('public-surface contract harness (T3.1 + T3.3 acceptance)', () => {
     expect(driftIncidents).toHaveLength(0);
   });
 
-  it('exits non-zero on default-scan with empty roots (Pit Crew QA 3 false-green guard)', () => {
-    // Point the harness at a non-existent --root explicitly. Since
-    // --root is provided we DO get the empty-scan-zero-incidents
-    // outcome (the false-green guard only fires on the default-roots
-    // path); but we use a one-off tmp dir with no source files to
-    // assert the harness happily produces a 0-incident report there.
-    // The DEFAULT-roots false-green case is exercised by the harness's
-    // own self-check in the smoke harness above (no source files in
-    // src/lib/ + bin/lib/ would have crashed every prior test).
+  it('reports zero incidents on an explicit empty --root (false-green guard inverse)', () => {
+    // Point the harness at an explicit empty --root. With `--root`
+    // provided we DO get the empty-scan-zero-incidents outcome; the
+    // default-roots false-green guard only fires when no `--root` is
+    // passed (covered by the main smoke harness above, which would
+    // have crashed every prior test if `src/lib/` were missing).
     const tmpDir = mkdtempSync(path.join(tmpdir(), 'drift-empty-'));
     const { report, status } = runHarness(tmpDir);
     rmSync(tmpDir, { recursive: true, force: true });

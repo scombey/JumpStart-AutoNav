@@ -51,7 +51,6 @@ const MIN_FIXTURED_MODULES = 5;
  *  These are pure-library modules — adding IPC fixtures for them
  *  would be misleading. */
 const NON_IPC_MODULES = new Set<string>([
-  '_smoke', // M0 smoke-test scaffolding
   'errors', // pure error types
   'path-safety', // pure validation
   'secret-scanner', // pure regex catalog

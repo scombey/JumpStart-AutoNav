@@ -166,34 +166,6 @@ describe('Pit Crew M8 HIGH (Adversary 5) — diffImpl gates user path', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────
-// REMOVED — legacyRequire NODE_PATH-injection regression pin
-// ─────────────────────────────────────────────────────────────────────────
-// The M8 Pit Crew regression pins on `legacyRequire` (Adversary 3 —
-// reject unsafe lib names) are gone: `legacyRequire` and `legacyImport`
-// were both deleted in M11 phase 5e (#34/#53), at which point the
-// underlying attack surface (NODE_PATH module hijack via bare relative
-// require, traversal-shaped lib names, null-byte injection) ceased to
-// exist. Every cluster file in `src/cli/commands/*` now uses static ESM
-// imports of typed `src/lib/*` ports — no runtime path resolution from
-// caller-controlled strings remains. The `safeJoin` and `assertUserPath`
-// pins above continue to exercise the path-safety surface that DOES
-// still apply (user-supplied artifact paths in `validate`/`smells`/
-// `handoff-check`/`coverage`/`diff` etc.).
-
-// ─────────────────────────────────────────────────────────────────────────
-// REMOVED — diff-cli-help.mjs swap-point pin (M11 strangler-cleanup)
-// ─────────────────────────────────────────────────────────────────────────
-// The M8 Pit Crew regression pin on `scripts/diff-cli-help.mjs` is gone:
-// the script existed only as a developer-side diagnostic to compare the
-// legacy `bin/cli.js` --help output against the new citty CLI during the
-// strangler window. Both inputs (the script + `bin/cli.js`) were deleted
-// in M11 strangler-cleanup phase 4 (#34), at which point the pin became
-// asserting on a non-existent file. Removing the test is the correct
-// follow-on; the underlying invariant (CLI command surface stability)
-// is covered by the citty schema and the cluster-files smoke test in
-// `tests/test-m9-pitcrew-regressions.test.ts`.
-
-// ─────────────────────────────────────────────────────────────────────────
 // MED (QA 4) — FRAMEWORK_VERSION read from package.json
 // ─────────────────────────────────────────────────────────────────────────
 

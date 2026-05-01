@@ -157,22 +157,6 @@ describe('Pit Crew M9 BLOCKER B2 — bin.ts secrets redaction', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────
-// REMOVED — legacyRequire/legacyImport anchor pin (M11 phase 5e cleanup)
-// ─────────────────────────────────────────────────────────────────────────
-// The M9 BLOCKER B3 pin guaranteed `legacyRequire`/`legacyImport`
-// resolved relative to `import.meta.url` (module-anchored) rather than
-// `process.cwd()` (attacker-controlled). Both helpers + the entire
-// `bin/lib/*` tree they resolved against were deleted in M11 phase 5e
-// (#34/#53). The attack surface (NODE_PATH module hijack, cwd-poisoning,
-// .mjs→.js fallback string-matching) is therefore gone — every cluster
-// file now uses static `import * as <X> from '../../lib/<X>.js'` of
-// typed TS ports, which Node resolves through the standard ESM module
-// graph with no caller-controlled string resolution. Removing the
-// pinned tests in this commit; the path-safety pins above (`safeJoin`,
-// `assertUserPath`) continue to cover the user-input surface that
-// remains.
-
-// ─────────────────────────────────────────────────────────────────────────
 // HIGH H6 — async impls exercised past the early-return guard
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -291,16 +275,6 @@ describe('Pit Crew M9 HIGH H7 — cluster files smoke', () => {
     expect(typeof mod.timestampImpl).toBe('function');
   });
 });
-
-// ─────────────────────────────────────────────────────────────────────────
-// REMOVED — legacyImport ENOENT detection pin (M11 phase 5e cleanup)
-// ─────────────────────────────────────────────────────────────────────────
-// The MED M6 fix — using `err.code === 'ERR_MODULE_NOT_FOUND'` instead
-// of regex-matching the English error message — applied to the
-// `legacyImport` helper, which was deleted in phase 5e along with
-// `bin/lib/*`. No remaining code path in `src/` does dynamic module
-// resolution from caller-supplied strings, so the original regression
-// can no longer occur.
 
 afterAll(() => {
   // The build artifacts are shared with other test files; do NOT remove
