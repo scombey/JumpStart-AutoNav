@@ -1,16 +1,27 @@
 /**
  * versioning.ts — git-tag-driven spec versioning.
  *
- * Tags use the scheme `spec/<artifact>/vX.Y.Z`. The "auto-bump minor
- * on tag" semver heuristic and the spec-file frontmatter injection
- * logic are part of the contract.
+ * Stamps spec artifacts with git tags of the form `spec/<artifact>/vX.Y.Z`,
+ * auto-bumping the minor on each new tag and injecting the version into
+ * the spec file's YAML frontmatter.
  *
- * **Security note (ADR-009):** all five exports use the array-args
- * form of execFileSync so arguments pass to git directly without
- * shell interpretation. A shell-template implementation would have
- * run a malicious tag-message such as `"; rm -rf ~"` against the
- * user's shell; the array form rejects those as literal strings
- * (git's own validation handles them).
+ * Public surface:
+ *   - `generateTag(artifactName, version)` => string
+ *   - `getNextVersion(artifactName, cwd?)` => string
+ *   - `createVersionTag(...)` => CreateTagResult
+ *   - `injectVersion(filePath, version)` => boolean
+ *   - `listVersions(cwd?)` => VersionEntry[]
+ *
+ * Invariants:
+ *   - Tag format: `spec/<artifactName>/v<version>`.
+ *   - "Auto-bump minor on tag" semver heuristic; falls back to `1.0.0`
+ *     when no prior tags exist or git is unavailable.
+ *
+ * Security note: all five exports use the array-args form of
+ * `execFileSync` so `artifactName`, `version`, and `message` pass to
+ * git directly without shell interpretation. Inputs containing shell
+ * metacharacters reach git as literal strings and are rejected by
+ * git's own validation.
  *
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
  */
