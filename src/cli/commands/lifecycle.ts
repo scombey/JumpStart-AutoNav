@@ -27,6 +27,7 @@
  */
 
 import { existsSync } from 'node:fs';
+import * as path from 'node:path';
 import { defineCommand } from 'citty';
 import * as legacyAgentCheckpoint from '../../lib/agent-checkpoint.js';
 import {
@@ -46,6 +47,11 @@ import {
   writeFocusToConfig,
 } from '../../lib/focus.js';
 import { generateInitConfig as initGenerateInitConfig } from '../../lib/init.js';
+import {
+  type ConflictStrategy,
+  installBootstrap,
+  type ProjectType,
+} from '../../lib/install-bootstrap.js';
 import { writeResult } from '../../lib/io.js';
 import { acquireLock, listLocks, lockStatus, releaseLock } from '../../lib/locks.js';
 import { determineNextAction } from '../../lib/next-phase.js';
@@ -931,5 +937,120 @@ export const planExecutorCommand = defineCommand({
       json: Boolean(args.json),
     });
     if (r.exitCode !== 0) throw new Error(r.message ?? 'plan-executor failed');
+  },
+});
+
+// ─────────────────────────────────────────────────────────────────────────
+// bootstrap (M11 follow-up #50 — port of the deleted `bin/cli.js`
+// install flow with --conflict skip|overwrite|merge support)
+// ─────────────────────────────────────────────────────────────────────────
+
+const VALID_CONFLICT_STRATEGIES: readonly ConflictStrategy[] = ['skip', 'overwrite', 'merge'];
+const VALID_PROJECT_TYPES: readonly ProjectType[] = ['greenfield', 'brownfield'];
+
+export const bootstrapCommand = defineCommand({
+  meta: {
+    name: 'bootstrap',
+    description: 'Install the Jump Start framework into a target project directory (Item 79)',
+  },
+  args: {
+    targetDir: {
+      type: 'positional',
+      description: 'Target project directory (defaults to cwd)',
+      required: false,
+    },
+    name: {
+      type: 'string',
+      description: 'Project name (persisted to config.yaml)',
+      required: false,
+    },
+    approver: {
+      type: 'string',
+      description: 'Approver identity (persisted to config.yaml)',
+      required: false,
+    },
+    type: {
+      type: 'string',
+      description: `Project type: ${VALID_PROJECT_TYPES.join(' | ')} (auto-detected if omitted)`,
+      required: false,
+    },
+    conflict: {
+      type: 'string',
+      description: `Conflict strategy: ${VALID_CONFLICT_STRATEGIES.join(' | ')} (default: skip)`,
+      required: false,
+    },
+    copilot: {
+      type: 'boolean',
+      description: 'Include .github/ Copilot integration files',
+      required: false,
+    },
+    force: {
+      type: 'boolean',
+      description: 'Force-overwrite existing files (alias for --conflict overwrite)',
+      required: false,
+    },
+    dryRun: {
+      type: 'boolean',
+      description: 'Report what would happen without writing files',
+      required: false,
+    },
+    json: { type: 'boolean', description: 'JSON output mode', required: false },
+  },
+  async run({ args }) {
+    const targetDir = args.targetDir ?? process.cwd();
+    const conflict = args.conflict;
+    if (
+      conflict !== undefined &&
+      !VALID_CONFLICT_STRATEGIES.includes(conflict as ConflictStrategy)
+    ) {
+      throw new Error(
+        `Invalid --conflict value: ${conflict}. Must be one of: ${VALID_CONFLICT_STRATEGIES.join(', ')}`
+      );
+    }
+    const projectType = args.type;
+    if (projectType !== undefined && !VALID_PROJECT_TYPES.includes(projectType as ProjectType)) {
+      throw new Error(
+        `Invalid --type value: ${projectType}. Must be one of: ${VALID_PROJECT_TYPES.join(', ')}`
+      );
+    }
+
+    const result = await installBootstrap({
+      targetDir,
+      projectName: args.name,
+      approverName: args.approver,
+      projectType: projectType as ProjectType | undefined,
+      conflictStrategy: conflict as ConflictStrategy | undefined,
+      copilot: Boolean(args.copilot),
+      force: Boolean(args.force),
+      dryRun: Boolean(args.dryRun),
+    });
+
+    if (args.json) {
+      writeResult(result as unknown as Record<string, unknown>);
+      return;
+    }
+
+    const deps = createRealDeps();
+    deps.logger.success(`Jump Start installed → ${path.resolve(targetDir)}`);
+    if (result.stats.copied.length > 0) {
+      deps.logger.info(`  Files copied:    ${result.stats.copied.length}`);
+    }
+    if (result.stats.created.length > 0) {
+      deps.logger.info(`  Dirs created:    ${result.stats.created.length}`);
+    }
+    if (result.stats.merged.length > 0) {
+      deps.logger.info(`  Files merged:    ${result.stats.merged.length}`);
+    }
+    if (result.stats.skipped.length > 0) {
+      deps.logger.warn(`  Files skipped:   ${result.stats.skipped.length}`);
+    }
+    if (result.skipWarningEmitted.length > 0) {
+      deps.logger.warn(
+        `  Integration warning persisted to .jumpstart/state/install-warnings.md (${result.skipWarningEmitted.join(', ')} skipped — re-run with --conflict merge to embed instructions).`
+      );
+    }
+    if (result.appliedAnswers.length > 0) {
+      deps.logger.info(`  Bootstrap answers applied: ${result.appliedAnswers.join(', ')}`);
+    }
   },
 });

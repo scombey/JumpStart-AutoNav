@@ -147,6 +147,7 @@ const subCommands: Record<string, () => Promise<CommandDef>> = {
   ),
   focus: lazy(() => import('./commands/lifecycle.js').then((m) => m.focusCommand)),
   init: lazy(() => import('./commands/lifecycle.js').then((m) => m.initCommand)),
+  bootstrap: lazy(() => import('./commands/lifecycle.js').then((m) => m.bootstrapCommand)),
   'context7-setup': lazy(() =>
     import('./commands/lifecycle.js').then((m) => m.context7SetupCommand)
   ),
