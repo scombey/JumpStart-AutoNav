@@ -8,7 +8,87 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-No changes since `2.0.0-rc.1`.
+The 2.0.0-rc.1 → 2.0.0 promotion path. M11 strangler-cleanup is complete: the
+`bin/lib/*` legacy CommonJS tree has been deleted, the bootstrap install ported,
+and ~280 stale migration-history comments swept across `src/lib/*.ts`.
+
+### Added
+
+- **`bootstrap` citty subcommand** (#63) — explicit subcommand replaces the 1.x
+  bare-positional bootstrap (`npx jumpstart-mode . --type brownfield --conflict merge`).
+  All three conflict strategies (`skip`, `overwrite`, `merge`) preserve their
+  1.x semantics. New `src/lib/install-bootstrap.ts` (700 LoC) with 29-test
+  suite covering the merge flow's `<!-- BEGIN JUMPSTART MERGE: <file> -->`
+  marker contract.
+- **`context7-setup` citty subcommand** (#54) — moved out of the `bin/cli.js`
+  monolith into its own command module.
+- **17 orphan legacy modules ported** (#55) — finops-planner, sla-slo,
+  spec-comments, telemetry-feedback, transcript-ingestion, and 12 others.
+  Brings `src/lib/*.ts` to 113 modules; zero `bin/lib/*` survivors.
+
+### Changed
+
+- **Strangler-fig migration complete.** `bin/lib/*.{js,mjs}` deleted entirely
+  (#52, #60). The 5,359-line `bin/cli.js` monolith deleted (#52). `bin/`
+  retains only `bootstrap.js` (the `npx jumpstart-framework init` shim).
+- **All hooks converted to ESM** (#62) — `.github/hooks/*.{js,mjs}` ported;
+  the four remaining `bin/lib/*.js` files referenced by hooks were the last
+  CJS holdouts and are now gone.
+- **`legacyRequire`/`legacyImport` removed** (#58) — every CLI command cluster
+  now uses static ESM imports of typed `src/lib/*` ports. The runtime
+  path-resolution attack surface (NODE_PATH module hijack, cwd-poisoning,
+  `.mjs`→`.js` fallback string-matching) ceases to exist.
+- **Documentation freshness pass** (#49) — `docs/upgrade-to-2.0.md` updated
+  to cover the scoped package name, strict TypeScript flags, and the
+  6-bucket breaking-change taxonomy from ADR-014.
+- **Migration-history comment sweep** (#65) — ~280 stale references to
+  `bin/lib/X.js`, `M9 ESM cutover`, `Pure-library port of ...`, and other
+  port-era framing removed across `src/lib/*.ts` and `src/cli/`. Net
+  diff: 200 files, **-576 lines**. The codebase now reads as a fresh
+  TypeScript project rather than a migration log.
+
+### Fixed
+
+- **`src/lib/install.ts` `FRAMEWORK_VERSION` was hardcoded to `'1.1.14'`** (#65) —
+  the marketplace User-Agent header and `checkCompatibility` semver gate
+  consumed a stale string while the package shipped 2.0.0-rc.1. Now reads at
+  runtime from `package.json` via `getPackageVersion(packageRoot)` anchored
+  at `import.meta.url`. Regression test added.
+- **`src/lib/config-loader.ts` `maybeApplyCeremonyProfile` was a no-op stub** (#65) —
+  `light` and `rigorous` ceremony profiles silently never expanded; the
+  function returned `profileApplied: null` for every input. Now wired to
+  the real `applyProfile` from `./ceremony.js`. Two new tests cover both
+  expansion paths.
+
+### Removed
+
+- **`bin/lib/*.{js,mjs}` legacy tree** — see "Changed" above. Public exports
+  preserved by name + signature in `src/lib/*.ts`; `package.json` `exports`
+  map enumerates the canonical paths.
+- **`bin/cli.js` monolith** — replaced by `dist/cli/bin.mjs` (npm-bin entry)
+  + `dist/cli/main.mjs` (citty dispatcher) + `dist/cli/commands/*.mjs`
+  (lazy command modules).
+- **47 legacy `.test.js` parity tests** (#60, #59, #57, #56) — converted to
+  TS-port imports or deleted as redundant once the underlying `bin/lib/*`
+  was gone.
+- **Stale `$schema` ref in `.github/hooks/autonav.json`** (#64) — pointed at
+  a non-existent JSON-schema file.
+- **`src/lib/_smoke.ts`** (PR #66, T6.7) — M0 toolchain smoke artifact;
+  the `@lib/*` alias is implicitly exercised by every test.
+- **Migration-tombstone comment blocks** in `tests/test-m{8,9}-pitcrew-regressions.test.ts`
+  (PR #66, T6.7) — paragraph-long explanations of REMOVED tests once the
+  underlying `legacyRequire`/`legacyImport` attack surface was gone.
+
+### Specs
+
+- **ADR-014** authored (PR #67, T6.3) — post-2.0 steady-state semver discipline.
+  Standard semver, 7-trigger breaking-change taxonomy, dist-tag policy
+  (`next` for RCs ≥7d soak, `latest` for promoted, `1.x` for legacy
+  security patches). Supersedes ADR-008's strangler-phase semver rule.
+- **ADR-005** marked Executed (PR #66, T6.7) — strangler-fig collapse
+  prescribed by the ADR is complete; document preserved as historical
+  record.
+- **`specs/implementation-plan.md`** — T6.3, T6.4, T6.6, T6.7 marked DONE.
 
 ## [2.0.0-rc.1] — 2026-04-29 — M9 ESM Cutover (Stage 5)
 

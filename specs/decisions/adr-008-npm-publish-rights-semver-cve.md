@@ -21,6 +21,10 @@ sha256: null
 # ADR-008: npm Publish Rights + Semver Discipline + CVE-to-Patch SLA
 
 > **Status:** Accepted · **Date:** 2026-04-24 · **Decision Maker:** The Architect
+>
+> The §Semver discipline section governs the **1.x strangler-phase line only**.
+> Post-2.0 steady-state semver is covered by [ADR-014](./adr-014-post-2.0-semver.md);
+> the npm-rights and CVE-SLA sections of this ADR remain in force.
 
 ---
 

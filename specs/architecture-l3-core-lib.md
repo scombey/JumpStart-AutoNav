@@ -1,10 +1,10 @@
 # Level-3 Component Diagram — Core Lib
 
-**Container under decomposition:** `Core Lib (Ports of bin/lib/*)` (from `specs/architecture.md` §Component Interaction Diagram, Level 2).
+**Container under decomposition:** `Core Lib` (from `specs/architecture.md` §Component Interaction Diagram, Level 2).
 
-**Source tree:** `src/lib/` (111 modules post-M9 cutover).
+**Source tree:** `src/lib/` (165 modules — the canonical TypeScript surface; the strangler-phase `bin/lib/*` legacy tree was retired in M11).
 
-This diagram lists the Core Lib's components grouped by cluster — the same clusters Scout identified in the legacy `bin/lib/` codebase and that the implementation plan's port stages (Stage 4.1 through 4.7) tracked individually. Showing every one of the 111 modules would defeat the diagram's purpose; the components below are **cluster anchors** — the module that the rest of the cluster depends on. The full module list per cluster lives in `specs/architecture.md` §System Components.
+This diagram lists the Core Lib's components grouped by cluster — the same clusters Scout identified in the legacy `bin/lib/` codebase and that the implementation plan's port stages (Stage 4.1 through 4.7) tracked individually. Showing every one of the 165 modules would defeat the diagram's purpose; the components below are **cluster anchors** — the module that the rest of the cluster depends on. The full module list per cluster lives in `specs/architecture.md` §System Components.
 
 > **Turn-2 commitment.** This file (alongside [`architecture-l3-cli-dispatcher.md`](./architecture-l3-cli-dispatcher.md)) fulfills the Architect Turn-2 promise from `architecture.md` §Component Interaction Diagram. Implementation tracker: T6.9.
 
@@ -12,7 +12,7 @@ This diagram lists the Core Lib's components grouped by cluster — the same clu
 
 ```mermaid
 C4Component
-    title Component Diagram — Core Lib (src/lib/, 111 modules grouped by cluster)
+    title Component Diagram — Core Lib (src/lib/, 165 modules grouped by cluster)
 
     Container(cli, "CLI Dispatcher", "TypeScript / citty", "src/cli/* — invokes Core Lib functions per dispatched command")
     Container(testing, "Testing + E2E Infra", "TypeScript / vitest + bespoke", "Holodeck e2e + headless runner subprocesses")
