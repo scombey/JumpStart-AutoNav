@@ -3,7 +3,7 @@ name: E2E Holodeck Baseline
 on:
   pull_request:
     paths:
-      - 'bin/**'
+      - 'bin/bootstrap.js'
       - 'src/**'
       - '.jumpstart/**'
       - 'tests/e2e/**'
@@ -12,7 +12,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'bin/**'
+      - 'bin/bootstrap.js'
       - 'src/**'
       - '.jumpstart/**'
 

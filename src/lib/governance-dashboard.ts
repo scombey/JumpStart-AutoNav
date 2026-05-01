@@ -25,11 +25,6 @@ import { loadPolicies } from './policy-engine.js';
 import { loadState as loadRisk } from './risk-register.js';
 import { loadState as loadWaivers } from './waiver-workflow.js';
 
-// All four sibling state-loaders are TS ports in src/lib/. M11 cleanup
-// retired the lazy createRequire('../../bin/lib/<x>.js') pattern in
-// favour of direct ESM imports — the strangler-fallback null-return
-// path is dead code now that bin/lib/ is gone.
-
 // Public types
 
 export interface PolicySection {

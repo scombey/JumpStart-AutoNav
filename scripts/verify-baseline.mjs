@@ -67,12 +67,11 @@ run('dist-exports', 'node', ['scripts/check-dist-exports.mjs']);
 run('check-public-any', 'node', ['scripts/check-public-any.mjs']);
 run('check-process-exit', 'node', ['scripts/check-process-exit.mjs']);
 run('check-return-shapes', 'node', ['scripts/check-return-shapes.mjs']);
-// Cross-module contract harness (T3.1): drift detection. Runs default
-// scan (src/lib + bin/lib post-M9) and writes
-// .jumpstart/metrics/drift-catches.json.
-// Failure mode: HARNESS_FAIL_ON_DRIFT=1 makes the script exit nonzero when
-// incidents > 0. The vitest harness test independently asserts both the
-// zero-drift main case AND the 8-incident synthetic-fixture case.
+// Cross-module contract harness: drift detection. Scans `src/lib/` and
+// writes `.jumpstart/metrics/drift-catches.json`. With
+// `HARNESS_FAIL_ON_DRIFT=1` the script exits nonzero when incidents > 0.
+// The vitest harness test asserts both the zero-drift main case and
+// the 8-incident synthetic-fixture case.
 run('contract-harness', 'node', ['scripts/extract-public-surface.mjs'], {
   env: { ...process.env, HARNESS_FAIL_ON_DRIFT: '1' },
 });

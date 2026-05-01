@@ -2,9 +2,9 @@
 id: "adr-005"
 phase: 3
 agent: Architect
-status: Accepted
+status: Executed
 created: "2026-04-24"
-updated: "2026-04-24"
+updated: "2026-05-01"
 version: "1.0.0"
 approved_by: "Samuel Combey"
 approval_date: "2026-04-24"
@@ -20,7 +20,12 @@ sha256: null
 
 # ADR-005: Module Layout — Strangler Intermediate + 2.0 Collapse to `src/`
 
-> **Status:** Accepted · **Date:** 2026-04-24 · **Decision Maker:** The Architect
+> **Status:** Executed (2026-05-01) · **Date:** 2026-04-24 · **Decision Maker:** The Architect
+>
+> The strangler-fig collapse this ADR prescribed is complete. `bin/lib/`
+> and `bin/cli.js` were deleted in M11; the canonical surface lives at
+> `src/lib/` and `src/cli/` and ships as `dist/lib/*.mjs` +
+> `dist/cli/*.mjs`. This document is preserved as historical record.
 
 ---
 

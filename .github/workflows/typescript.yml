@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'src/**'
-      - 'bin/**'
+      - 'bin/bootstrap.js'
       - 'scripts/**'
       - 'tests/**'
       - 'tsconfig.json'
@@ -17,7 +17,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
-      - 'bin/**'
+      - 'bin/bootstrap.js'
       - 'scripts/**'
       - 'tests/**'
       - 'tsconfig.json'
@@ -54,20 +54,14 @@ jobs:
 
       - name: Post-build shebang assertion (NFR-D02 / SEC-005)
         run: |
-          if [ -f dist/cli.js ]; then
-            head -c 19 dist/cli.js | diff - <(echo '#!/usr/bin/env node') || {
-              echo "::error::dist/cli.js shebang missing or corrupted (per SEC-005 NFR-R04)"
-              exit 1
-            }
-          else
-            echo "::notice::dist/cli.js not yet emitted (pre-M8); shebang assertion dormant"
+          if [ ! -f dist/cli/bin.mjs ]; then
+            echo "::error::dist/cli/bin.mjs not emitted by tsdown"
+            exit 1
           fi
-          if [ -f dist/bootstrap/init.js ]; then
-            head -c 19 dist/bootstrap/init.js | diff - <(echo '#!/usr/bin/env node') || {
-              echo "::error::dist/bootstrap/init.js shebang missing"
-              exit 1
-            }
-          fi
+          head -c 19 dist/cli/bin.mjs | diff - <(echo '#!/usr/bin/env node') || {
+            echo "::error::dist/cli/bin.mjs shebang missing or corrupted (per SEC-005 NFR-R04)"
+            exit 1
+          }
 
       - name: No any in public API surfaces (per ADR-006 + Biome)
         run: |

@@ -59,10 +59,10 @@ interface V1Input {
  * `node <path>` invocation? Used by IPC modules to opt into the
  * subprocess path only when they were the direct target.
  *
- * `import.meta.url` is `file:///abs/path/to/module.ts`. Compare to
- * `process.argv[1]`'s file URL form. Substring-suffix match because
- * tsdown emits to `dist/<name>.mjs` while sources live at
- * `bin/lib-ts/<name>.ts` — at runtime we match either.
+ * `import.meta.url` is `file:///abs/path/to/module.ts`. We compare to
+ * `process.argv[1]`'s file URL form via substring-suffix match so the
+ * helper works under tsx (sources at `src/lib/<name>.ts`) and under
+ * tsdown emit (`dist/lib/<name>.mjs`) without separate code paths.
  */
 export function isDirectRun(fileUrl: string): boolean {
   const argv1 = process.argv[1];
@@ -222,9 +222,9 @@ export async function runIpc<TIn, TOut>(
       }
     }
   }
-  // Single allowlisted process.exit per ADR-006. The check-process-exit
-  // gate scripts/check-process-exit.mjs has bin/lib-ts/ipc.ts on its
-  // allowlist for exactly this line.
+  // Single allowlisted process.exit per ADR-006. The
+  // check-process-exit gate (scripts/check-process-exit.mjs) lists
+  // src/lib/ipc.ts on its allowlist for exactly this line.
   process.exit(exitCode);
 }
 

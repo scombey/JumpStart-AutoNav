@@ -1,26 +1,19 @@
 /**
  * tsdown build configuration — pinned at 0.21.10 exact (per ADR-001).
  *
- * Post-M9 (2.0.0-rc.1) layout:
+ * Layout: shared rootDir is `src/`, so tsdown strips that prefix in
+ * the emitted tree — `dist/` mirrors `src/` minus the prefix.
  *
  *   src/cli/bin.ts          → dist/cli/bin.mjs        (npm-bin entry)
- *   src/cli/main.ts         → dist/cli/main.mjs       (citty dispatcher root)
+ *   src/cli/main.ts         → dist/cli/main.mjs       (citty dispatcher)
  *   src/cli/deps.ts         → dist/cli/deps.mjs
- *   src/cli/commands/*.ts   → dist/cli/commands/*.mjs (lazy command modules)
- *   src/lib/*.ts            → dist/lib/*.mjs          (113 leaf modules)
+ *   src/cli/commands/*.ts   → dist/cli/commands/*.mjs (lazy commands)
+ *   src/lib/*.ts            → dist/lib/*.mjs          (leaf modules)
  *
- * The shared rootDir is `src/`, so tsdown strips that prefix in the
- * emitted layout — the dist tree mirrors the source tree minus `src/`.
- *
- * Glob-based entries: enumerating each leaf was a pre-M9 strangler-phase
- * artifact (we wanted explicit awareness of which modules had ported).
- * Post-M9 every TS file under `src/lib/` is canonical, so we point
- * tsdown at the whole tree and let it discover every leaf. The
- * `check-dist-exports.mjs` gate still verifies emit completeness.
- *
- * Fallback (per ADR-001 if tsdown is displaced mid-rewrite, ~2-3 days):
- *   tsc + tsc-alias + shell-script shebang post-step + .d.ts-parity
- *   verification against golden-master emit.
+ * The `check-dist-exports.mjs` gate verifies emit completeness on every
+ * build. Fallback per ADR-001 (~2-3 days if tsdown is displaced):
+ * tsc + tsc-alias + shell-script shebang post-step + .d.ts-parity
+ * verification against golden-master emit.
  */
 
 import { defineConfig } from 'tsdown';

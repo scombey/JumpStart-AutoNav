@@ -1,29 +1,18 @@
 /**
- * cleanup.ts — Final cleanup cluster (T4.7.2 batch 10 — FINAL).
- *
- * Ports the residual `bin/cli.js` subcommands not covered by batches 1-9.
- * Each command here is a **thin wrapper** that delegates to its legacy
- * `bin/lib/<name>.js` implementation via `legacyRequire()`.
+ * cleanup.ts — Final cluster of citty subcommands.
  *
  * Per-command structure (mirrors enterprise.ts):
  *   - `<name>Args` interface — citty-style typed args.
  *   - `<name>Impl(deps, args)` — pure function returning `CommandResult`.
  *   - `<name>Command` — `defineCommand` with `meta.name` and `run()`.
  *
- * **Architectural rules** (per the request and ADR-006/-009):
+ * Architectural rules (per ADR-006/-009):
  *   1. Public surface preserved (every command name is reachable).
  *   2. Named exports for both `<name>Command` and `<name>Impl`.
- *   3. Any user-supplied path routed through `assertUserPath()`.
+ *   3. Any user-supplied path routes through `assertUserPath()`.
  *   4. No `process.exit()` — return `CommandResult { exitCode }`.
  *   5. `.js` extensions on all relative imports.
- *   6. Top-level ES imports for lib-ts (none currently in this batch).
- *
- * **Skipped from this batch** (not ported, deferred or out-of-scope):
- *   - `quickstart` — interactive prompts wizard, requires `prompts` lib;
- *     out-of-scope for a non-interactive thin port.
- *   - `summarize`, `validate-all`, `dashboard` (already in spec-quality),
- *     `timeline` (large-scope), `self-evolve` (process.argv-heavy).
- *
+ *   6. Top-level ES imports for sibling lib modules.
  */
 
 import { defineCommand } from 'citty';

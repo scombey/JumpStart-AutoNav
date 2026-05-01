@@ -13,11 +13,9 @@
  * deserves its own named type for clarity, refactor-safety, and IPC
  * envelope renderers that pretty-print the type by name.
  *
- * Walks: `dist/**\/*.d.ts` (post-tsdown emit). Dormant pattern: until the
- * first port lands, dist/ has only _smoke.d.mts whose exports both
- * return ≤2-field literals or non-literals — script reports 0 violations
- * trivially. Once ports begin, any new export with a fat inline return
- * trips the gate.
+ * Walks: `dist/**\/*.d.ts` (post-tsdown emit). Any export with a fat
+ * inline return (>2 fields) trips the gate; promote it to a named type
+ * to land clean.
  *
  * Out of scope (intentional, per KU-04 QUALIFIED scope):
  *   - Argument-shape rules (separate concern; addressed by check-public-any)

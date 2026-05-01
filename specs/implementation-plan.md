@@ -359,7 +359,7 @@ sha256: null
 | Task ID | Description |
 |---------|-------------|
 | T6.6 `[P]` | Enable `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` in tsconfig; fix any new errors |
-| T6.7 `[P]` | Remove strangler scaffolding artifacts (unused PR templates, dual-resolution aliases if any linger) |
+| T6.7 `[P]` ✅ | Remove strangler scaffolding artifacts (unused PR templates, dual-resolution aliases if any linger) — **DONE** 2026-05-01 |
 | T6.8 `[P]` | Final retrospective: author `specs/retrospectives/rewrite-retrospective.md` capturing what worked, what didn't, lessons for future major migrations |
 | T6.9 `[P]` | **Architecture Turn-2 commitment**: author Level-3 Component Diagrams for `CLI Dispatcher` and `Core Lib` containers per architecture.md §Component Interaction Diagram diagram-level note. Output: `specs/architecture-l3-cli-dispatcher.md` + `specs/architecture-l3-core-lib.md` with `C4Component` Mermaid diagrams. Verifies via `node bin/verify-diagrams.js` |
 
