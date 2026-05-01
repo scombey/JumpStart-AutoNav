@@ -6,15 +6,15 @@
  * with touched implementation files so traceability stays fresh during editing.
  */
 
-const fs = require('fs');
-const path = require('path');
-const {
+import fs from 'node:fs';
+import path from 'node:path';
+import {
   runCli,
   extractTargetPath,
   TASK_ID_RE,
   STORY_ID_RE,
-} = require('./lib/common');
-const { buildFromSpecs, addNode, addEdge, saveGraph } = require('../../bin/lib/graph.js');
+} from './lib/common.mjs';
+import {buildFromSpecs, addNode, addEdge, saveGraph} from '../../dist/lib/graph.mjs';
 
 const WATCHED_PREFIXES = ['specs/', 'src/', 'tests/', 'bin/'];
 
@@ -81,7 +81,7 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   annotateTouchedFile,
   isWatchedPath,
@@ -89,6 +89,6 @@ module.exports = {
   WATCHED_PREFIXES,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

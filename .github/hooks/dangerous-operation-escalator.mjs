@@ -6,7 +6,7 @@
  * for them, using the existing tool guardrails heuristics.
  */
 
-const {
+import {
   runCli,
   loadHookState,
   saveHookState,
@@ -14,8 +14,8 @@ const {
   extractTargetPath,
   extractCommandString,
   extractSessionId,
-} = require('./lib/common');
-const { checkOperation, validateFileOperation } = require('../../bin/lib/tool-guardrails.js');
+} from './lib/common.mjs';
+import {checkOperation, validateFileOperation} from '../../dist/lib/tool-guardrails.mjs';
 
 function inferFileAction(input) {
   const toolName = String(input.tool_name || '').toLowerCase();
@@ -82,11 +82,11 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   inferFileAction,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

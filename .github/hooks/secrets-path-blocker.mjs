@@ -6,11 +6,11 @@
  * environment files, or deploy keys.
  */
 
-const {
+import {
   runCli,
   extractTargetPath,
   extractCommandString,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const SENSITIVE_PATH_PATTERNS = [
   /\.env(?:\.[^/]+)?$/i,
@@ -52,12 +52,12 @@ function handle(input) {
   };
 }
 
-module.exports = {
+export {
   handle,
   matchesSensitivePath,
   SENSITIVE_PATH_PATTERNS,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

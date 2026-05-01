@@ -6,15 +6,15 @@
  * recent recorded session/activity.
  */
 
-const path = require('path');
-const {
+import path from 'node:path';
+import {
   runCli,
   readJsonSafe,
   loadHookState,
   saveHookState,
   ensureSessionRecord,
   extractSessionId,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 function summarizeTimeline(root) {
   const timelinePath = path.join(root, '.jumpstart', 'state', 'timeline.json');
@@ -76,11 +76,11 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   summarizeTimeline,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

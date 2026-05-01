@@ -12,15 +12,15 @@
  * without corresponding test edits.
  */
 
-const fs = require('fs');
-const path = require('path');
-const {
+import fs from 'node:fs';
+import path from 'node:path';
+import {
   runCli,
   loadState,
   loadHookState,
   saveHookState,
   extractSessionId,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 function formatDate(d) {
   const yyyy = d.getUTCFullYear();
@@ -130,8 +130,8 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = { handle, buildChangelog, formatDate };
+export {handle, buildChangelog, formatDate};
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

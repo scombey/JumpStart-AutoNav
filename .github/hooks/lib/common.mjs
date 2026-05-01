@@ -7,8 +7,8 @@
  * deterministic and unit-testable.
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 const TASK_ID_RE = /\b(M\d+-T\d+)\b/g;
 const STORY_ID_RE = /\b(E\d+-S\d+)\b/g;
@@ -265,7 +265,7 @@ function pathMatchesAny(targetPath, prefixes) {
   });
 }
 
-module.exports = {
+export {
   repoRoot,
   readJsonSafe,
   writeJsonSafe,

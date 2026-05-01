@@ -6,13 +6,13 @@
  * agent acts, reinforcing the framework's "Never Guess" rule.
  */
 
-const {
+import {
   runCli,
   loadHookState,
   saveHookState,
   ensureSessionRecord,
   extractSessionId,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const FILE_REFERENCE_HINT_RE = /[`/]|\.md|\.js|\.ts|specs\/|src\//i;
 const SCOPE_HINT_RE = /\b(test|hook|spec|timeline|qa-log|manifest|graph|state|phase|session|file|path|readme)\b/i;
@@ -72,13 +72,13 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   detectAmbiguity,
   FILE_REFERENCE_HINT_RE,
   SCOPE_HINT_RE,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

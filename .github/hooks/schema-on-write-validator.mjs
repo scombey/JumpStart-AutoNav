@@ -6,21 +6,21 @@
  * Emits a warning-only validation result when the artifact is structurally invalid.
  */
 
-const path = require('path');
-const {
+import path from 'node:path';
+import {
   runCli,
   loadHookState,
   saveHookState,
   ensureSessionRecord,
   extractTargetPath,
   extractSessionId,
-} = require('./lib/common');
+} from './lib/common.mjs';
 // NOTE (M11 phase 5e): bin/lib/* was almost entirely deleted, but
 // `bin/lib/validator.js` (and 3 sibling files used by other hooks) was
 // kept because converting these hooks to load the TS port requires
 // async/dynamic-import refactoring that breaks the sync test contract
 // in tests/test-hooks.test.js. Tracked as a follow-up cleanup task.
-const { validateArtifact } = require('../../bin/lib/validator.js');
+import {validateArtifact} from '../../dist/lib/validator.mjs';
 
 const SCHEMA_MAP = [
   { pattern: /^specs\/prd\.md$/, schema: 'prd.schema.json' },
@@ -97,7 +97,7 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   resolveSchema,
   shouldBlock,
@@ -105,6 +105,6 @@ module.exports = {
   SCHEMA_MAP,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

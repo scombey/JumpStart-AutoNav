@@ -12,15 +12,15 @@
  * spec phases while still preserving continuity when an insights file exists.
  */
 
-const path = require('path');
-const fs = require('fs');
-const {
+import path from 'node:path';
+import fs from 'node:fs';
+import {
   runCli,
   loadState,
   appendFileSafe,
   extractTargetPath,
   extractSessionId,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const PHASE_FILES = {
   0: 'challenger-insights.md',
@@ -90,8 +90,8 @@ function handle(input, ctx) {
   return { exitCode: 0 };
 }
 
-module.exports = { handle, pickInsightsFile, summarizeToolInput };
+export {handle, pickInsightsFile, summarizeToolInput};
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

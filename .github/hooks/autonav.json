@@ -5,105 +5,105 @@
     "SessionStart": [
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/workspace-fingerprint.js"
+        "command": "node ${workspaceFolder}/.github/hooks/workspace-fingerprint.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/phase-gate-status.js"
+        "command": "node ${workspaceFolder}/.github/hooks/phase-gate-status.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/timeline-warmup.js"
+        "command": "node ${workspaceFolder}/.github/hooks/timeline-warmup.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/session-start.js"
+        "command": "node ${workspaceFolder}/.github/hooks/session-start.mjs"
       }
     ],
     "UserPromptSubmit": [
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/prompt-classifier.js"
+        "command": "node ${workspaceFolder}/.github/hooks/prompt-classifier.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/ambiguity-detector.js"
+        "command": "node ${workspaceFolder}/.github/hooks/ambiguity-detector.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/qa-log-capture.js"
+        "command": "node ${workspaceFolder}/.github/hooks/qa-log-capture.mjs"
       }
     ],
     "PreCompact": [
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/pre-compact.js"
+        "command": "node ${workspaceFolder}/.github/hooks/pre-compact.mjs"
       }
     ],
     "PreToolUse": [
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/block-agent-self-modification.js"
+        "command": "node ${workspaceFolder}/.github/hooks/block-agent-self-modification.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/secrets-path-blocker.js"
+        "command": "node ${workspaceFolder}/.github/hooks/secrets-path-blocker.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/dangerous-operation-escalator.js"
+        "command": "node ${workspaceFolder}/.github/hooks/dangerous-operation-escalator.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/dependency-risk-precheck.js"
+        "command": "node ${workspaceFolder}/.github/hooks/dependency-risk-precheck.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/simplicity-gate-guard.js"
+        "command": "node ${workspaceFolder}/.github/hooks/simplicity-gate-guard.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/phase-boundary-guard.js"
+        "command": "node ${workspaceFolder}/.github/hooks/phase-boundary-guard.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/spec-drift-guard.js"
+        "command": "node ${workspaceFolder}/.github/hooks/spec-drift-guard.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/inject-adr-context.js"
+        "command": "node ${workspaceFolder}/.github/hooks/inject-adr-context.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/capture-plan.js"
+        "command": "node ${workspaceFolder}/.github/hooks/capture-plan.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/retry-escalation.js"
+        "command": "node ${workspaceFolder}/.github/hooks/retry-escalation.mjs"
       }
     ],
     "PostToolUse": [
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/schema-on-write-validator.js"
+        "command": "node ${workspaceFolder}/.github/hooks/schema-on-write-validator.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/spec-graph-updater.js"
+        "command": "node ${workspaceFolder}/.github/hooks/spec-graph-updater.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/enforce-test-cochange.js"
+        "command": "node ${workspaceFolder}/.github/hooks/enforce-test-cochange.mjs"
       }
     ],
     "Stop": [
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/session-analytics.js"
+        "command": "node ${workspaceFolder}/.github/hooks/session-analytics.mjs"
       },
       {
         "type": "command",
-        "command": "node ${workspaceFolder}/.github/hooks/draft-changelog.js"
+        "command": "node ${workspaceFolder}/.github/hooks/draft-changelog.mjs"
       }
     ]
   }

@@ -11,15 +11,15 @@
  * survives tool-call boundaries within a session.
  */
 
-const path = require('path');
-const {
+import path from 'node:path';
+import {
   runCli,
   loadHookState,
   saveHookState,
   appendFileSafe,
   extractCommandString,
   extractSessionId,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const LIMIT = 3;                   // 3 identical commands → escalate
@@ -86,8 +86,8 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = { handle, normalizeCommand, WINDOW_MS, LIMIT };
+export {handle, normalizeCommand, WINDOW_MS, LIMIT};
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

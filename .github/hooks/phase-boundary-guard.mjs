@@ -7,9 +7,9 @@
  * session aligned with AutoNav's sequential phase gates.
  */
 
-const path = require('path');
-const fs = require('fs');
-const {
+import path from 'node:path';
+import fs from 'node:fs';
+import {
   runCli,
   loadState,
   loadHookState,
@@ -20,7 +20,7 @@ const {
   extractCommandString,
   extractSessionId,
   getPhaseGateApproval,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const REQUIRED_UPSTREAM_ARTIFACTS = [
   'specs/prd.md',
@@ -120,7 +120,7 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   REQUIRED_UPSTREAM_ARTIFACTS,
   isDeveloperGuardActive,
@@ -130,6 +130,6 @@ module.exports = {
   summarizeMissingStatuses,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

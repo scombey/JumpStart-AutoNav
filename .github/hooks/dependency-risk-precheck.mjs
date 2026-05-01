@@ -6,11 +6,11 @@
  * advisory/security review before executing them.
  */
 
-const {
+import {
   runCli,
   extractTargetPath,
   extractCommandString,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const DEPENDENCY_COMMAND_RE = /\b(?:npm\s+(?:install|update)|yarn\s+(?:add|upgrade)|pnpm\s+(?:add|update)|pip\s+install|go\s+get|cargo\s+add)\b/i;
 const DEPENDENCY_FILES = ['package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml', 'requirements.txt', 'go.mod', 'Cargo.toml'];
@@ -42,12 +42,12 @@ function handle(input) {
   };
 }
 
-module.exports = {
+export {
   handle,
   isDependencyChange,
   DEPENDENCY_FILES,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }

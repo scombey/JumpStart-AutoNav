@@ -6,16 +6,16 @@
  * agent sees workflow readiness immediately on session start.
  */
 
-const fs = require('fs');
-const path = require('path');
-const {
+import fs from 'node:fs';
+import path from 'node:path';
+import {
   runCli,
   loadHookState,
   saveHookState,
   ensureSessionRecord,
   extractSessionId,
   getPhaseGateApproval,
-} = require('./lib/common');
+} from './lib/common.mjs';
 
 const PHASE_ARTIFACTS = [
   { phase: 'Scout', path: 'specs/codebase-context.md' },
@@ -79,13 +79,13 @@ function handle(input, ctx) {
   };
 }
 
-module.exports = {
+export {
   handle,
   collectPhaseGateStatuses,
   readApprovalStatus,
   PHASE_ARTIFACTS,
 };
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runCli(handle);
 }
