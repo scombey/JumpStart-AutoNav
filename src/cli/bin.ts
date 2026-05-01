@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
- * bin.ts — npm-bin entry point (M9 cutover, T5.1).
+ * bin.ts — npm-bin entry point.
  *
- * After `package.json` is flipped to `"type": "module"` and the `bin`
- * field points to `./dist/cli/bin.mjs`, this file is what `npx
- * @scombey/jumpstart-mode <args>` actually invokes. Two responsibilities:
+ * `package.json` `"type": "module"` + `bin` pointing at
+ * `./dist/cli/bin.mjs` makes this file the entry that
+ * `npx @scombey/jumpstart-mode <args>` actually invokes. Two
+ * responsibilities:
  *
  *   1. Provide the shebang. tsdown preserves the shebang on entry
  *      points whose source starts with `#!` (the SEC-005 post-build
@@ -30,7 +31,6 @@
  * side effects on import).
  *
  * @see specs/decisions/adr-006-error-model.md
- * @see specs/implementation-plan.md T5.1
  */
 
 import { JumpstartError } from '../lib/errors.js';

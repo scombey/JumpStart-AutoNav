@@ -1,7 +1,7 @@
 /**
  * design-system.ts — Design System Integration port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/design-system.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `TOKEN_CATEGORIES` (constant array)
@@ -12,14 +12,12 @@
  *   - `checkCompliance(options?)` => ComplianceResult
  *   - `generateReport(options?)` => ReportResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/design-system.json`.
  *   - Default a11y level: AA.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/design-system.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

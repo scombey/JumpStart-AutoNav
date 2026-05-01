@@ -1,7 +1,7 @@
 /**
  * project-memory.ts — persistent project memory port (T4.3.3, cluster H).
  *
- * Pure-library port of `bin/lib/project-memory.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `MEMORY_TYPES` (constant array)
@@ -15,14 +15,12 @@
  *   - `deleteMemory(id, options?)` => DeleteMemoryResult
  *   - `getMemoryStats(options?)` => MemoryStats
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/project-memory.json`.
  *   - Memory ID format: `mem-<unix-ms>-<random6>`.
  *   - Default type if omitted: `other`. Type lookup is lower-cased.
  *   - JSON parse failures load default store silently.
  *
- * @see bin/lib/project-memory.js (legacy reference)
- * @see specs/implementation-plan.md T4.3.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

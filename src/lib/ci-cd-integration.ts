@@ -1,7 +1,7 @@
 /**
  * ci-cd-integration.ts — GitHub Actions / Azure DevOps CI/CD integration port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/ci-cd-integration.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `SUPPORTED_PLATFORMS` (constant array)
@@ -12,15 +12,13 @@
  *   - `validatePipeline(root, options?)` => ValidateResult
  *   - `getStatus(options?)` => StatusResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/ci-cd-integration.json`.
  *   - Returns YAML-shaped JSON for both GitHub Actions and Azure DevOps,
  *     emitting only the stages that have at least one matching check.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/ci-cd-integration.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

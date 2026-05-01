@@ -1,7 +1,7 @@
 /**
  * context-chunker.ts — context-window chunking (T4.1.7 batch).
  *
- * Pure-library port of `bin/lib/context-chunker.js`. Four exports
+ * Four exports
  * preserved: `estimateTokens`, `chunkContent`, `chunkImplementationPlan`,
  * `MODEL_CONTEXT_LIMITS`. Token-estimate heuristic (~4 chars/token)
  * preserved verbatim — the same number `chunkContent` and the
@@ -19,9 +19,7 @@
  *
  * The legacy CLI driver is intentionally NOT ported.
  *
- * @see bin/lib/context-chunker.js (legacy reference)
  * @see CHANGELOG.md v1.1.14 — Critical: context-chunker infinite loop
- * @see specs/implementation-plan.md T4.1.7
  */
 
 import { existsSync, readFileSync } from 'node:fs';

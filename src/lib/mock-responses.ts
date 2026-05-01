@@ -1,13 +1,13 @@
 /**
  * mock-responses.ts — mock response registry port (T4.3.1).
  *
- * Pure-library port of `bin/lib/mock-responses.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `createMockRegistry()` => MockRegistry
  *   - `createPersonaRegistry(persona)` => MockRegistry
  *
- * Behavior parity:
+ * Invariants:
  *   - DEFAULT_ASK_RESPONSES (8 canned headers) preserved verbatim.
  *   - PERSONA_OVERRIDES (compliant-user, enterprise-user, strict-user)
  *     preserved verbatim.
@@ -17,8 +17,6 @@
  *     wired today; left in place for future mock LLM provider
  *     interop).
  *
- * @see bin/lib/mock-responses.js (legacy reference)
- * @see specs/implementation-plan.md T4.3.1
  */
 
 // Public types

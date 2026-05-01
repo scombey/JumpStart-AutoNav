@@ -1,7 +1,7 @@
 /**
  * bcdr-planning.ts — Business Continuity & DR Planning port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/bcdr-planning.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `SERVICE_TIERS` (constant map)
@@ -11,14 +11,12 @@
  *   - `checkCoverage(root, options?)` => CoverageResult
  *   - `generateReport(options?)` => ReportResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/bcdr.json`.
  *   - Default tier when omitted: silver.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/bcdr-planning.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

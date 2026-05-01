@@ -1,7 +1,7 @@
 /**
  * db-evolution.ts — Database Evolution Planner port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/db-evolution.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `MIGRATION_TYPES` (constant array)
@@ -11,15 +11,13 @@
  *   - `validateMigration(migrationId, options?)` => ValidateResult
  *   - `generateReport(options?)` => ReportResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/db-evolution.json`.
  *   - Default validation steps: ['row-count', 'schema-compare'].
  *   - Default rollback strategy: 'reverse-migration' (low risk) or 'backup-restore'.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/db-evolution.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

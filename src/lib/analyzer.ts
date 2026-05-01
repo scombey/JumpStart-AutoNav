@@ -1,7 +1,7 @@
 /**
  * analyzer.ts — consistency analyzer port (T4.2.4).
  *
- * Pure-library port of `bin/lib/analyzer.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `analyze(input)` => AnalysisResult
@@ -29,8 +29,6 @@
  * `analyze()` directly; subprocess callers wire `runIpc(analyze, ...)`
  * at the trust boundary.
  *
- * @see bin/lib/analyzer.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.2.4
  */
 
 import { readFileSync } from 'node:fs';

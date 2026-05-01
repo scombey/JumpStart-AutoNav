@@ -1,22 +1,20 @@
 /**
- * enterprise-search.ts — Enterprise Search Over Artifacts port (M11 batch 2).
+ * enterprise-search.ts — Enterprise Search Over Artifacts port.
  *
- * Pure-library port of `bin/lib/enterprise-search.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `indexProject(root, options?)` => IndexProjectResult
  *   - `searchProject(root, query, options?)` => SearchProjectResult
  *   - `SEARCHABLE_TYPES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Indexes specs/, specs/decisions/, src/ (filtered extensions),
  *     and `.jumpstart/config.yaml`.
  *   - Recursive file scan skips dotfiles and `node_modules`/`.git`/`dist`.
  *   - Search returns up to `maxResults` (default 20) entries, each with
  *     up to 3 preview lines.
  *
- * @see bin/lib/enterprise-search.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';

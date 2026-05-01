@@ -10,7 +10,6 @@
  *   - M3 hardening: rejects __proto__/constructor/prototype keys
  *
  * @see src/lib/migration-planner.ts
- * @see bin/lib/migration-planner.js (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

@@ -1,7 +1,7 @@
 /**
  * refactor-planner.ts — refactor planner port (T4.4.1, cluster J).
  *
- * Pure-library port of `bin/lib/refactor-planner.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `REFACTOR_TYPES` (constant array)
@@ -13,7 +13,7 @@
  *   - `validatePlan(planId, options?)` => ValidatePlanResult
  *   - `generateReport(options?)` => RefactorReport
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/refactor-plan.json`.
  *   - Plan ID format: `REF-NNN` (zero-padded, monotonic with array length).
  *   - Step risk fallback: `low`. Plan risk: `critical` if any critical step,
@@ -27,8 +27,6 @@
  *   - Reject `__proto__`/`constructor`/`prototype` keys at the persisted
  *     root and on every plan id we look up (F2 prototype pollution guard).
  *
- * @see bin/lib/refactor-planner.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.1
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

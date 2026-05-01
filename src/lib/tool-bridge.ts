@@ -1,68 +1,66 @@
 /**
  * tool-bridge.ts — VS Code Tool Emulation Bridge port (T4.6.3, M7).
  *
- * Pure-library port of `bin/lib/tool-bridge.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature shape:
  *
- *   - `createToolBridge(options)` => ToolBridge
- *     .execute(toolCall) -> Promise<{ content: string }>
- *     .getTodoState()    -> TodoItem[]
- *     .getCallHistory()  -> ToolCallRecord[]
+ * - `createToolBridge(options)` => ToolBridge
+ * .execute(toolCall) -> Promise<{ content: string }>
+ * .getTodoState() -> TodoItem[]
+ * .getCallHistory() -> ToolCallRecord[]
  *
- * Behavior parity:
- *   - Tool dispatch keyed by `toolCall.function.name`. Unknown names
- *     return `{ error: "Unknown tool: <name>" }` JSON-stringified
- *     (matches legacy "do not throw" contract — the headless runner
- *     surfaces tool errors back to the LLM in-conversation).
- *   - Tool args parsed from `toolCall.function.arguments` (string JSON)
- *     with `{}` default when absent.
- *   - Timeline event emission preserved verbatim (granular file_read /
- *     artifact_read / template_read / file_write / artifact_write /
- *     question_asked events on top of the generic tool_call/tool_result
- *     pair).
- *   - Tracer forwarding: when `options.tracer` is provided AND has a
- *     `logToolInterception` method, every successful dispatch is logged.
+ * Invariants:
+ * - Tool dispatch keyed by `toolCall.function.name`. Unknown names
+ * return `{ error: "Unknown tool: <name>" }` JSON-stringified
+ * (matches legacy "do not throw" contract — the headless runner
+ * surfaces tool errors back to the LLM in-conversation).
+ * - Tool args parsed from `toolCall.function.arguments` (string JSON)
+ * with `{}` default when absent.
+ * - Timeline event emission preserved verbatim (granular file_read /
+ * artifact_read / template_read / file_write / artifact_write /
+ * question_asked events on top of the generic tool_call/tool_result
+ * pair).
+ * - Tracer forwarding: when `options.tracer` is provided AND has a
+ * `logToolInterception` method, every successful dispatch is logged.
  *
  * **ADR-012 redaction (NEW in this port).**
- *   The bridge itself doesn't write to disk, BUT it routes
- *   `marketplace_install` / `log_usage` / `record_timeline_event` calls
- *   through downstream modules whose ports already redact. The
- *   defense-in-depth posture here is to NOT add a second redaction
- *   layer (which would risk double-replacement of legitimately-quoted
- *   strings) — instead we trust the downstream usage.ts / timeline.ts /
- *   install.ts redaction wiring.
+ * The bridge itself doesn't write to disk, BUT it routes
+ * `marketplace_install` / `log_usage` / `record_timeline_event` calls
+ * through downstream modules whose ports already redact. The
+ * defense-in-depth posture here is to NOT add a second redaction
+ * layer (which would risk double-replacement of legitimately-quoted
+ * strings) — instead we trust the downstream usage.ts / timeline.ts /
+ * install.ts redaction wiring.
  *
  * **Path-safety hardening (NEW in this port).**
- *   `read_file` / `create_file` / `replace_string_in_file` accept
- *   absolute paths from the LLM. The legacy was permissive — we
- *   continue to be permissive on agent-supplied absolute paths
- *   (the bridge runs inside a workspace the user already trusts —
- *   the same threat model documented in ADR-009 for path-safety).
- *   `file_search` / `grep_search` walks remain rooted at
- *   `workspaceDir` and never follow paths outside it.
+ * `read_file` / `create_file` / `replace_string_in_file` accept
+ * absolute paths from the LLM. The legacy was permissive — we
+ * continue to be permissive on agent-supplied absolute paths
+ * (the bridge runs inside a workspace the user already trusts —
+ * the same threat model documented in ADR-009 for path-safety).
+ * `file_search` / `grep_search` walks remain rooted at
+ * `workspaceDir` and never follow paths outside it.
  *
  * **Cross-module dynamic imports.**
- *   Legacy uses CommonJS `require('./install')` for marketplace_install
- *   and dynamic `await import('./X.js')` for the item-tagged tools.
- *   The TS port keeps the dynamic import shape (so tools that aren't
- *   used don't get loaded) and uses static imports only for
- *   `secret-scanner` (already loaded by other modules) and `usage`.
+ * Legacy uses CommonJS `require('./install')` for marketplace_install
+ * and dynamic `await import('./X.js')` for the item-tagged tools.
+ * The TS port keeps the dynamic import shape (so tools that aren't
+ * used don't get loaded) and uses static imports only for
+ * `secret-scanner` (already loaded by other modules) and `usage`.
  *
- *   - install / smoke-tester / secret-scanner / type-checker /
- *     uat-coverage are dispatched via dynamic `import()` keyed off the
- *     ported `.js` filename, falling back to the legacy `.js` path
- *     when the TS port hasn't landed yet (a strangler-phase necessity
- *     during M7 — adr-index, complexity, crossref, init, locks,
- *     timestamps, scanner, revert, type-checker, uat-coverage are
- *     STILL legacy in the JS sibling tree).
+ * - install / smoke-tester / secret-scanner / type-checker /
+ * uat-coverage are dispatched via dynamic `import()` keyed off the
+ * ported `.js` filename, falling back to the legacy `.js` path
+ * when the TS port hasn't landed yet (a necessity
+ * during M7 — adr-index, complexity, crossref, init, locks,
+ * timestamps, scanner, revert, type-checker, uat-coverage are
+ * STILL legacy in the JS sibling tree).
  *
  * **No `process.exit` in library code.**
- *   The legacy file has no CLI entry block, so nothing to skip.
+ * The legacy file has no CLI entry block, so nothing to skip.
  *
- * @see bin/lib/tool-bridge.js (legacy reference)
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.6.3
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';

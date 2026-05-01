@@ -1,7 +1,7 @@
 /**
  * estimation-studio.ts — Feature Estimation Studio port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/estimation-studio.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `TSHIRT_SIZES` (constant array)
@@ -14,15 +14,13 @@
  *   - `generateReport(options?)` => ReportResult
  *   - `calibrate(velocity, options?)` => CalibrateResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/estimations.json`.
  *   - Default daily rate: 800.
  *   - Default confidence: medium.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/estimation-studio.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

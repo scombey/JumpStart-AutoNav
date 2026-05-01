@@ -1,7 +1,7 @@
 /**
  * raci-matrix.ts — RACI-aware approvals port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/raci-matrix.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `defaultState()`, `loadState(stateFile?)`, `saveState(state, stateFile?)`
@@ -10,13 +10,11 @@
  *   - `generateReport(options?)` => RaciReport
  *   - `RACI_ROLES`, `DEFAULT_PHASES`, `DEFAULT_ARTIFACTS`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/raci-matrix.json`.
  *   - 6 default phases, 6 default artifacts preserved verbatim.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/raci-matrix.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

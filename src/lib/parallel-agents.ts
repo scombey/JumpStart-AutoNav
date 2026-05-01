@@ -1,8 +1,8 @@
 /**
  * parallel-agents.ts — Multi-Agent Concurrent Execution port
- * (M11 batch 4).
+ *.
  *
- * Pure-library port of `bin/lib/parallel-agents.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultParallelState()` => ParallelAgentsState
@@ -16,7 +16,7 @@
  *   - `listRuns(options?)` => ListRunsResult
  *   - `SIDECAR_AGENTS`
  *
- * Behavior parity:
+ * Invariants:
  *   - 5 sidecar agents: architect, security, qa, docs, performance.
  *   - Default state file: `.jumpstart/state/parallel-agents.json`.
  *   - Legacy `recordAgentFindings(... null)` is tolerated by reading
@@ -26,8 +26,6 @@
  *   - M3 hardening: shape-validated JSON; rejects __proto__/constructor/
  *     prototype keys recursively; defaultState fallback on parse failure.
  *
- * @see bin/lib/parallel-agents.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

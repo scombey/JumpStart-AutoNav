@@ -1,7 +1,7 @@
 /**
- * persona-packs.ts — Persona pack registry port (M11 batch 1).
+ * persona-packs.ts — Persona pack registry port.
  *
- * Pure-library port of `bin/lib/persona-packs.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `listPersonas()` => ListPersonasResult
@@ -9,13 +9,11 @@
  *   - `applyPersona(personaId, options?)` => ApplyPersonaResult
  *   - `PERSONAS` (string[]), `PERSONA_CATALOG` (record)
  *
- * Behavior parity:
+ * Invariants:
  *   - Static, in-memory catalog of 7 enterprise personas. No fs, no
  *     state files.
  *   - Unknown-persona error message format matches legacy verbatim.
  *
- * @see bin/lib/persona-packs.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 export interface PersonaDefinition {

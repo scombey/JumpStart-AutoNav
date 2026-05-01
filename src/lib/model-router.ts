@@ -1,7 +1,7 @@
 /**
  * model-router.ts — multi-model routing port (T4.3.1).
  *
- * Pure-library port of `bin/lib/model-router.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `TASK_TYPES` (constant array)
@@ -12,15 +12,13 @@
  *   - `configureRoute(taskType, model, options?)`
  *   - `generateReport(options?)`
  *
- * Behavior parity:
+ * Invariants:
  *   - 8 task types (planning/coding/review/diagramming/summarization/
  *     testing/documentation/analysis).
  *   - Default config file: `.jumpstart/model-routing.json`.
  *   - Soft-fail on missing/corrupt config.
  *   - `configureRoute` stamps `configured_at` ISO timestamp.
  *
- * @see bin/lib/model-router.js (legacy reference)
- * @see specs/implementation-plan.md T4.3.1
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

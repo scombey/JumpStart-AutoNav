@@ -15,7 +15,6 @@
  *   - M3 hardening: pollution-key registry payloads fall back to default
  *
  * @see src/lib/reference-architectures.ts
- * @see bin/lib/reference-architectures.js (legacy reference)
  */
 
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';

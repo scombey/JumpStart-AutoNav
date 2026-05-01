@@ -1,7 +1,7 @@
 /**
- * spec-comments.ts — Inline Spec Review Comments port (M11 batch 6).
+ * spec-comments.ts — Inline Spec Review Comments.
  *
- * Pure-library port of `bin/lib/spec-comments.js` (CJS). Public surface:
+ * Public surface:
  *   - `addComment(artifact, section, text, options?)` => CommentResult
  *   - `resolveComment(commentId, resolution, options?)` => CommentResult
  *   - `listComments(options?)` => ListCommentsResult
@@ -11,13 +11,10 @@
  *   - `defaultState()` => CommentsState
  *   - `COMMENT_STATUSES`
  *
- * M3 hardening:
- *   - `loadState` runs `rejectPollutionKeys` on parsed JSON.
- *   - On parse failure or pollution, returns `defaultState()`.
- *
- * Path-safety per ADR-009: No user-supplied paths to fs. Not applicable.
- *
- * @see bin/lib/spec-comments.js (legacy reference)
+ * Invariants:
+ *   - `loadState` runs `rejectPollutionKeys` on parsed JSON; on parse
+ *     failure or pollution, returns `defaultState()`.
+ *   - No user-supplied paths reach the filesystem.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

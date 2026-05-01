@@ -29,8 +29,6 @@
  *   - `self-evolve`, `summarize`, `validate-all`, `timeline` — also
  *     interactive / large-scope; deferred.
  *
- * @see bin/cli.js (line ranges noted per command)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { defineCommand } from 'citty';
@@ -82,7 +80,6 @@ export interface EnterpriseSearchArgs {
 }
 
 export function enterpriseSearchImpl(deps: Deps, args: EnterpriseSearchArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('enterprise-search')`
   // to a static import of the TS port at `src/lib/enterprise-search.ts`. Public
   // surface preserved verbatim — see refs in tests/test-enterprise-search.test.ts.
   const lib = legacyEnterpriseSearch as LegacyLib;
@@ -132,7 +129,6 @@ export interface EnterpriseTemplatesArgs {
 }
 
 export function enterpriseTemplatesImpl(deps: Deps, args: EnterpriseTemplatesArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('enterprise-templates')`
   // to a static import of the TS port at `src/lib/enterprise-templates.ts`. Legacy
   // exposed only `listTemplates`/`getTemplate`/`applyTemplate` — the previous
   // `register` action invoked an undefined `registerTemplate` and was dead at
@@ -192,7 +188,6 @@ export interface EnvPromotionArgs {
 }
 
 export function envPromotionImpl(deps: Deps, args: EnvPromotionArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('environment-promotion')`
   // to a static import of the TS port at `src/lib/environment-promotion.ts`.
   // Existing wiring already invoked the real exports (`promote`/`checkGates`/
   // `getStatus`); no latent bugs to fix.
@@ -248,7 +243,6 @@ export interface FitnessFunctionsArgs {
 }
 
 export function fitnessFunctionsImpl(deps: Deps, args: FitnessFunctionsArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('fitness-
   // functions')` to a static import of the TS port at
   // `src/lib/fitness-functions.ts`. Existing wiring already invoked the
   // actual exports — no latent bugs to fix here.
@@ -401,7 +395,6 @@ export interface LegacyModernizerArgs {
 }
 
 export function legacyModernizerImpl(deps: Deps, args: LegacyModernizerArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('legacy-modernizer')`
   // to a static import of the TS port at `src/lib/legacy-modernizer.ts`. The
   // previous wiring called `lib.scan` / `lib.planModernization` — neither was
   // exported by the legacy module, so the command silently produced
@@ -468,7 +461,6 @@ export interface MergeTemplatesArgs {
   projectPath?: string | undefined;
 }
 
-// M11 strangler-tail cleanup: switched from async `legacyImport('template-merge')`
 // (M9 ESM-cutover shim) to a static import of the TS port at
 // `src/lib/template-merge.ts`. Now sync — `await` at call sites is a no-op.
 // The M8 + M9 regression tests in tests/test-m9-pitcrew-regressions.test.ts
@@ -516,7 +508,6 @@ export interface MigrationPlannerArgs {
 }
 
 export function migrationPlannerImpl(deps: Deps, args: MigrationPlannerArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('migration-planner')`
   // to a static import of the TS port at `src/lib/migration-planner.ts`. The
   // previous wiring called `lib.planMigration` / `lib.plan` — neither was
   // exported by the legacy module, so the command silently produced
@@ -575,7 +566,6 @@ export interface MultiRepoArgs {
 }
 
 export function multiRepoImpl(deps: Deps, args: MultiRepoArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('multi-repo')`
   // to a static import of the TS port at `src/lib/multi-repo.ts`. Existing
   // wiring already invoked the real exports (`initProgram`/`linkRepo`/
   // `getProgramStatus`); no latent bugs to fix.
@@ -632,7 +622,6 @@ export interface ParallelAgentsArgs {
 }
 
 export function parallelAgentsImpl(deps: Deps, args: ParallelAgentsArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('parallel-agents')`
   // to a static import of the TS port at `src/lib/parallel-agents.ts`. The
   // previous wiring called `lib.planParallelExecution` / `lib.getStatus` —
   // neither was exported by the legacy module, so the command silently
@@ -698,7 +687,6 @@ export interface PatternLibraryArgs {
 }
 
 export function patternLibraryImpl(deps: Deps, args: PatternLibraryArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('pattern-library')`
   // to a static import of the TS port at `src/lib/pattern-library.ts`. Public
   // surface preserved verbatim — see refs in tests/test-pattern-library.test.ts.
   const lib = legacyPatternLibrary as LegacyLib;
@@ -746,7 +734,6 @@ export interface PersonaPacksArgs {
 }
 
 export function personaPacksImpl(deps: Deps, args: PersonaPacksArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('persona-packs')`
   // to a static import of the TS port at `src/lib/persona-packs.ts`. Public
   // surface preserved verbatim — see refs in tests/test-persona-packs.test.ts.
   const lib = legacyPersonaPacks as LegacyLib;
@@ -794,7 +781,6 @@ export interface PlatformEngineeringArgs {
 }
 
 export function platformEngineeringImpl(deps: Deps, args: PlatformEngineeringArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('platform-engineering')`
   // to a static import of the TS port at `src/lib/platform-engineering.ts`. Public
   // surface preserved verbatim — see refs in tests/test-platform-engineering.test.ts.
   const lib = legacyPlatformEngineering as LegacyLib;
@@ -838,7 +824,6 @@ export interface PrPackageArgs {
 }
 
 export function prPackageImpl(deps: Deps, args: PrPackageArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('pr-package')`
   // to a static import of the TS port at `src/lib/pr-package.ts`. The
   // previous wiring called `lib.generatePrPackage` / `lib.getStatus` —
   // neither was exported by the legacy module, so the command silently
@@ -947,7 +932,6 @@ export interface ReferenceArchArgs {
 }
 
 export function referenceArchImpl(deps: Deps, args: ReferenceArchArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('reference-
   // architectures')` to a static import of the TS port at
   // `src/lib/reference-architectures.ts`. Existing wiring already
   // invoked the actual exports — no latent bugs to fix here.
@@ -1017,7 +1001,6 @@ export interface ReleaseReadinessArgs {
 }
 
 export function releaseReadinessImpl(deps: Deps, args: ReleaseReadinessArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('release-readiness')`
   // to a static import of the TS port at `src/lib/release-readiness.ts`. The
   // previous wiring called `lib.checkReadiness` / `lib.getStatus` — neither was
   // exported by the legacy module, so the command silently produced

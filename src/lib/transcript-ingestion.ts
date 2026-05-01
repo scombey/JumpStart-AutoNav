@@ -1,7 +1,7 @@
 /**
- * transcript-ingestion.ts — Meeting Transcript Ingestion port (M11 batch 6).
+ * transcript-ingestion.ts — Meeting Transcript Ingestion.
  *
- * Pure-library port of `bin/lib/transcript-ingestion.js` (CJS). Public surface:
+ * Public surface:
  *   - `ingestTranscript(text, options?)` => IngestResult
  *   - `extractFromTranscript(transcriptId, options?)` => ExtractResult
  *   - `listTranscripts(options?)` => ListResult
@@ -11,10 +11,8 @@
  *   - `ACTION_PATTERNS`
  *   - `DECISION_PATTERNS`
  *
- * M3 hardening:
+ * Invariants:
  *   - `loadState` runs `rejectPollutionKeys` on parsed JSON.
- *
- * @see bin/lib/transcript-ingestion.js (legacy reference)
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

@@ -1,12 +1,11 @@
 /**
- * holodeck.ts — Jump Start E2E Simulation Runner port (T4.6.1, cluster M7).
+ * holodeck.ts — Jump Start E2E Simulation Runner.
  *
- * Pure-library port of `bin/holodeck.js` AND `bin/lib/holodeck.js` — the
- * two legacy files are byte-identical (verified via `diff`; both 512L).
- * This single TS module replaces both.
+ * Drives a six-phase Golden Master simulation against scenario fixtures,
+ * verifying artifact shape, handoff contracts, subagent traces, and
+ * final state.
  *
- * Public surface preserved verbatim by name + signature shape:
- *
+ * Public surface:
  *   - `runHolodeck(scenario, options?)` => Promise<HolodeckReport>
  *   - `runAllScenarios(options)` => Promise<ScenarioRunResult[]>
  *   - `listScenarios(options?)` => string[]
@@ -17,54 +16,34 @@
  *   - `verifyFinalState(targetDir, tracer)` => void
  *   - `PHASE_CONFIG` constant
  *
- * Behavior parity:
- *   - Six-phase Golden Master simulation (scout/challenger/analyst/pm/
- *     architect/developer) runs scenarios from `tests/e2e/scenarios/`.
+ * Invariants:
+ *   - Six-phase simulation (scout/challenger/analyst/pm/architect/
+ *     developer) runs scenarios from `tests/e2e/scenarios/`.
  *   - Per-phase: INJECT (copy fixtures) → MOCK (write usage log) →
  *     VALIDATE (artifact + structure) → VERIFY-SUBAGENTS (optional) →
  *     HANDOFF (contract check vs upstream) → STATE (update workflow).
- *   - Subagent trace verification regex catalog preserved.
+ *   - Subagent trace verification uses a fixed regex catalog.
  *   - Reports persisted as timestamped JSON.
  *
- * **ADR-012 redaction (NEW in this port).**
- *   The simulation report is the only persistence path holodeck owns
- *   directly (everything else delegates to other modules whose redaction
- *   is enforced at their own boundary). `tracer.saveReport` is the
- *   delegated path, but we ALSO redact at `runHolodeck` level for the
- *   `report` value before any caller-controlled persistence in
- *   `runAllScenarios`. The tracer port (sibling, T4.6.x) is responsible
- *   for redacting its own `saveReport` write.
+ * Redaction: the simulation report is the only persistence path
+ * holodeck owns directly (everything else delegates to other modules
+ * whose redaction is enforced at their own boundary). `tracer.saveReport`
+ * is the delegated path, but we ALSO redact at `runHolodeck` level for
+ * the `report` value before any caller-controlled persistence in
+ * `runAllScenarios`. The simulation tracer is responsible for redacting
+ * its own `saveReport` write.
  *
- * **Path-safety hardening (NEW in this port).**
- *   Every `path.join(projectRoot, scenarioOrUserInput)` is gated by
- *   `assertInsideRoot`. Scenarios from `tests/e2e/scenarios/` come from
- *   the filesystem and could theoretically be a symlink; the boundary
- *   asserts containment within the project root.
+ * Path-safety: every `path.join(projectRoot, scenarioOrUserInput)` is
+ * gated by `assertInsideRoot`. Scenarios from `tests/e2e/scenarios/`
+ * come from the filesystem and could theoretically be a symlink; the
+ * boundary asserts containment within the project root.
  *
- * **JSON shape validation.**
- *   Holodeck doesn't load JSON config of its own — the only JSON it
- *   touches is the report it writes (no parse path). Scenario fixtures
- *   are markdown files, which are validated by `validator.ts`.
+ * JSON shape validation: holodeck doesn't load JSON config of its own —
+ * the only JSON it touches is the report it writes (no parse path).
+ * Scenario fixtures are markdown files, which are validated by
+ * `validator.ts`.
  *
- * **Deferred to M9 ESM cutover:**
- *   - The `main()` CLI entry block at the bottom of legacy
- *     `bin/holodeck.js` (lines 473-512) is NOT ported. It uses
- *     `process.exit` which library code is forbidden to call per
- *     ADR-006. CLI orchestration moves back into `bin/holodeck.js` at
- *     M8 (T4.7.x) or stays as legacy until M9 ESM.
- *   - `parseArgs()` and `printHelp()` are NOT ported — they are CLI
- *     concerns. Caller (CLI wrapper at M8/M9) constructs the
- *     `HolodeckOptions` directly.
- *   - `__dirname` removed: legacy used `path.join(__dirname, '..', ...)`
- *     to compute SCENARIOS_DIR/REPORTS_DIR. The TS port accepts these
- *     as optional `projectRoot` / `scenariosDir` / `reportsDir` options
- *     defaulting to `process.cwd()`-relative paths. Caller (CLI wrapper)
- *     resolves the package root explicitly.
- *
- * @see bin/holodeck.js (legacy reference — byte-identical to bin/lib/holodeck.js)
- * @see bin/lib/holodeck.js (legacy reference — byte-identical to bin/holodeck.js)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.6.1
  */
 
 import {

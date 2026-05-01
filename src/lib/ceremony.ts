@@ -1,7 +1,7 @@
 /**
  * ceremony.ts — tiered ceremony profiles port (T4.3.2).
  *
- * Pure-library port of `bin/lib/ceremony.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `VALID_PROFILES` (constant array)
@@ -21,14 +21,6 @@
  * Profile values act as a BASE LAYER — explicit user config wins on
  * collision. Merge order (lowest → highest): profile → global → project.
  *
- * **M2 stub deferral closeout**: in M2, `config-loader.ts`'s
- * `maybeApplyCeremonyProfile` was stubbed because of a CJS dynamic-
- * import path issue. Now that ceremony.ts is ported, callers can
- * import `applyProfile` directly. Wiring config-loader to call this
- * port is queued for the M9 ESM cutover.
- *
- * @see bin/lib/ceremony.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.3.2
  */
 
 // Public types

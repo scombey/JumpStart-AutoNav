@@ -1,65 +1,55 @@
 /**
  * install.ts — Marketplace Item Installer port (T4.5.1, M6).
  *
- * Pure-library port of `bin/lib/install.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature shape:
  *
- *   - detectIDE / fetchRegistryIndex / normalizeItemId
- *   - findItem / findItemByName / searchItems
- *   - checkCompatibility
- *   - readInstalled / writeInstalled / isInstalled
- *   - downloadAndVerify
- *   - resolveTargetPaths / resolveDependencies
- *   - installItem / installBundle / install
- *   - getStatus / uninstallItem / checkUpdates / updateItems
+ * - detectIDE / fetchRegistryIndex / normalizeItemId
+ * - findItem / findItemByName / searchItems
+ * - checkCompatibility
+ * - readInstalled / writeInstalled / isInstalled
+ * - downloadAndVerify
+ * - resolveTargetPaths / resolveDependencies
+ * - installItem / installBundle / install
+ * - getStatus / uninstallItem / checkUpdates / updateItems
  *
  * **ADR-010 zipslip prevention (THE security-critical work).**
  *
- *   Legacy used `execSync('unzip -o ...')` with NO pre-extraction
- *   validation. This port replaces that with a hand-rolled ZIP central-
- *   directory reader that enumerates every entry BEFORE writing a single
- *   byte to disk and validates its name through `assertEntryInsideTarget`.
- *   The entire archive is rejected on any escape attempt — no partial
- *   extraction, no cleanup-after-the-fact (which would already have lost
- *   the race against a symlink swap).
+ * Legacy used `execSync('unzip -o ...')` with NO pre-extraction
+ * validation. This port replaces that with a hand-rolled ZIP central-
+ * directory reader that enumerates every entry BEFORE writing a single
+ * byte to disk and validates its name through `assertEntryInsideTarget`.
+ * The entire archive is rejected on any escape attempt — no partial
+ * extraction, no cleanup-after-the-fact (which would already have lost
+ * the race against a symlink swap).
  *
- *   Per-entry rejection criteria (atomic abort on ANY violation):
- *     - null byte in fileName
- *     - POSIX absolute path (`/foo`)
- *     - Windows drive letter (`C:foo`) or backslash-prefixed paths
- *     - `..` segments that resolve outside the target dir
- *     - symlink entries (any compression/external-attr signal)
- *     - resolved path falls outside `path.resolve(targetDir) + path.sep`
+ * Per-entry rejection criteria (atomic abort on ANY violation):
+ * - null byte in fileName
+ * - POSIX absolute path (`/foo`)
+ * - Windows drive letter (`C:foo`) or backslash-prefixed paths
+ * - `..` segments that resolve outside the target dir
+ * - symlink entries (any compression/external-attr signal)
+ * - resolved path falls outside `path.resolve(targetDir) + path.sep`
  *
- *   Zip-bomb defense: total uncompressed size capped at 100MB, per-entry
- *   decompressed size capped at 50MB, total entry count capped at 10,000.
+ * Zip-bomb defense: total uncompressed size capped at 100MB, per-entry
+ * decompressed size capped at 50MB, total entry count capped at 10,000.
  *
- *   Compression methods: 0 (stored) and 8 (deflate) only. All others
- *   rejected with ValidationError.
+ * Compression methods: 0 (stored) and 8 (deflate) only. All others
+ * rejected with ValidationError.
  *
  * **ADR-012 redaction.**
- *   `installed.json` carries display names that may contain
- *   token-tainted strings. Every `writeInstalled` call runs the data
- *   through `redactSecrets` before persistence.
+ * `installed.json` carries display names that may contain
+ * token-tainted strings. Every `writeInstalled` call runs the data
+ * through `redactSecrets` before persistence.
  *
  * **JSON shape validation.**
- *   `readInstalled` rejects `__proto__` / `constructor` / `prototype`
- *   keyed JSON, and rejects non-object roots — same posture as the
- *   evidence-collector / collaboration / chat-integration ports.
+ * `readInstalled` rejects `__proto__` / `constructor` / `prototype`
+ * keyed JSON, and rejects non-object roots — same posture as the
+ * evidence-collector / collaboration / chat-integration ports.
  *
- * **Deferred to M9 ESM cutover:**
- *   - The CLI entry block at the bottom of legacy install.js (lines
- *     983-1014) is NOT ported. It uses `import.meta.url` which TS
- *     rejects under the strangler-phase CJS classification.
- *   - Framework-version detection: legacy used `import.meta.url` to
- *     locate the package.json. This port uses a static
- *     `FRAMEWORK_VERSION` constant (mirrors any module that needs
- *     version info during the strangler phase).
  *
- * @see bin/lib/install.mjs (legacy reference)
  * @see specs/decisions/adr-010-marketplace-zipslip-prevention.md
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.5.1
  */
 
 import * as crypto from 'node:crypto';
@@ -77,9 +67,11 @@ import {
 } from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { inflateRawSync } from 'node:zlib';
 import { loadConfig } from './config-loader.js';
 import { ValidationError } from './errors.js';
+import { getPackageVersion } from './framework-manifest.js';
 import { applyIntegration } from './integrate.js';
 import { assertInsideRoot } from './path-safety.js';
 import { redactSecrets } from './secret-scanner.js';
@@ -92,14 +84,15 @@ const DEFAULT_REGISTRY_URL =
   'https://raw.githubusercontent.com/CGSOG-JumpStarts/JumpStart-Skills/main/registry/index.json';
 
 /**
- * Static framework version — mirror of package.json `version`. The
- * legacy module read this at runtime via `import.meta.url`, which is
- * blocked by the strangler-phase CJS classification (TS1470). At the
- * M9 ESM cutover this becomes a `createRequire`-driven runtime read.
- * Until then, kept in sync with package.json by hand; the contract
- * harness flags drift.
+ * Framework version — read at runtime from the package's `package.json`
+ * so the marketplace User-Agent and `checkCompatibility` can never drift
+ * from the canonical source. Anchored at this module's location so the
+ * lookup works whether running from source under tsx or from the
+ * published tarball.
  */
-const FRAMEWORK_VERSION = '1.1.14';
+const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
+const PACKAGE_ROOT_FOR_VERSION = path.resolve(MODULE_DIR, '..', '..');
+const FRAMEWORK_VERSION = getPackageVersion(PACKAGE_ROOT_FOR_VERSION);
 
 const TYPE_INSTALL_DIR: Record<string, string> = {
   skill: 'skills',
@@ -262,9 +255,9 @@ const noopProgress: ProgressFn = (_msg: string) => {
 
 /**
  * Resolve the registry URL from (in priority order):
- *   1. options.registryUrl (explicit flag)
- *   2. config.yaml -> skills.registry_url
- *   3. DEFAULT_REGISTRY_URL
+ * 1. options.registryUrl (explicit flag)
+ * 2. config.yaml -> skills.registry_url
+ * 3. DEFAULT_REGISTRY_URL
  */
 async function resolveRegistryUrl(options: InstallOptions = {}): Promise<string> {
   if (options.registryUrl) return options.registryUrl;
@@ -295,11 +288,11 @@ async function resolveRegistryUrl(options: InstallOptions = {}): Promise<string>
  * directory conventions for agent and prompt files.
  *
  * Heuristic:
- *   - .github/ exists (or .github/copilot-instructions.md or
- *     .github/agents/) -> VS Code + Copilot
- *     -> agents: .github/agents/   prompts: .github/prompts/
- *   - Otherwise -> Claude Code / generic
- *     -> agents: .jumpstart/agents/   prompts: .jumpstart/prompts/
+ * - .github/ exists (or .github/copilot-instructions.md or
+ * .github/agents/) -> VS Code + Copilot
+ * -> agents: .github/agents/ prompts: .github/prompts/
+ * - Otherwise -> Claude Code / generic
+ * -> agents: .jumpstart/agents/ prompts: .jumpstart/prompts/
  */
 export function detectIDE(projectRoot: string): IDEPaths {
   const hasGitHub = existsSync(path.join(projectRoot, '.github'));
@@ -329,9 +322,9 @@ export function detectIDE(projectRoot: string): IDEPaths {
 
 /**
  * ADR-011-style URL validator for marketplace endpoints. Enforces:
- *   - HTTPS-only, OR http://localhost / 127.0.0.1 / [::1] (dev mode)
- *   - No userinfo (rejects `https://attacker.com@trusted.com`)
- *   - Parsable URL
+ * - HTTPS-only, OR http://localhost / 127.0.0.1 / [::1] (dev mode)
+ * - No userinfo (rejects `https://attacker.com@trusted.com`)
+ * - Parsable URL
  *
  * Honors the `JUMPSTART_ALLOW_INSECURE_LLM_URL=1` escape hatch (one
  * knob, three consumers — same env-var as ADR-011's LLM endpoint
@@ -409,10 +402,10 @@ export async function fetchRegistryIndex(registryUrl?: string): Promise<Registry
 /**
  * Normalize user input to a dotted item ID.
  * Supports:
- *   - "skill.ignition"    -> "skill.ignition"   (pass-through)
- *   - "skill", "ignition" -> "skill.ignition"   (type + name)
- *   - "ignition"          -> "ignition"         (single word, resolve later)
- *   - "skill" (alone)     -> null               (ambiguous)
+ * - "skill.ignition" -> "skill.ignition" (pass-through)
+ * - "skill", "ignition" -> "skill.ignition" (type + name)
+ * - "ignition" -> "ignition" (single word, resolve later)
+ * - "skill" (alone) -> null (ambiguous)
  */
 export function normalizeItemId(first: string | undefined, second?: string): string | null {
   if (!first) return null;
@@ -461,9 +454,9 @@ export function findItemByName(index: RegistryIndex | null | undefined, name: st
 
 /**
  * Search the registry for items matching a query string. Scoring:
- *   - exact field match: +10
- *   - prefix match:      +5
- *   - substring match:   +2
+ * - exact field match: +10
+ * - prefix match: +5
+ * - substring match: +2
  */
 export function searchItems(index: RegistryIndex | null | undefined, query: string): Item[] {
   if (!index || !Array.isArray(index.items)) return [];
@@ -682,17 +675,17 @@ export function isInstalled(itemId: string, projectRoot: string): InstalledEntry
  * Download a zip file and verify its SHA256 checksum.
  *
  * Pit Crew M6 Adversary 2 (BLOCKER): three hardenings landed here:
- *   1. `redirect: 'error'` on the fetch — a compromised registry can
- *      no longer 302-redirect the download to an attacker domain.
- *   2. `validateMarketplaceUrl(downloadUrl, 'download')` enforces
- *      HTTPS-only (or localhost) and rejects userinfo confusion.
- *   3. `expectedSha256` is now REQUIRED. The legacy/pre-fix path
- *      treated the checksum as optional, so a registry serving an
- *      item with `download.checksumSha256` omitted would download
- *      anything and accept it. Callers MUST supply a checksum; the
- *      `JUMPSTART_ALLOW_INSECURE_LLM_URL=1` env override (matches
- *      registry-URL validation) lets dev/test paths bypass the
- *      requirement.
+ * 1. `redirect: 'error'` on the fetch — a compromised registry can
+ * no longer 302-redirect the download to an attacker domain.
+ * 2. `validateMarketplaceUrl(downloadUrl, 'download')` enforces
+ * HTTPS-only (or localhost) and rejects userinfo confusion.
+ * 3. `expectedSha256` is now REQUIRED. The legacy/pre-fix path
+ * treated the checksum as optional, so a registry serving an
+ * item with `download.checksumSha256` omitted would download
+ * anything and accept it. Callers MUST supply a checksum; the
+ * `JUMPSTART_ALLOW_INSECURE_LLM_URL=1` env override (matches
+ * registry-URL validation) lets dev/test paths bypass the
+ * requirement.
  *
  * Throws `ValidationError` (exit code 2) on checksum mismatch, missing
  * checksum, redirect, or non-allowlisted URL.
@@ -755,7 +748,7 @@ export async function downloadAndVerify(
     if (expectedSha256 && actualHash !== expectedSha256) {
       rmSync(tmpDir, { recursive: true, force: true });
       throw new ValidationError(
-        `Checksum mismatch!\n  Expected: ${expectedSha256}\n  Actual:   ${actualHash}\n  File may be corrupted or tampered with.`,
+        `Checksum mismatch!\n Expected: ${expectedSha256}\n Actual: ${actualHash}\n File may be corrupted or tampered with.`,
         'marketplace-download-verify',
         []
       );
@@ -1031,7 +1024,7 @@ function readEntryData(buf: Buffer, entry: ZipEntry): Buffer {
  */
 function validateEntryName(entryName: string, targetDir: string): void {
   // 1. Null byte (U+0000). Pulled via String.fromCharCode so editors /
-  //    hooks / patches can't accidentally strip it from source.
+  // hooks / patches can't accidentally strip it from source.
   const NULL_BYTE = String.fromCharCode(0);
   if (entryName.includes(NULL_BYTE)) {
     throw new ValidationError(
@@ -1365,8 +1358,8 @@ export async function installItem(
     }
     throw new Error(
       `Item "${itemId}" not found in registry.\n` +
-        `  Registry: ${registryUrl}\n` +
-        `  Hint: try  jumpstart-mode install --search ${itemId}`
+        ` Registry: ${registryUrl}\n` +
+        ` Hint: try jumpstart-mode install --search ${itemId}`
     );
   }
 
@@ -1429,7 +1422,7 @@ export async function installItem(
 
       progress(`✓ Installed ${item.id} v${item.version}`);
       if (result.remappedFiles.length > 0) {
-        progress(`  Remapped ${result.remappedFiles.length} file(s) to ${ide.agentDir}`);
+        progress(` Remapped ${result.remappedFiles.length} file(s) to ${ide.agentDir}`);
       }
 
       try {
@@ -1507,7 +1500,7 @@ export async function install(
   if (!item) {
     throw new Error(
       `Item "${itemId}" not found in registry.\n` +
-        `  Hint: try  jumpstart-mode install --search ${itemId}`
+        ` Hint: try jumpstart-mode install --search ${itemId}`
     );
   }
 
@@ -1521,7 +1514,7 @@ export async function install(
     });
 
     for (const w of warnings) progress(`⚠ ${w}`);
-    for (const s of skipped) progress(`  ${s} already installed — skipping.`);
+    for (const s of skipped) progress(` ${s} already installed — skipping.`);
 
     const allResults: InstallResult[] = [];
     for (const depId of order) {
@@ -1685,18 +1678,16 @@ export async function updateItems(
 // `tests/test-install.test.ts` need to drive the extractor directly
 // (without a network round-trip) to assert per-fixture rejection
 // behavior. We expose it under a `_TEST_ONLY` suffix so:
-//   - intent is unambiguous to anyone reading the export list,
-//   - `check-public-any.mjs` and `extract-public-surface.mjs` can be
-//     filtered to ignore symbols matching this naming convention if we
-//     want to stop them from contributing to the public API contract,
-//   - the sibling .d.mts emit shows the symbol explicitly so downstream
-//     auditors don't confuse it with a stable API.
+// - intent is unambiguous to anyone reading the export list,
+// - `check-public-any.mjs` and `extract-public-surface.mjs` can be
+// filtered to ignore symbols matching this naming convention if we
+// want to stop them from contributing to the public API contract,
+// - the sibling .d.mts emit shows the symbol explicitly so downstream
+// auditors don't confuse it with a stable API.
 //
-// At M9 ESM cutover this hatch is the right place to either re-package
-// the extractor as a real public helper (under a name like
-// `extractMarketplaceZip`) or to delete the hatch and rely on a
-// fixture-driven `installItem` test that uses a `file://` registry.
-// Until then, this stays the cleanest minimal surface.
+// If the test fixtures grow to need this externally, re-package the
+// extractor as a real public helper (e.g., `extractMarketplaceZip`).
+// Until then this stays the cleanest minimal surface.
 
 /** @internal Test-only re-export of the ZIP extractor. Do not call from production code. */
 export const _extractZipSafely_TEST_ONLY = extractZipSafely;

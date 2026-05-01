@@ -1,7 +1,7 @@
 /**
- * multi-repo.ts — Multi-Repo Program Orchestration port (M11 batch 4).
+ * multi-repo.ts — Multi-Repo Program Orchestration port.
  *
- * Pure-library port of `bin/lib/multi-repo.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultMultiRepoState()` => MultiRepoState
@@ -15,7 +15,7 @@
  *   - `getProgramStatus(options?)` => GetProgramStatusResult
  *   - `setReleasePlan(milestones, options?)` => SetReleasePlanResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/multi-repo.json`.
  *   - Valid roles: frontend, backend, infra, data, docs, other (others
  *     normalized to lowercase before comparison).
@@ -30,8 +30,6 @@
  * passing it in. The state file path itself goes through the standard
  * JSON-state pattern.
  *
- * @see bin/lib/multi-repo.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

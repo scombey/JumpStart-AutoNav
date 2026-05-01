@@ -1,7 +1,7 @@
 /**
- * agent-checkpoint.ts — Agent Self-Checkpoint & Resume port (M11 batch 3).
+ * agent-checkpoint.ts — Agent Self-Checkpoint & Resume port.
  *
- * Pure-library port of `bin/lib/agent-checkpoint.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()` => AgentCheckpointState
@@ -13,7 +13,7 @@
  *   - `cleanCheckpoints(options?)` => CleanCheckpointsResult
  *   - `CHECKPOINT_TYPES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/agent-checkpoints.json`.
  *   - 6 checkpoint types: phase-start, phase-end, task-start, task-end,
  *     error-recovery, manual.
@@ -22,8 +22,6 @@
  *   - M3 hardening: shape-validated JSON; rejects __proto__/constructor/
  *     prototype keys recursively; defaultState fallback on parse failure.
  *
- * @see bin/lib/agent-checkpoint.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

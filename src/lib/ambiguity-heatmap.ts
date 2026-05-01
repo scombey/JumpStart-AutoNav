@@ -1,7 +1,7 @@
 /**
  * ambiguity-heatmap.ts — requirement-ambiguity heatmap (T4.1.7 batch).
  *
- * Pure-library port of `bin/lib/ambiguity-heatmap.js`. Five exports:
+ * Five exports:
  * `scanAmbiguity`, `scanFile`, `generateHeatmap`, `VAGUE_TERMS`,
  * `MISSING_CONSTRAINT_PATTERNS` — all preserved verbatim by name +
  * shape.
@@ -10,8 +10,6 @@
  * preserved word-for-word; downstream tooling that imports the
  * constants gets the same lookup behavior.
  *
- * @see bin/lib/ambiguity-heatmap.js (legacy reference)
- * @see specs/implementation-plan.md T4.1.7
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

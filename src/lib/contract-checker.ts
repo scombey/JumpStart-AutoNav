@@ -1,21 +1,19 @@
 /**
  * contract-checker.ts — Contract Validation port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/contract-checker.mjs`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `extractModelEntities(content)` => ModelEntity[]
  *   - `extractContractEntities(content)` => ContractEndpoint[]
  *   - `validateContracts(input)` => ValidationResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Uses `String.matchAll` (no stateful exec loops).
  *   - Default file paths: `specs/contracts.md`, `specs/data-model.md`.
  *   - Score: round(((totalChecks - issues) / totalChecks) * 100), pass when >= 70.
  *   - CLI entry-point intentionally omitted.
  *
- * @see bin/lib/contract-checker.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, readFileSync } from 'node:fs';

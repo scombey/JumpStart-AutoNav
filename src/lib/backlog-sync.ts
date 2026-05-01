@@ -1,7 +1,7 @@
 /**
  * backlog-sync.ts — Native Backlog Synchronization port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/backlog-sync.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `SUPPORTED_TARGETS` (constant array)
@@ -19,15 +19,13 @@
  * to defend against secrets in PRD/plan content (e.g. an example URL
  * containing an API token in a story description).
  *
- * Behavior parity:
+ * Invariants:
  *   - Default sync file: `.jumpstart/state/backlog-sync.json`.
  *   - Targets: github / jira / azure-devops.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/backlog-sync.js (legacy reference)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

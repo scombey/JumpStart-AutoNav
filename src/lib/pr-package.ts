@@ -1,7 +1,7 @@
 /**
- * pr-package.ts — PR-Native Execution Mode port (M11 batch 4).
+ * pr-package.ts — PR-Native Execution Mode port.
  *
- * Pure-library port of `bin/lib/pr-package.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `gatherTestEvidence(root)` => string[]
@@ -9,7 +9,7 @@
  *   - `listPRPackages(root, options?)` => ListPRPackagesResult
  *   - `exportPRPackage(packageId, root, options?)` => ExportPRPackageResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default output dir: `<root>/.jumpstart/pr-packages`.
  *   - Markdown output filename: `<id>.md`, where id =
  *     `pr-<Date.now()>-<5-char base36>`.
@@ -25,8 +25,6 @@
  *     `<root>/.jumpstart/pr-packages/`; `assertInsideRoot` confirms the
  *     resolved file path stays under `root`.
  *
- * @see bin/lib/pr-package.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';

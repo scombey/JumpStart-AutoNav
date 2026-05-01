@@ -1,14 +1,12 @@
 /**
- * template-merge.ts — Template Inheritance System port (M11 batch 3).
+ * template-merge.ts — Template Inheritance System.
  *
- * Pure-library port of `bin/lib/template-merge.mjs` (ESM legacy). Public
- * surface preserved verbatim by name + signature:
- *
+ * Public surface:
  *   - `parseSections(content)` => ParsedSections
  *   - `mergeTemplates(baseContent, projectContent, options?)` => MergeResult
  *   - `mergeTemplateFiles(basePath, projectPath, options?)` => MergeResult
  *
- * Behavior parity:
+ * Invariants:
  *   - H2 (`## Header`)-based section keying. Project sections win over
  *     base sections on conflict (default `strategy: 'project-wins'`).
  *   - Frontmatter (YAML between `---` fences) preserved from project
@@ -21,9 +19,6 @@
  * Path-safety: `mergeTemplateFiles` does not call `assertInsideRoot`
  * directly — its callers (cluster wiring) gate paths through
  * `assertUserPath` before invoking. The library remains a pure helper.
- *
- * @see bin/lib/template-merge.mjs (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, readFileSync } from 'node:fs';

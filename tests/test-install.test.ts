@@ -29,6 +29,7 @@ import {
   rmSync,
   writeFileSync,
 } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -365,6 +366,26 @@ describe('checkCompatibility', () => {
   it('passes for items with no compatibility block', () => {
     const result = checkCompatibility({ id: 'x', type: 'skill', version: '1.0.0' });
     expect(result.compatible).toBe(true);
+  });
+
+  it('uses the live package.json version (not a hardcoded constant)', async () => {
+    // Probe: build a compat range one minor above the installed version
+    // and assert the warning fires. A hardcoded version constant in
+    // install.ts would silently drift past a real package.json bump,
+    // so this guards against the regression we surfaced during the
+    // M11 audit (was hardcoded to '1.1.14' while the package shipped 2.x).
+    const pkgUrl = new URL('../package.json', import.meta.url);
+    const pkg = JSON.parse(await readFile(pkgUrl, 'utf8')) as { version: string };
+    const [maj, min] = pkg.version.split('.').map((n) => Number.parseInt(n, 10));
+    const oneMinorAhead = `>=${maj}.${(min ?? 0) + 1}.0`;
+    const result = checkCompatibility({
+      id: 'x',
+      type: 'skill',
+      version: '1.0.0',
+      compatibility: { jumpstartMode: oneMinorAhead },
+    });
+    expect(result.compatible).toBe(false);
+    expect(result.warnings[0]).toContain(pkg.version);
   });
 });
 

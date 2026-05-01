@@ -1,7 +1,7 @@
 /**
  * llm-provider.ts — LLM provider abstraction port (T4.3.1).
  *
- * Pure-library port of `bin/lib/llm-provider.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `MODEL_REGISTRY` (constant catalog)
@@ -24,18 +24,15 @@
  *   `mode: 'live'` lazy-loads the OpenAI SDK and routes via the
  *   LiteLLM proxy.
  *
- * @see bin/lib/llm-provider.js (legacy reference)
  * @see specs/decisions/adr-011-llm-endpoint-validation.md
- * @see specs/implementation-plan.md T4.3.1
  */
 
 import { createRequire } from 'node:module';
 import { LLMError } from './errors.js';
 
-// M9 ESM cutover: lazy-load the optional `openai` SDK via
-// `createRequire(import.meta.url)` so the module emits `LLMError`
-// instead of crashing at import-time when the dep is absent (mock-only
-// consumers).
+// Lazy-load the optional `openai` SDK via `createRequire(import.meta.url)`
+// so the module emits `LLMError` instead of crashing at import-time
+// when the dep is absent (mock-only consumers).
 const require = createRequire(import.meta.url);
 
 // Public types

@@ -1,7 +1,7 @@
 /**
  * domain-ontology.ts — Domain Ontology Support port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/domain-ontology.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `ELEMENT_TYPES` (constant array)
@@ -13,7 +13,7 @@
  *   - `validateTermUsage(domain, text, options?)` => ValidateResult
  *   - `generateReport(options?)` => ReportResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/domain-ontology.json`.
  *   - Element types: entity / event / command / value-object / aggregate /
  *     constraint.
@@ -22,8 +22,6 @@
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *   - CLI entry-point intentionally omitted.
  *
- * @see bin/lib/domain-ontology.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

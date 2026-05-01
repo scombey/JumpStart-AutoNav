@@ -1,7 +1,7 @@
 /**
  * waiver-workflow.ts — exception & waiver workflow port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/waiver-workflow.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()`, `loadState(stateFile?)`, `saveState(state, stateFile?)`
@@ -11,13 +11,11 @@
  *   - `listWaivers(filter?, options?)` => ListResult
  *   - `WAIVER_STATUSES`, `WAIVER_CATEGORIES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/waivers.json`.
  *   - Default expiration: 90 days.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/waiver-workflow.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

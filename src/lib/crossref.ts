@@ -1,13 +1,13 @@
 /**
  * crossref.ts — bidirectional cross-reference validator port (T4.2.4).
  *
- * Pure-library port of `bin/lib/crossref.mjs`. Public surface preserved:
+ * Public surface preserved:
  *
  *   - `extractLinks(content)` => MarkdownLink[]
  *   - `extractAnchors(content)` => string[]
  *   - `validateCrossRefs(specsDir, root)` => CrossRefReport
  *
- * Behavior parity:
+ * Invariants:
  *   - External URLs (http/https/mailto) and pure-anchor links (`#x`)
  *     are skipped.
  *   - Anchor slugification: lowercase, strip non-word/space/hyphen,
@@ -19,8 +19,6 @@
  *   - pass = no broken_links AND no missing_backlinks.
  *   - Walks specsDir recursively.
  *
- * @see bin/lib/crossref.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.2.4
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

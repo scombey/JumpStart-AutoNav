@@ -1,28 +1,28 @@
 /**
  * validator.ts — schema-enforcement library port (T4.2.2).
  *
- * Pure-library port of `bin/lib/validator.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature for byte-identical drop-in compatibility:
  *
- *   - `loadSchema(name, dir?)`
- *   - `extractFrontmatter(content)`
- *   - `validate(data, schema, schemasDir?, prefix?)`
- *   - `validateArtifact(filePath, schemaName, schemasDir?)`
- *   - `validateMarkdownStructure(content, expectedSections)`
- *   - `checkApproval(filePath)`
- *   - `validateAgentDefinition(filePath)`
+ * - `loadSchema(name, dir?)`
+ * - `extractFrontmatter(content)`
+ * - `validate(data, schema, schemasDir?, prefix?)`
+ * - `validateArtifact(filePath, schemaName, schemasDir?)`
+ * - `validateMarkdownStructure(content, expectedSections)`
+ * - `checkApproval(filePath)`
+ * - `validateAgentDefinition(filePath)`
  *
  * **Zod-primary, JSON-Schema-walker fallback (per T4.2.2 plan).**
- *   The generated Zod schemas in `src/schemas/generated/` are the
- *   PRIMARY validation path: when `validate()` receives a schema whose
- *   `$id` matches a canonical generated schema (e.g.
- *   `jumpstart://spec-metadata`), it routes through the Zod schema
- *   for richer error messages and brand-friendly types. For inline /
- *   custom / unknown schemas the legacy hand-rolled walker stays
- *   active — preserves v0 compatibility for every caller that hands
- *   `validate()` an ad-hoc schema literal (the test fixtures in
- *   `tests/test-schema.test.js` rely on this for ~10 of their
- *   inline-schema cases).
+ * The generated Zod schemas in `src/schemas/generated/` are the
+ * PRIMARY validation path: when `validate()` receives a schema whose
+ * `$id` matches a canonical generated schema (e.g.
+ * `jumpstart://spec-metadata`), it routes through the Zod schema
+ * for richer error messages and brand-friendly types. For inline /
+ * custom / unknown schemas the legacy hand-rolled walker stays
+ * active — preserves v0 compatibility for every caller that hands
+ * `validate()` an ad-hoc schema literal (the test fixtures in
+ * `tests/test-schema.test.js` rely on this for ~10 of their
+ * inline-schema cases).
  *
  * **Error contract.** Returns `{valid, errors}` plain object — same as
  * legacy. Does NOT throw `ValidationError`; this is a leaf-utility
@@ -30,10 +30,8 @@
  * IPC envelope at the trust boundary (`runIpc`) translates returns
  * into typed errors.
  *
- * @see bin/lib/validator.js (legacy reference)
  * @see src/schemas/generated/* (Zod codegen)
  * @see specs/decisions/adr-004-schema-direction.md
- * @see specs/implementation-plan.md T4.2.2
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -42,12 +40,9 @@ import { fileURLToPath } from 'node:url';
 import type { ZodType } from 'zod';
 import * as generated from '../schemas/generated/index.js';
 
-// Resolve this module's on-disk directory under pure ESM. M9 cutover
-// replaced the strangler-phase `typeof __dirname === 'string'` sentinel
-// with `fileURLToPath(import.meta.url)` (Pit Crew M3 Reviewer H6
-// resolution): under ESM, `__dirname` does not exist as a binding, so
-// the previous sentinel would have ReferenceError'd at module load
-// time. `fileURLToPath` is the canonical ESM equivalent.
+// Resolve this module's on-disk directory under pure ESM. `__dirname`
+// is not a binding in ESM, so we synthesize it from `import.meta.url`
+// — the canonical ESM equivalent.
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 // Pit Crew M3 Adversary F9 + F2: forbidden frontmatter keys that
@@ -63,8 +58,8 @@ const FORBIDDEN_FRONTMATTER_KEYS: ReadonlySet<string> = new Set([
 // ─────────────────────────────────────────────────────────────────────────
 
 /** Plain JSON Schema 7 value (recursive). The walker accepts arbitrary
- *  unknown-shape inputs; precise typing isn't worth the maintenance cost
- *  for a JS-compat layer. */
+ * unknown-shape inputs; precise typing isn't worth the maintenance cost
+ * for a JS-compat layer. */
 export type JSONSchema = Record<string, unknown>;
 
 export interface ValidationOutcome {

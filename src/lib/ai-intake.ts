@@ -1,7 +1,7 @@
 /**
  * ai-intake.ts — AI Use Case Intake port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/ai-intake.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `INTAKE_SECTIONS` (constant array)
@@ -11,14 +11,12 @@
  *   - `listIntakes(filter?, options?)` => ListResult
  *   - `assessIntake(intakeId, options?)` => AssessResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/ai-intake.json`.
  *   - Auto-assess risk tier: 4 (PHI/PCI), 3 (PII/credentials), 2 (business-sensitive/internal), 1 default.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/ai-intake.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

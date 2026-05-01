@@ -1,7 +1,7 @@
 /**
  * context7-setup.ts — Context7 MCP Setup Module port (T4.6.x, M7).
  *
- * Pure-library port of `bin/context7-setup.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature shape:
  *
  *   - `setupContext7(options)` => Promise<SetupOutcome>
@@ -9,7 +9,7 @@
  *   - `installForClient(clientKey, apiKey, targetDir)` => InstallResult
  *   - `CLIENT_CONFIGS` constant
  *
- * Behavior parity:
+ * Invariants:
  *   - All client templates preserved (vscode/cursor/claude-code/
  *     claude-desktop/windsurf).
  *   - API key prefix validation `ctx7sk-` preserved.
@@ -39,15 +39,8 @@
  *   (vscode/cursor) so a malicious targetDir like `/`+traversal
  *   doesn't write into a different parent.
  *
- * **Deferred to M9 ESM cutover:**
- *   Legacy uses CommonJS `require('chalk')` / `require('prompts')` /
- *   `require('child_process')`. The TS port uses dynamic-loaded chalk
- *   and prompts (so callers without these in node_modules don't break)
- *   and the runShellCommand wrapper for `claude mcp add`.
  *
- * @see bin/context7-setup.js (legacy reference, 403L)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.6.x
  */
 
 import { spawnSync } from 'node:child_process';
@@ -63,10 +56,10 @@ import { createRequire } from 'node:module';
 import * as path from 'node:path';
 import { redactSecrets } from './secret-scanner.js';
 
-// M9 ESM cutover: chalk + prompts are loaded lazily via
-// `createRequire(import.meta.url)` so the module degrades gracefully
-// (no-color fallback + non-interactive prompts) when those deps are
-// absent (mock-only consumers, hermetic tests).
+// chalk + prompts are loaded lazily via `createRequire(import.meta.url)`
+// so the module degrades gracefully (no-color fallback + non-interactive
+// prompts) when those deps are absent (mock-only consumers, hermetic
+// tests).
 const require = createRequire(import.meta.url);
 
 // ─────────────────────────────────────────────────────────────────────────

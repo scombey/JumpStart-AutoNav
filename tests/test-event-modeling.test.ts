@@ -9,7 +9,6 @@
  *   - M3 hardening: rejects `__proto__` / `constructor` / `prototype` keys
  *
  * @see src/lib/event-modeling.ts
- * @see bin/lib/event-modeling.js (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

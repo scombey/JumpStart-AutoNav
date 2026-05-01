@@ -1,7 +1,7 @@
 /**
  * deterministic-artifacts.ts — Deterministic Artifact Generation port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/deterministic-artifacts.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `normalizeMarkdown(content)` => string
@@ -10,7 +10,7 @@
  *   - `verifyStability(file1, file2)` => StabilityResult
  *   - `normalizeSpecs(root, options?)` => NormalizeSpecsResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Normalization rules (in order): CRLF→LF, tab→2sp, trim trailing,
  *     collapse 3+ newlines to 2, strip HTML comments, replace ISO-8601
  *     timestamps with `[TIMESTAMP]`, replace UUIDs with `[UUID]`,
@@ -19,8 +19,6 @@
  *   - Recursive walk of all markdown files under `<root>/specs/`.
  *   - CLI entry-point intentionally omitted.
  *
- * @see bin/lib/deterministic-artifacts.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { createHash } from 'node:crypto';

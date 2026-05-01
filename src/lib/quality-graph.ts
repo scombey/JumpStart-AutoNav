@@ -1,7 +1,7 @@
 /**
  * quality-graph.ts — code-quality smell graph port (T4.4.1, cluster J).
  *
- * Pure-library port of `bin/lib/quality-graph.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `QUALITY_DIMENSIONS` (constant array)
@@ -11,7 +11,7 @@
  *   - `calculateOverallScore(metrics)` => number
  *   - `generateReport(scanResult)` => QualityReport
  *
- * Behavior parity:
+ * Invariants:
  *   - Default exclude dirs: `node_modules`, `.git`, `dist`, `build`, `vendor`.
  *   - Default extensions: `.js .ts .py .java .go .rb`.
  *   - Hotspots sorted ascending by `overall_score` (lower = worse).
@@ -25,8 +25,6 @@
  *   - Complexity-level lookup uses literal switch-equivalent ternary so no
  *     attacker-controlled key ever indexes into `COMPLEXITY_THRESHOLDS`.
  *
- * @see bin/lib/quality-graph.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.1
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

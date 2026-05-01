@@ -1,10 +1,10 @@
 /**
- * locks.ts — file-lock primitives (T4.1.4 port).
+ * locks.ts — file-lock primitives.
  *
- * Pure-library port of `bin/lib/locks.mjs`. Four exports preserved
+ * Four exports preserved
  * verbatim: `acquireLock`, `releaseLock`, `lockStatus`, `listLocks`.
  *
- * Behavior parity with the legacy module:
+ * Invariants:
  *   - Lock file path derivation identical: `<filePath>` with `/` and
  *     `\\` rewritten to `__` and any `..` rewritten to `_`, suffixed
  *     with `.lock`, joined under the locks dir.
@@ -20,9 +20,6 @@
  * tail block) is intentionally NOT ported. Subprocess invocations
  * continue to hit `bin/lib/locks.mjs` until M5's `runIpc` lands.
  *
- * @see bin/lib/locks.mjs (legacy reference)
- * @see specs/decisions/adr-005-module-layout.md (strangler-fig)
- * @see specs/implementation-plan.md T4.1.4
  */
 
 import { createHash } from 'node:crypto';

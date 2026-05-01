@@ -1,7 +1,7 @@
 /**
  * repo-graph.ts — repo understanding graph port (T4.2.5).
  *
- * Pure-library port of `bin/lib/repo-graph.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `defaultRepoGraph()`
@@ -23,8 +23,6 @@
  * @owner annotations: `@owner: <name>` lines create an `owner:<name>`
  * node with an "owns" edge to the file.
  *
- * @see bin/lib/repo-graph.js (legacy reference)
- * @see specs/implementation-plan.md T4.2.5
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';

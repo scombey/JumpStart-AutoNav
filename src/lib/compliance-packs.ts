@@ -1,7 +1,7 @@
 /**
  * compliance-packs.ts — prebuilt compliance control mappings (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/compliance-packs.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()` => ComplianceState
@@ -12,15 +12,13 @@
  *   - `checkCompliance(options?)` => CheckResult
  *   - `COMPLIANCE_FRAMEWORKS` (constant map)
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/compliance.json`.
  *   - 8 frameworks: SOC 2, ISO 27001, HIPAA, PCI, FedRAMP, GDPR,
  *     EU AI Act, NIST AI RMF.
  *   - JSON parse failures return safe defaults (no throw).
  *   - M3 hardening: validates parsed JSON shape; rejects __proto__.
  *
- * @see bin/lib/compliance-packs.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

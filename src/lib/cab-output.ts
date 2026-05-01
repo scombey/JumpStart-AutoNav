@@ -1,13 +1,13 @@
 /**
  * cab-output.ts — Change Advisory Board Output port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/cab-output.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `CAB_SECTIONS` (constant array)
  *   - `generateCABSummary(root, options?)` => CABResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Reads `<root>/specs/prd.md`, `<root>/specs/architecture.md`,
  *     `<root>/specs/implementation-plan.md`,
  *     `<root>/.jumpstart/state/risk-register.json`,
@@ -15,8 +15,6 @@
  *   - Risk-level threshold: any high risk → 'high', else completeness>=70 → 'standard', else 'elevated'.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/cab-output.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, readFileSync } from 'node:fs';

@@ -6,7 +6,6 @@
  * Adversary 1), and the atomic-acquire path (Pit Crew QA F7).
  *
  * @see src/lib/locks.ts
- * @see bin/lib/locks.mjs (legacy reference)
  */
 
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';

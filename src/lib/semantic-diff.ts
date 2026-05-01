@@ -1,7 +1,7 @@
 /**
- * semantic-diff.ts — Cross-artifact Semantic Diffing port (M11 batch 6).
+ * semantic-diff.ts — Cross-artifact Semantic Diffing.
  *
- * Pure-library port of `bin/lib/semantic-diff.js` (CJS). Public surface:
+ * Public surface:
  *   - `extractSections(content)` => Section[]
  *   - `extractRequirements(content)` => string[]
  *   - `extractApiEndpoints(content)` => ApiEndpoint[]
@@ -12,10 +12,10 @@
  *   - `compareFiles(pathA, pathB, options?)` => CompareResult
  *   - `crossArtifactDiff(root, options?)` => CrossDiffResult
  *
- * M3 hardening: No JSON state paths. Not applicable.
- * Path-safety per ADR-009: `compareFiles` paths come from CLI wiring.
- *
- * @see bin/lib/semantic-diff.js (legacy reference)
+ * Invariants:
+ *   - No JSON state files — the module operates on Markdown content.
+ *   - `compareFiles` paths come from CLI wiring; the library does not
+ *     gate them again.
  */
 
 import { existsSync, readFileSync } from 'node:fs';

@@ -22,10 +22,6 @@
  * lib-ts imports are TOP-LEVEL ES imports per lifecycle.ts canonical
  * pattern. Only `event-modeling` (no TS port) goes through legacyRequire.
  *
- * @see bin/cli.js (lines 1771-1813, 1927-1939, 2405-2438, 3856-3887,
- *       4077-4093, 4237-4254, 4538-4562, 4870-4895, 4920-4941,
- *       5174-5210 — legacy reference)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { defineCommand } from 'citty';
@@ -650,7 +646,6 @@ interface EventModelingLib {
 }
 
 export function eventModelingImpl(deps: Deps, args: EventModelingArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('event-modeling')`
   // to a static import of the TS port at `src/lib/event-modeling.ts`. Public
   // surface preserved verbatim — see refs in tests/test-event-modeling.test.ts.
   // The TS port has tighter types; the cluster's EventModelingLib is the

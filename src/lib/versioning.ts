@@ -1,31 +1,29 @@
 /**
- * versioning.ts — git-tag-driven spec versioning (T4.1.6 port).
+ * versioning.ts — git-tag-driven spec versioning.
  *
- * Pure-library port of `bin/lib/versioning.js` (5 exports preserved
- * verbatim by name + signature). The git tag scheme `spec/<artifact>/vX.Y.Z`
- * is preserved exactly, as is the "auto-bump minor on tag" semver
- * heuristic and the spec-file frontmatter injection logic.
+ * Stamps spec artifacts with git tags of the form `spec/<artifact>/vX.Y.Z`,
+ * auto-bumping the minor on each new tag and injecting the version into
+ * the spec file's YAML frontmatter.
  *
- * **Security improvement** (the only behavior change vs legacy):
- *   - Legacy `bin/lib/versioning.js` interpolated user-controlled
- *     `artifactName`, `version`, and `message` into a shell command
- *     string via `child_process.execSync` with backtick templates.
- *     A malicious tag-message containing `"; rm -rf ~"` would run on
- *     the user's shell.
- *   - The port uses the array-args form of `child_process.execFileSync`
- *     so arguments pass to git directly without shell interpretation.
- *     Result-shape is byte-identical for legitimate inputs; malicious
- *     inputs that would have shelled out under legacy now reach git
- *     as literal strings (rejected by git's own validation).
+ * Public surface:
+ *   - `generateTag(artifactName, version)` => string
+ *   - `getNextVersion(artifactName, cwd?)` => string
+ *   - `createVersionTag(...)` => CreateTagResult
+ *   - `injectVersion(filePath, version)` => boolean
+ *   - `listVersions(cwd?)` => VersionEntry[]
  *
- * Per ADR-005 the legacy `bin/lib/versioning.js` stays in place during
- * the strangler window. A caller migrating to `import from '@lib/versioning'`
- * picks up the safer execution path.
+ * Invariants:
+ *   - Tag format: `spec/<artifactName>/v<version>`.
+ *   - "Auto-bump minor on tag" semver heuristic; falls back to `1.0.0`
+ *     when no prior tags exist or git is unavailable.
  *
- * @see bin/lib/versioning.js (legacy reference)
- * @see specs/decisions/adr-005-module-layout.md
+ * Security note: all five exports use the array-args form of
+ * `execFileSync` so `artifactName`, `version`, and `message` pass to
+ * git directly without shell interpretation. Inputs containing shell
+ * metacharacters reach git as literal strings and are rejected by
+ * git's own validation.
+ *
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
- * @see specs/implementation-plan.md T4.1.6
  */
 
 import { execFileSync } from 'node:child_process';
@@ -59,7 +57,7 @@ export function generateTag(artifactName: string, version: string): string {
  * `minor`. Returns `'1.0.0'` when no prior tags exist or when git is
  * unavailable.
  *
- * Behavior parity: identical sort key + identical fallback-to-1.0.0
+ * Invariants: identical sort key + identical fallback-to-1.0.0
  * branches as the legacy module.
  */
 export function getNextVersion(artifactName: string, cwd?: string): string {

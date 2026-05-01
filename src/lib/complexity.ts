@@ -1,7 +1,7 @@
 /**
  * complexity.ts — adaptive planning depth calculator (T4.1.7 batch).
  *
- * Pure-library port of `bin/lib/complexity.mjs`. Single export:
+ * Single export:
  * `calculateComplexity(input)`. Vocabulary lists
  * (`HIGH_COMPLEXITY_DOMAINS`, `MEDIUM_COMPLEXITY_DOMAINS`,
  * `RISK_KEYWORDS`) preserved verbatim and re-exported for downstream
@@ -12,8 +12,6 @@
  *
  * The legacy CLI driver block is intentionally NOT ported.
  *
- * @see bin/lib/complexity.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.1.7
  */
 
 export const HIGH_COMPLEXITY_DOMAINS: readonly string[] = [

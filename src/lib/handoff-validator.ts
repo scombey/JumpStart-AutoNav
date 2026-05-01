@@ -1,7 +1,7 @@
 /**
  * handoff-validator.ts — Layer 2 Handoff Contract Testing port (T4.6.x, M7).
  *
- * Pure-library port of `bin/lib/handoff-validator.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature shape:
  *
  *   - `extractHandoffPayload(artifactPath, targetPhase)` => HandoffPayload
@@ -23,16 +23,8 @@
  *   reject `__proto__` / `constructor` / `prototype` keys recursively
  *   and reject non-object roots — mirrors the M6 install.ts pattern.
  *
- * **Deferred to M9 ESM cutover:**
- *   Legacy used `path.join(__dirname, '..', '..', '.jumpstart',
- *   'handoffs')` for the default handoffs dir. The TS port replaces
- *   `__dirname` with a `process.cwd()`-relative default so the module
- *   stays importable under ESM. Callers that need a different root
- *   pass `handoffsDir` explicitly.
  *
- * @see bin/lib/handoff-validator.js (legacy reference, 389L)
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
- * @see specs/implementation-plan.md T4.6.x
  */
 
 import { existsSync, readFileSync } from 'node:fs';

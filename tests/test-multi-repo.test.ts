@@ -13,7 +13,6 @@
  *   - setReleasePlan (rejects non-array; sets current_milestone)
  *
  * @see src/lib/multi-repo.ts
- * @see bin/lib/multi-repo.js (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

@@ -1,7 +1,7 @@
 /**
  * approve.ts — programmatic artifact approval/rejection port (T4.3.2).
  *
- * Pure-library port of `bin/lib/approve.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `setApproveTimelineHook(timeline | null)`
@@ -11,7 +11,7 @@
  *   - `renderApprovalResult(result)` => string
  *   - `renderRejectionResult(result)` => string
  *
- * Behavior parity:
+ * Invariants:
  *   - PHASE_ARTIFACT_MAP / PHASE_MAP / AGENT_COMMANDS preserved verbatim.
  *   - Approval flow: flip `[ ]`→`[x]`, set Approver/Date/Status.
  *   - Rejection flow: flip back, append to `specs/insights/rejection-log.md`.
@@ -19,8 +19,6 @@
  *     phase state via `syncPhaseState`.
  *   - Timeline events recorded for both approval and rejection.
  *
- * @see bin/lib/approve.js (legacy reference)
- * @see specs/implementation-plan.md T4.3.2
  */
 
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

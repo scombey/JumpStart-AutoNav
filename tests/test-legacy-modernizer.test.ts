@@ -10,7 +10,6 @@
  *   - M3 hardening: rejects __proto__ / constructor / prototype keys
  *
  * @see src/lib/legacy-modernizer.ts
- * @see bin/lib/legacy-modernizer.js (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

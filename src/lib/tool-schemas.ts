@@ -1,14 +1,14 @@
 /**
  * tool-schemas.ts — OpenAI Function Calling Tool Schemas port (T4.6.3, M7).
  *
- * Pure-library port of `bin/lib/tool-schemas.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature shape:
  *
  *   - `ALL_TOOLS`              (constant array of OpenAI-style tool defs)
  *   - `getToolsForPhase(name)` => Tool[]
  *   - `getToolByName(name)`    => Tool | null
  *
- * Behavior parity:
+ * Invariants:
  *   - 23 tool definitions — every legacy tool is preserved verbatim,
  *     including parameter shapes, required-field arrays, enums, and
  *     descriptions. This is the contract the headless-runner and
@@ -40,8 +40,6 @@
  *   `Tool` interface — an OpenAI tool def with a typo here would fail
  *   typecheck at the constant-literal site.
  *
- * @see bin/lib/tool-schemas.js (legacy reference)
- * @see specs/implementation-plan.md T4.6.3
  */
 
 // ─────────────────────────────────────────────────────────────────────────

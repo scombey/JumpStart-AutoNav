@@ -12,7 +12,6 @@
  *     refinement gated by safePathSchema per ADR-009)
  *
  * @see src/lib/config-loader.ts
- * @see bin/lib/config-loader.mjs (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -310,7 +309,7 @@ describe('runIpc(loadConfig, ConfigLoaderInputSchema) — e2e wiring (Pit Crew M
   });
 });
 
-describe('loadConfig — ceremony profile expansion (legacy soft-fail behavior)', () => {
+describe('loadConfig — ceremony profile expansion', () => {
   it('skips profile expansion when ceremony.profile === "standard"', async () => {
     writeProjectConfig(['ceremony:', '  profile: standard', ''].join('\n'));
     const result = await loadConfig({ root: tmpRoot });
@@ -323,18 +322,26 @@ describe('loadConfig — ceremony profile expansion (legacy soft-fail behavior)'
     expect(result.profile_applied).toBeNull();
   });
 
-  it('soft-fails to profile_applied=null when bin/lib/ceremony.mjs cannot be loaded', async () => {
-    // We can't easily make the legacy ceremony.js reject without
-    // touching the real repo's file. Instead spy on console to
-    // confirm no unhandled rejection escapes.
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
-      /* swallowed */
-    });
+  it('skips and soft-fails to null for an unknown profile name', async () => {
     writeProjectConfig(['ceremony:', '  profile: nonexistent-profile', ''].join('\n'));
     const result = await loadConfig({ root: tmpRoot });
-    // Whatever ceremony.js does, the call shouldn't throw — legacy
-    // semantics is "skip on error."
     expect(result).toBeDefined();
-    errorSpy.mockRestore();
+    expect(result.profile_applied).toBeNull();
+  });
+
+  it('expands the "light" ceremony profile and reports applied settings', async () => {
+    writeProjectConfig(['ceremony:', '  profile: light', ''].join('\n'));
+    const result = await loadConfig({ root: tmpRoot });
+    expect(result.profile_applied).not.toBeNull();
+    expect(result.profile_applied?.profile).toBe('light');
+    // light flips spec-quality smell density from the default to 8.0.
+    expect(result.profile_applied?.settings_applied).toBeGreaterThan(0);
+  });
+
+  it('expands the "rigorous" ceremony profile', async () => {
+    writeProjectConfig(['ceremony:', '  profile: rigorous', ''].join('\n'));
+    const result = await loadConfig({ root: tmpRoot });
+    expect(result.profile_applied?.profile).toBe('rigorous');
+    expect(result.profile_applied?.settings_applied).toBeGreaterThan(0);
   });
 });

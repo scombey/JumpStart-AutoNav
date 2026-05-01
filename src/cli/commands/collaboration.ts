@@ -33,11 +33,6 @@
  * lib-ts imports are TOP-LEVEL ES imports per lifecycle.ts canonical
  * pattern.
  *
- * @see bin/cli.js (lines ~2616-2654, 2921-2957, 2960-2993, 3161-3182,
- *       3292-3318, 3669-3691, 3741-3753, 3756-3784, 3989-3999, 4031-4049,
- *       4370-4390, 4393-4417, 4455-4477, 4481-4499, 4503-4534, 4565-4587,
- *       4646-4672, 4676-4691, 4898-4916 — legacy reference)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import * as fs from 'node:fs';

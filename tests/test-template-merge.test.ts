@@ -10,7 +10,6 @@
  *   - Frontmatter + preamble inheritance
  *
  * @see src/lib/template-merge.ts
- * @see bin/lib/template-merge.mjs (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

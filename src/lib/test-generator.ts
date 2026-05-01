@@ -1,17 +1,18 @@
 /**
- * test-generator.ts — Test Generation Tied to Acceptance Criteria port (M11 batch 6).
+ * test-generator.ts — Test Generation Tied to Acceptance Criteria.
  *
- * Pure-library port of `bin/lib/test-generator.js` (CJS). Public surface:
+ * Public surface:
  *   - `extractCriteria(content)` => Criterion[]
  *   - `generateTestStubs(criteria, options?)` => StubResult
  *   - `checkCoverage(root, options?)` => CoverageResult
  *   - `TEST_TYPES`
  *   - `TEST_FRAMEWORKS`
  *
- * M3 hardening: No JSON state paths. Not applicable.
- * Path-safety per ADR-009: `checkCoverage` uses project root from CLI wiring.
- *
- * @see bin/lib/test-generator.js (legacy reference)
+ * Invariants:
+ *   - No JSON state files — the module operates on Markdown content
+ *     and emits stub strings.
+ *   - `checkCoverage` uses project root from CLI wiring; the library
+ *     does not gate the path itself.
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

@@ -1,13 +1,13 @@
 /**
  * ea-review-packet.ts — Enterprise Architecture Review Packet port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/ea-review-packet.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `PACKET_SECTIONS` (constant array)
  *   - `generatePacket(root, options?)` => PacketResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Inputs scanned: `specs/architecture.md`, `specs/decisions/*.md`,
  *     `.jumpstart/policies.json`, `.jumpstart/state/waivers.json`,
  *     `.jumpstart/state/risk-register.json`,
@@ -19,8 +19,6 @@
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *   - CLI entry-point intentionally omitted.
  *
- * @see bin/lib/ea-review-packet.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

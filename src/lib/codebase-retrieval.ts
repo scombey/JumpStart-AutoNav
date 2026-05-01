@@ -1,7 +1,7 @@
 /**
  * codebase-retrieval.ts — codebase-native retrieval port (T4.4.1, cluster J).
  *
- * Pure-library port of `bin/lib/codebase-retrieval.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `RETRIEVABLE_TYPES` (constant array)
@@ -9,7 +9,7 @@
  *   - `indexProject(root, options?)` => IndexProjectResult
  *   - `queryFiles(root, query, options?)` => QueryFilesResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default exclude dirs: `node_modules`, `.git`, `dist`, `build`.
  *   - Categorization regex preserves legacy heuristics (ADRs by path,
  *     tests by `.test.|.spec.|__tests__`, specs under `specs/`).
@@ -24,8 +24,6 @@
  *   - Index map uses `Object.create(null)`-style population; lookups
  *     reject prototype-pollution-shaped keys before recursion.
  *
- * @see bin/lib/codebase-retrieval.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.1
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

@@ -24,11 +24,6 @@
  * All lib-ts imports are TOP-LEVEL ES imports (per marketplace.ts /
  * lifecycle.ts canonical example).
  *
- * @see bin/cli.js (lines 2557-2613, 2743-2817, 3357-3389, 3392-3421,
- *      3424-3447, 3480-3515, 3550-3578, 3581-3608, 3611-3625, 3718-3738,
- *      3788-3814, 3817-3826, 4053-4074, 4752-4771, 4973-4994, 5148-5172
- *      — legacy reference)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { defineCommand } from 'citty';

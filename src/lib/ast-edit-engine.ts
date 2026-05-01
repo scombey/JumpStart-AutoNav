@@ -1,7 +1,7 @@
 /**
  * ast-edit-engine.ts — AST-aware edit engine port (T4.4.1, cluster J).
  *
- * Pure-library port of `bin/lib/ast-edit-engine.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `SUPPORTED_LANGUAGES` (constant array)
@@ -11,7 +11,7 @@
  *   - `validateEdit(filePath, oldStr, newStr, options?)` => ValidateResult
  *   - `countBrackets(content)` => BracketCounts
  *
- * Behavior parity:
+ * Invariants:
  *   - Language detection uses extension map; unknown extensions return null.
  *   - Symbol scan walks `STRUCTURE_PATTERNS[language]` and emits
  *     `{type, name, line}` entries (type is the underscore-replaced key).
@@ -21,13 +21,11 @@
  * Hardening (F2/F4/F9/F13 lessons from M3/M4):
  *   - All `fs` calls use the static top-of-module import.
  *   - Symbol matching uses `String.matchAll(globalRegex)` instead of
- *     stateful `regex.exec()` looping (M4 cluster H pattern).
+ *     stateful `regex.exec()` looping.
  *   - `STRUCTURE_PATTERNS` lookup guards prototype-pollution-shaped keys
  *     (`__proto__`/`constructor`/`prototype` would otherwise return the
  *     Object prototype methods and crash the regex iteration).
  *
- * @see bin/lib/ast-edit-engine.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.1
  */
 
 import { existsSync, readFileSync } from 'node:fs';

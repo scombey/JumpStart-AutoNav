@@ -13,7 +13,6 @@
  *   - M3 hardening: pollution-key registry payloads fall back to default
  *
  * @see src/lib/fitness-functions.ts
- * @see bin/lib/fitness-functions.js (legacy reference)
  */
 
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';

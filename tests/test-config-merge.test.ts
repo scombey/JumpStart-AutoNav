@@ -4,7 +4,6 @@
  * Pin the three-way merge contract from the legacy upgrade flow.
  *
  * @see src/lib/config-merge.ts
- * @see bin/lib/config-merge.mjs (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';

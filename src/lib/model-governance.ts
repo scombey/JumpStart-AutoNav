@@ -1,7 +1,7 @@
 /**
  * model-governance.ts — model governance workflows port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/model-governance.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `defaultState()`, `loadState(stateFile?)`, `saveState(state, stateFile?)`
@@ -11,13 +11,11 @@
  *   - `generateReport(options?)` => ModelReport
  *   - `MODEL_RISK_LEVELS`, `MODEL_STATUSES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/model-governance.json`.
  *   - 4 risk levels (low/medium/high/critical), 5 statuses.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/model-governance.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

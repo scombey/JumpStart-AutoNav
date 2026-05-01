@@ -1,9 +1,7 @@
 /**
- * fitness-functions.ts — Architectural Fitness Functions port (M11 batch 5).
+ * fitness-functions.ts — Architectural Fitness Functions.
  *
- * Pure-library port of `bin/lib/fitness-functions.js` (CJS) to a typed ES
- * module. Public surface preserved verbatim by name + signature:
- *
+ * Public surface:
  *   - `defaultRegistry()` => Registry
  *   - `loadRegistry(registryFile?)` => Registry
  *   - `saveRegistry(registry, registryFile?)` => void
@@ -14,7 +12,7 @@
  *     max_function_params / pattern_match)
  *   - `FITNESS_CATEGORIES` (frozen list)
  *
- * Behavior parity:
+ * Invariants:
  *   - Default registry file: `.jumpstart/fitness-functions.json`.
  *   - Registry IDs default to `ff-<Date.now()>-<5-char base36>`.
  *   - evaluateFitness walks `target_dirs` (default `['src']`) and reads
@@ -22,20 +20,18 @@
  *     dotfiles and `node_modules`.
  *   - evaluation_history is capped at 50 entries (FIFO via slice(-50)).
  *
- * M3 hardening:
- *   - Every JSON parse path runs through a recursive shape check that
- *     rejects keys equal to `__proto__`, `constructor`, or `prototype`
- *     before merge/persist. On parse failure or pollution detection, we
- *     return `defaultRegistry()` so callers see a clean state rather
- *     than throwing.
+ * Security note: every JSON parse path runs through a recursive shape
+ * check that rejects keys equal to `__proto__`, `constructor`, or
+ * `prototype` before merge/persist. On parse failure or pollution
+ * detection, we return `defaultRegistry()` so callers see a clean state
+ * rather than throwing.
  *
- * Path-safety per ADR-009:
- *   - `evaluateFitness(root, opts)` gates `root` through `assertInsideRoot`
- *     before any `fs.*` walk. The directory walker resolves only
- *     `path.join(root, dir)` shapes (no caller-supplied absolute paths).
+ * Path-safety: `evaluateFitness(root, opts)` gates `root` through
+ * `assertInsideRoot` before any `fs.*` walk. The directory walker
+ * resolves only `path.join(root, dir)` shapes (no caller-supplied
+ * absolute paths).
  *
- * @see bin/lib/fitness-functions.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
+ * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';

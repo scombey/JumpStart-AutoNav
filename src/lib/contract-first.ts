@@ -1,21 +1,19 @@
 /**
  * contract-first.ts — Contract-First Implementation Assistant port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/contract-first.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `CONTRACT_TYPES` (constant array)
  *   - `extractContracts(root, options?)` => ExtractResult
  *   - `verifyCompliance(root, options?)` => VerifyResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Reads `<root>/specs/architecture.md` for contract definitions and
  *     `<root>/src/**` for implementation scan.
  *   - Uses `String.matchAll` to enumerate endpoint and event matches.
  *   - Default targets: REST, GraphQL, Event, gRPC, Message Queue.
  *
- * @see bin/lib/contract-first.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

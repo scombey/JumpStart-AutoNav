@@ -1,7 +1,7 @@
 /**
  * artifact-comparison.ts — artifact diff across versions (T4.1.7 batch).
  *
- * Pure-library port of `bin/lib/artifact-comparison.js`. Five exports
+ * Five exports
  * preserved verbatim: `compareArtifacts`, `compareFiles`,
  * `getArtifactHistory`, `extractSections`, `CHANGE_CATEGORIES`.
  *
@@ -9,8 +9,6 @@
  * leading `#`s — same key used by both sides of the comparison so
  * sections must match by HEADER TEXT, not nesting depth.
  *
- * @see bin/lib/artifact-comparison.js (legacy reference)
- * @see specs/implementation-plan.md T4.1.7
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

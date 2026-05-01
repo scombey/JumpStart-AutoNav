@@ -1,16 +1,17 @@
 /**
- * tool-guardrails.ts — Tool Execution Guardrails port (M11 batch 6).
+ * tool-guardrails.ts — Tool Execution Guardrails.
  *
- * Pure-library port of `bin/lib/tool-guardrails.js` (CJS). Public surface:
+ * Public surface:
  *   - `checkOperation(operation, options?)` => OperationCheckResult
  *   - `validateFileOperation(action, filePath, options?)` => FileOpResult
  *   - `RISK_RULES`
  *   - `PROTECTED_PATHS`
  *
- * M3 hardening: No JSON state paths. Not applicable.
- * Path-safety per ADR-009: No user path-to-disk resolution here. Not applicable.
- *
- * @see bin/lib/tool-guardrails.js (legacy reference)
+ * Invariants:
+ *   - No JSON state files — risk decisions are computed from regex
+ *     rules over the input string.
+ *   - No path-to-disk resolution here; the module is a pure decision
+ *     helper.
  */
 
 import { extname } from 'node:path';

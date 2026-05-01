@@ -1,34 +1,18 @@
 /**
- * io.ts — CLI-first IO primitives. T4.1.1 port (first leaf-utility, M2).
+ * io.ts — CLI-first IO primitives.
  *
- * Behavior is byte-identical to `bin/lib/io.js` for every successful
- * code path. The ONLY divergence is the error contract:
+ * Error contract (ADR-006): library bodies throw `JumpstartError`;
+ * `runIpc()` in `ipc.ts` catches typed errors at the IPC boundary and
+ * converts them to the appropriate exit code. Direct library callers
+ * either handle locally or rethrow — `process.exit` lives at the
+ * boundary, never in library code.
  *
- *   - Legacy `bin/lib/io.js`: `wrapTool` and `writeError(exit=true)`
- *     call `process.exit(1)` directly.
- *   - TS port `bin/lib-ts/io.ts`: throws `JumpstartError` (ADR-006
- *     library-body exit decision tree). The eventual `runIpc()` in
- *     `bin/lib-ts/ipc.ts` (M5) catches typed errors and converts
- *     them into the appropriate exit code; library callers handle
- *     locally or rethrow.
- *
- * This divergence is opt-in: legacy `bin/lib/io.js` stays unchanged,
- * so every existing JS caller continues to get exit-based semantics.
- * A caller only inherits the throw-based contract by switching from
- * `require('./io.js')` to `import from '@lib/io'`. The strangler-
- * fig (ADR-005) keeps both files alive in parallel until M9 cutover.
- *
- * Output shape preserved verbatim so v0 IPC envelope consumers (every
- * existing caller of `writeResult`/`writeError`) see byte-identical
- * stdout/stderr:
+ * IPC envelope shape (v0 — preserved byte-identical for every consumer):
  *
  *   writeResult({ x: 1 }) →  '{"ok":true,"timestamp":"...","x":1}\n'
  *   writeError('CODE','msg') → '{"ok":false,"timestamp":"...","error":{"code":"CODE","message":"msg"}}\n'
  *
- * @see specs/decisions/adr-005-module-layout.md (strangler-fig)
- * @see specs/decisions/adr-006-error-model.md (exit / throw policy)
- * @see specs/implementation-plan.md T4.1.1, per-module port recipe
- * @see bin/lib/io.js (legacy — kept unchanged during strangler)
+ * @see specs/decisions/adr-006-error-model.md
  */
 
 import { JumpstartError, ValidationError } from './errors.js';

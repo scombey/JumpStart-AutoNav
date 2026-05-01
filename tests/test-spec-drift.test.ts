@@ -7,7 +7,6 @@
  *   - checkCodeTraceability (planned-files resolution)
  *
  * @see src/lib/spec-drift.ts
- * @see bin/lib/spec-drift.js (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';

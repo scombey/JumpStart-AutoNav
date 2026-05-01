@@ -1,35 +1,22 @@
 /**
- * timestamps.ts — UTC timestamp utilities (T4.1.3 port).
+ * timestamps.ts — UTC timestamp utilities.
  *
- * Pure-library port of `bin/lib/timestamps.mjs`. Three exports:
+ * Public surface:
  *   - `now()` — fresh ISO-8601 UTC timestamp
  *   - `validate(value)` — parse + classify a string as valid UTC, valid
  *     non-UTC (with suggested replacement), or invalid
  *   - `audit(filePath)` — scan a markdown file's `**Timestamp:**`
  *     entries + frontmatter date fields for compliance
+ *   - `ISO_UTC_REGEX` — re-exported for callers that pre-validate
  *
- * Plus the regex constant `ISO_UTC_REGEX` re-exported for callers that
- * do their own pre-validation (matches legacy export).
- *
- * Behavior parity with the legacy module:
- *   - `validate()` returns the EXACT shape the legacy returned —
- *     `{ valid, parsed, error, warning? }`. Field set + nullability
- *     preserved verbatim.
- *   - `audit()` returns `{ entries, valid, invalid: Array<{ line, value, error, field? }> }`,
- *     also with optional `error` field for unreadable files.
- *   - Frontmatter scan covers the same three fields the legacy did:
- *     `created`, `updated`, `approval_date`. Same skip rules for
- *     `{{template}}`, `Pending`, `N/A`, empty, and bracketed placeholders.
- *
- * NOT ported in T4.1.3: the CLI driver block at the foot of the legacy
- * module (`if (process.argv[1].endsWith('timestamps.js')) { ... }`).
- * The legacy CLI continues to handle subprocess invocations until M5's
- * `runIpc` lands. The pure functions are usable by other ported TS
- * modules immediately.
- *
- * @see bin/lib/timestamps.mjs (legacy — kept unchanged during strangler)
- * @see specs/decisions/adr-005-module-layout.md
- * @see specs/implementation-plan.md T4.1.3
+ * Invariants:
+ *   - `validate()` returns `{ valid, parsed, error, warning? }`.
+ *   - `audit()` returns
+ *     `{ entries, valid, invalid: Array<{ line, value, error, field? }> }`,
+ *     plus an optional `error` field when the file itself is unreadable.
+ *   - Frontmatter scan covers `created`, `updated`, `approval_date`.
+ *     Skip rules apply to `{{template}}`, `Pending`, `N/A`, empty,
+ *     and bracketed placeholders.
  */
 
 import { readFileSync } from 'node:fs';
@@ -37,23 +24,19 @@ import { readFileSync } from 'node:fs';
 /**
  * ISO 8601 UTC timestamp regex — accepts millisecond precision.
  * Matches: `2026-02-08T14:23:00Z`, `2026-02-08T14:23:00.000Z`.
- * Pattern preserved verbatim from the legacy module.
  */
 export const ISO_UTC_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/;
 
 /**
- * Result shape for `validate`. Field set + nullability matches the
- * legacy module exactly so downstream callers parse identical JSON.
+ * Result shape for `validate`.
  *
  * `warning` is only populated when the timestamp is valid but in the
- * future; it is undefined (NOT null) for past/present timestamps —
- * matching the legacy `null` semantics requires the consumer to coerce
- * `warning ?? null`. We keep the more idiomatic optional-undefined
- * shape and document the JSON-output difference for callers that
- * stringify directly: `JSON.stringify({ ...result })` will omit the
- * `warning` key for past timestamps where the legacy module emitted
- * `"warning": null`. Net behavior unchanged because both shapes parse
- * back to a falsy `warning` field.
+ * future; it is undefined (NOT null) for past/present timestamps. To
+ * normalise on `null`, callers should coerce `warning ?? null`. We
+ * keep the more idiomatic optional-undefined shape; the JSON-output
+ * difference for callers that stringify directly is that
+ * `JSON.stringify({ ...result })` omits the `warning` key for
+ * past timestamps. Both shapes parse back to a falsy `warning` field.
  */
 export interface ValidateResult {
   valid: boolean;
@@ -73,9 +56,9 @@ export interface AuditInvalidEntry {
 
 /**
  * Result shape for `audit`. The optional `error` field is set only when
- * the file itself can't be read (matches legacy fallthrough shape).
- * `truncated` is true when invalid.length hit AUDIT_INVALID_CAP
- * (Pit Crew Adversary 7 DoS guard).
+ * the file itself can't be read. `truncated` is true when
+ * `invalid.length` hit `AUDIT_INVALID_CAP` (Pit Crew Adversary 7 DoS
+ * guard).
  */
 export interface AuditResult {
   entries: number;
@@ -93,7 +76,7 @@ export interface AuditResult {
  */
 const AUDIT_INVALID_CAP = 1000;
 
-/** Generate a fresh ISO 8601 UTC timestamp. Identical to legacy. */
+/** Generate a fresh ISO 8601 UTC timestamp. */
 export function now(): string {
   return new Date().toISOString();
 }
@@ -156,7 +139,7 @@ const FRONTMATTER_DATE_FIELDS = ['created', 'updated', 'approval_date'] as const
  *   1. Body lines matching `**Timestamp:** <value>` (case-insensitive).
  *   2. YAML frontmatter fields `created`, `updated`, `approval_date`.
  *
- * Skip rules (preserved from legacy):
+ * Skip rules:
  *   - `{{template}}` placeholders count as VALID (template hygiene
  *     happens elsewhere; this audit is for instantiated artifacts).
  *   - Bracketed placeholders `[anything]` count as valid.

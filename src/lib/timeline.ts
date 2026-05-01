@@ -1,7 +1,7 @@
 /**
  * timeline.ts — agent interaction timeline port (T4.3.3, cluster H).
  *
- * Pure-library port of `bin/lib/timeline.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `EVENT_TYPES` (constant array)
@@ -31,7 +31,7 @@
  *   payload could carry an embedded secret directly into
  *   `.jumpstart/state/timeline.json`.
  *
- * Behavior parity:
+ * Invariants:
  *   - Default file path: `.jumpstart/state/timeline.json`.
  *   - Default max events: 50000 (oldest pruned on overflow).
  *   - Default flush interval: 5 events.
@@ -41,9 +41,7 @@
  *     `session_id` field is updated to the new session.
  *   - JSON parse failures load empty defaults silently.
  *
- * @see bin/lib/timeline.mjs (legacy reference)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.3.3
  */
 
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

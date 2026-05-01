@@ -23,7 +23,6 @@
  * legacy-loader is no longer needed.
  *
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
- * @see specs/implementation-plan.md T4.7.2, M11 phase 5
  */
 
 import * as path from 'node:path';

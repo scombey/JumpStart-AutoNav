@@ -1,7 +1,7 @@
 /**
  * usage.ts — agent cost & token tracking port (T4.3.1).
  *
- * Pure-library port of `bin/lib/usage.mjs`. Public surface preserved:
+ * Public surface preserved:
  *
  *   - `setUsageTimelineHook(timeline)`
  *   - `loadUsageLog(logPath)`
@@ -16,9 +16,7 @@
  *   or any user-supplied metadata field could carry an embedded
  *   secret directly into `.jumpstart/usage-log.json`.
  *
- * @see bin/lib/usage.mjs (legacy reference)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.3.1
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

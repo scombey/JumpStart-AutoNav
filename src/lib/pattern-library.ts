@@ -1,7 +1,7 @@
 /**
- * pattern-library.ts — Inner-source pattern library port (M11 batch 1).
+ * pattern-library.ts — Inner-source pattern library port.
  *
- * Pure-library port of `bin/lib/pattern-library.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()` => PatternLibraryState
@@ -13,14 +13,12 @@
  *   - `listPatterns(options?)` => ListPatternsResult
  *   - `PATTERN_CATEGORIES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/pattern-library.json`.
  *   - 8 categories: api, data-access, auth, messaging, testing,
  *     deployment, error-handling, logging.
  *   - M3 hardening: shape-validated JSON; rejects __proto__/constructor/prototype.
  *
- * @see bin/lib/pattern-library.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

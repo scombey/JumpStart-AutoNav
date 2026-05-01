@@ -1,7 +1,7 @@
 /**
  * risk-register.ts — risk register tracking port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/risk-register.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()` => RiskState
@@ -14,14 +14,12 @@
  *   - `RISK_CATEGORIES`, `RISK_LIKELIHOODS`, `RISK_IMPACTS`,
  *     `RISK_STATUSES`, `RISK_SCORE_MATRIX` (constants)
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/risk-register.json`.
  *   - 5x5 likelihood/impact score matrix preserved verbatim.
  *   - High-risk threshold: score >= 15.
  *   - M3 hardening: shape-validated JSON; rejects __proto__/constructor/prototype.
  *
- * @see bin/lib/risk-register.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

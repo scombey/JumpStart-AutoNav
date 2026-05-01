@@ -1,7 +1,7 @@
 /**
  * safe-rename.ts — safe large-scale rename/move engine port (T4.4.1, cluster J).
  *
- * Pure-library port of `bin/lib/safe-rename.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `REFERENCE_PATTERNS` (constant array)
@@ -9,7 +9,7 @@
  *   - `findReferences(root, targetPath, options?)` => Reference[]
  *   - `validateRename(root, oldPath, newPath)` => ValidateRenameResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default exclude dirs: `node_modules`, `.git`, `dist`, `build`.
  *   - Search extensions: `.js .ts .md .json .yaml .yml`.
  *   - Search terms: raw `targetPath`, forward-slash form, and basename
@@ -22,8 +22,6 @@
  *   - Patterns are exposed as fresh RegExp constants; downstream consumers
  *     using `String.matchAll` will not see leaked `lastIndex` state.
  *
- * @see bin/lib/safe-rename.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.1
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

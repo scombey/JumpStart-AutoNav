@@ -12,7 +12,6 @@
  *   - M3 hardening: rejects __proto__/constructor/prototype keys
  *
  * @see src/lib/agent-checkpoint.ts
- * @see bin/lib/agent-checkpoint.js (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

@@ -1,7 +1,7 @@
 /**
  * smoke-tester.ts — Automated Smoke Testing port (T4.6.x, M7).
  *
- * Pure-library port of `bin/lib/smoke-tester.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature shape:
  *
  *   - `runSmokeTest(input)` => Promise<SmokeResult>
@@ -11,7 +11,7 @@
  *   - `startAndWait(command, root, healthUrl, timeout?)` =>
  *       Promise<StartupOutcome>
  *
- * Behavior parity:
+ * Invariants:
  *   - Build runs a child process via `child_process.execSync` with a
  *     120000 ms timeout (legacy parity).
  *   - Health check uses `node:http` / `node:https` + manual settle gate.
@@ -30,16 +30,8 @@
  *   root — preserving legacy behavior of operating on absolute roots
  *   without unnecessary boundary tightening.
  *
- * **Deferred to M9 ESM cutover:**
- *   Legacy file uses `import { createRequire } from 'module'` to bridge
- *   ESM/CJS. The TS port uses native `node:` imports throughout.
- *   The CLI entry block at the bottom of the legacy file is NOT ported —
- *   it uses `process.exit` which is forbidden in library code per
- *   ADR-006.
  *
- * @see bin/lib/smoke-tester.mjs (legacy reference, 344L)
  * @see specs/decisions/adr-006-error-model.md
- * @see specs/implementation-plan.md T4.6.x
  */
 
 import { type ChildProcess, spawn, spawnSync } from 'node:child_process';

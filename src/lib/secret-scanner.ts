@@ -1,7 +1,7 @@
 /**
  * secret-scanner.ts — secret-scanner port (T4.2.4b).
  *
- * Pure-library port of `bin/lib/secret-scanner.mjs`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `DEFAULT_PATTERNS` (constant array)
@@ -21,7 +21,7 @@
  *     marker. Preserves shape — string fields stay strings, objects
  *     stay objects, arrays stay arrays, primitives unchanged.
  *
- * Behavior parity:
+ * Invariants:
  *   - Pattern catalog (12 entries) is verbatim from legacy.
  *   - Skip lists (`DEFAULT_SKIP`, `BINARY_EXTENSIONS`) verbatim.
  *   - Match-redaction shape: `prefix4 + '****' + suffix4`, or `'****'`
@@ -30,9 +30,7 @@
  *     pattern (only emits a match when the line ALSO mentions
  *     `aws_secret`/`secret_access_key`/`AWS_SECRET`).
  *
- * @see bin/lib/secret-scanner.mjs (legacy reference)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.2.4b
  */
 
 import { existsSync, readFileSync } from 'node:fs';

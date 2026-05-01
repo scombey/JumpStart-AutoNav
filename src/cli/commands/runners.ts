@@ -20,9 +20,6 @@
  * **Skipped**:
  *   - `freshness-audit` — already ported in spec-validation.ts (batch 1).
  *
- * @see bin/cli.js (lines ~972–977 for `verify`, ~1166–1188 for `test`;
- *      `holodeck`/`headless`/`smoke` were standalone scripts in legacy)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { spawnSync } from 'node:child_process';

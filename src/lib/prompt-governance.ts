@@ -1,7 +1,7 @@
 /**
  * prompt-governance.ts — prompt and agent version governance port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/prompt-governance.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `registerAsset(name, type, content, options?)` => RegisterResult
@@ -11,13 +11,11 @@
  *   - `loadState(stateFile?)`, `saveState(state, stateFile?)`, `defaultState()`
  *   - `ASSET_TYPES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/prompt-governance.json`.
  *   - 4 asset types: prompt, persona, tool, workflow.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/prompt-governance.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

@@ -8,7 +8,6 @@
  *   - PATTERN_CATEGORIES enum contents
  *
  * @see src/lib/pattern-library.ts
- * @see bin/lib/pattern-library.js (legacy reference)
  */
 
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';

@@ -1,9 +1,7 @@
 /**
- * portfolio-reporting.ts — Portfolio Reporting Layer port (M11 batch 6).
+ * portfolio-reporting.ts — Portfolio Reporting Layer.
  *
- * Pure-library port of `bin/lib/portfolio-reporting.js` (CJS) to a typed ES
- * module. Public surface preserved verbatim by name + signature:
- *
+ * Public surface:
  *   - `defaultPortfolio()` => Portfolio
  *   - `loadPortfolio(portfolioFile?)` => Portfolio
  *   - `savePortfolio(portfolio, portfolioFile?)` => void
@@ -16,17 +14,14 @@
  *   - `PORTFOLIO_STATUSES` (frozen list)
  *   - `PHASES` (frozen list)
  *
- * M3 hardening:
- *   - `loadPortfolio` runs `rejectPollutionKeys` on parsed JSON before use.
- *   - On parse failure or pollution detection, returns `defaultPortfolio()`.
- *
- * Path-safety per ADR-009:
+ * Invariants:
+ *   - `loadPortfolio` runs `rejectPollutionKeys` on parsed JSON before
+ *     use; on parse failure or pollution detection, returns
+ *     `defaultPortfolio()`.
  *   - `analyzeProject(projectRoot)` is called internally via stored
- *     `initiative.path` values (not directly from user CLI input). No
- *     `assertInsideRoot` needed; the path is loaded from stored state.
- *
- * @see bin/lib/portfolio-reporting.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
+ *     `initiative.path` values (not directly from user CLI input), so
+ *     no `assertInsideRoot` gate is needed at this layer — the path is
+ *     loaded from stored state.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

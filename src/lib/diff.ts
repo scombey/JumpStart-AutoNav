@@ -1,11 +1,11 @@
 /**
- * diff.ts — dry-run diff helper (T4.1.5 port).
+ * diff.ts — dry-run diff helper.
  *
- * Pure-library port of `bin/lib/diff.mjs`. Two exports:
+ * Two exports:
  *   - `unifiedDiff(oldStr, newStr, filePath)` → unified-diff string
  *   - `generateDiff({ changes, root? })` → per-change summary + patch
  *
- * Behavior parity: the unified-diff output and the `generateDiff`
+ * Invariants: the unified-diff output and the `generateDiff`
  * result shape are byte-identical to the legacy module across every
  * branch the legacy switch covers (`create`, `modify`, `delete`).
  *
@@ -17,9 +17,6 @@
  * a "preview before commit" use case this is sufficient (and matches
  * what existing consumers have always seen).
  *
- * @see bin/lib/diff.mjs (legacy reference)
- * @see specs/decisions/adr-005-module-layout.md (strangler-fig)
- * @see specs/implementation-plan.md T4.1.5
  */
 
 import { existsSync, readFileSync } from 'node:fs';

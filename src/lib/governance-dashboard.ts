@@ -1,30 +1,21 @@
 /**
  * governance-dashboard.ts — governance dashboard for leadership port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/governance-dashboard.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
- *   - `gatherGovernanceData(root, options?)` => GovernanceData
- *   - `renderDashboardText(data)` => string
+ * - `gatherGovernanceData(root, options?)` => GovernanceData
+ * - `renderDashboardText(data)` => string
  *
- * Behavior parity:
- *   - Reads policy, waiver, risk, compliance, readiness, and environment
- *     state files from `.jumpstart/state/`.
- *   - Calculates governance score using the same weighted formula.
- *   - Sibling state files loaded via lazy `require()` to match the
- *     dashboard.ts pattern (cluster H, T4.3.3) where some sibling
- *     modules have not yet ported to TS.
- *   - JSON parse failures fall back to safe section defaults.
+ * Invariants:
+ * - Reads policy, waiver, risk, compliance, readiness, and environment
+ * state files from `.jumpstart/state/`.
+ * - Calculates governance score using the same weighted formula.
+ * - Sibling state files loaded via lazy `require()` to match the
+ * dashboard.ts pattern (cluster H, T4.3.3) where some sibling
+ * modules have not yet ported to TS.
+ * - JSON parse failures fall back to safe section defaults.
  *
- * Pit Crew M4 Reviewer M3 (DEFERRED to M9): bare `require()` calls
- * in the lazy sibling-loaders below assume CJS scope. Today the
- * strangler-phase tsconfig classifies .ts as CJS so `require` is the
- * module-scope global — works correctly. At the M9 ESM cutover this
- * must switch to `import { createRequire } from 'node:module';`.
- *
- * @see bin/lib/governance-dashboard.js (legacy reference)
- * @see bin/lib-ts/dashboard.ts (TS sibling pattern)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -271,23 +262,23 @@ export function gatherGovernanceData(root: string, _options: GatherOptions = {})
 
 export function renderDashboardText(data: GovernanceData): string {
   const lines: string[] = [];
-  lines.push(`\n🏛️  Governance Dashboard  (${data.generated_at})`);
+  lines.push(`\n🏛️ Governance Dashboard (${data.generated_at})`);
   lines.push(`${'─'.repeat(50)}`);
-  lines.push(`  Governance Score: ${data.governance_score}%`);
+  lines.push(` Governance Score: ${data.governance_score}%`);
   lines.push(
-    `  Policies: ${data.sections.policies.total} (${data.sections.policies.enabled} enabled)`
+    ` Policies: ${data.sections.policies.total} (${data.sections.policies.enabled} enabled)`
   );
   lines.push(
-    `  Waivers: ${data.sections.waivers.total} (${data.sections.waivers.pending} pending, ${data.sections.waivers.approved} approved)`
+    ` Waivers: ${data.sections.waivers.total} (${data.sections.waivers.pending} pending, ${data.sections.waivers.approved} approved)`
   );
   lines.push(
-    `  Risks: ${data.sections.risks.total} (${data.sections.risks.high} high, ${data.sections.risks.unmitigated} unmitigated)`
+    ` Risks: ${data.sections.risks.total} (${data.sections.risks.high} high, ${data.sections.risks.unmitigated} unmitigated)`
   );
-  lines.push(`  Compliance: ${data.sections.compliance.frameworks} framework(s)`);
+  lines.push(` Compliance: ${data.sections.compliance.frameworks} framework(s)`);
   lines.push(
-    `  Readiness: ${data.sections.readiness.level} (${data.sections.readiness.score ?? 'N/A'}%)`
+    ` Readiness: ${data.sections.readiness.level} (${data.sections.readiness.score ?? 'N/A'}%)`
   );
-  lines.push(`  Environment: ${data.sections.environment.current}`);
+  lines.push(` Environment: ${data.sections.environment.current}`);
   lines.push('');
   return lines.join('\n');
 }

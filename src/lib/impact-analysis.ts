@@ -1,13 +1,13 @@
 /**
  * impact-analysis.ts — change impact analyzer port (T4.2.5).
  *
- * Pure-library port of `bin/lib/impact-analysis.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `analyzeImpact(root, target, options?)` => ImpactResult
  *   - `renderImpactReport(analysis)` => string (human-readable)
  *
- * Behavior parity:
+ * Invariants:
  *   - target is `{file?, symbol?, specId?}`. At least one MUST be set.
  *   - Search terms include filename stem, full basename, symbol, and
  *     spec ID (whichever are provided).
@@ -16,8 +16,6 @@
  *     handler -> api, anything else -> consumer.
  *   - Risk thresholds: critical >20, high >10, medium >4, else low.
  *
- * @see bin/lib/impact-analysis.js (legacy reference)
- * @see specs/implementation-plan.md T4.2.5
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

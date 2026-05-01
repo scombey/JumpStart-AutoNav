@@ -1,7 +1,7 @@
 /**
- * web-dashboard.ts — Rich Web UI / Local Dashboard port (M11 batch 6).
+ * web-dashboard.ts — Rich Web UI / Local Dashboard.
  *
- * Pure-library port of `bin/lib/web-dashboard.js` (CJS). Public surface:
+ * Public surface:
  *   - `generateConfig(root, options?)` => ConfigResult
  *   - `gatherDashboardData(root, options?)` => DashboardData
  *   - `generateStaticDashboard(data)` => HtmlResult
@@ -10,12 +10,9 @@
  *   - `DEFAULT_PORT`
  *   - `DEFAULT_HOST`
  *
- * M3 hardening: No JSON state paths. Not applicable.
- * Path-safety per ADR-009: `root` comes from CLI wiring (assertUserPath).
- *
- * ADR-006: No process.exit() in library code. Not applicable here.
- *
- * @see bin/lib/web-dashboard.js (legacy reference)
+ * Path-safety (ADR-009): `root` comes from CLI wiring through
+ * `assertUserPath`; the module itself does not parse user-supplied
+ * filesystem paths.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';

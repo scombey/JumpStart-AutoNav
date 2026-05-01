@@ -1,7 +1,7 @@
 /**
  * workstream-ownership.ts — workstream ownership visualization port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/workstream-ownership.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `defineWorkstream(name, options?)` => DefineResult
@@ -9,12 +9,10 @@
  *   - `generateReport(options?)` => WorkstreamReport
  *   - `loadState(stateFile?)`, `saveState(state, stateFile?)`, `defaultState()`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/workstream-ownership.json`.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/workstream-ownership.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

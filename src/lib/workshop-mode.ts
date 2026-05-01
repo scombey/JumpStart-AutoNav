@@ -1,7 +1,7 @@
 /**
  * workshop-mode.ts — live workshop mode port (T4.3.3, cluster H).
  *
- * Pure-library port of `bin/lib/workshop-mode.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `WORKSHOP_TYPES` (constant array)
@@ -15,15 +15,13 @@
  *     ConvertArtifactResult
  *   - `getSessionStatus(options?)` => SessionStatusResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/workshop.json`.
  *   - Session ID format: `WS-<unix-ms>`. Capture ID: `CAP-<unix-ms>`.
  *   - Default workshop type: `discovery` (matched against
  *     `WORKSHOP_TYPES`).
  *   - JSON parse failures load default state silently.
  *
- * @see bin/lib/workshop-mode.js (legacy reference)
- * @see specs/implementation-plan.md T4.3.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
