@@ -125,10 +125,10 @@ Running `npx @scombey/jumpstart-mode@2.0` on Node ≤22 fails immediately with a
 
 The following 1.x internal modules are NOT part of the documented `exports` map. They were not intended to be deep-imported and are now strictly internal:
 
-- `bin/lib/_smoke.js` (test fixture only)
-- `bin/lib/mock-responses.js` (test fixture only)
-- The 5,359-line `bin/cli.js` monolith (decomposed into `dist/cli.js` + `dist/cli/commands/*.js`; only the CLI binary entry is supported). The legacy file is removed in M11 strangler-cleanup ([#34](https://github.com/scombey/JumpStart-AutoNav/issues/34)) post-rc.1; if you accidentally deep-imported it, switch to the documented CLI binary or to a typed `lib/*` export.
-- Whole `bin/lib/*.{js,mjs}` tree is removed in M11 — superseded by the typed `src/lib/*.ts` ports compiled to `dist/lib/*.mjs`. All public exports preserved by name + signature shape; check the `exports` map in `package.json` for the canonical paths.
+- `bin/lib/_smoke.js` (test fixture only — never part of the public surface).
+- `bin/lib/mock-responses.js` (test fixture only).
+- The 5,359-line `bin/cli.js` monolith — replaced by `dist/cli/bin.mjs` (npm-bin entry) + `dist/cli/main.mjs` (citty dispatcher) + `dist/cli/commands/*.mjs` (lazy command modules). Only the CLI binary entry is supported; if you deep-imported `bin/cli.js`, switch to the documented CLI binary or to a typed `lib/*` export.
+- Whole `bin/lib/*.{js,mjs}` tree — superseded by the typed `src/lib/*.ts` ports compiled to `dist/lib/*.mjs`. All public exports preserved by name + signature; the `exports` map in `package.json` enumerates the canonical paths.
 
 If you depended on any of these, file an issue at https://github.com/scombey/JumpStart-AutoNav/issues with the use case — we'll add it to the `exports` map if appropriate.
 
@@ -175,6 +175,16 @@ npm install jumpstart-mode@1
 (Note: rollback installs the bare `jumpstart-mode` 1.x package, not `@scombey/jumpstart-mode@1`. The 1.x line stays under the original publish coordinates.)
 
 The 1.x line continues to receive security patches through 2027-Q1 (≈12 months post-2.0 promotion). Filing an issue with the regression you hit is the highest-value contribution you can make.
+
+## Versioning policy going forward
+
+The 2.x line follows **standard semver** (semver.org 2.0.0):
+
+- **Patch (2.0.x)** — bug fixes, internal refactors, doc-only changes.
+- **Minor (2.x.0)** — new CLI subcommands, new lib exports, new optional flags/keys (additive only).
+- **Major (3.0.0)** — breaking changes per the 7-trigger taxonomy in [ADR-014](../specs/decisions/adr-014-post-2.0-semver.md): CLI surface change, library export removal/rename, IPC envelope shape change, config schema change, Node engine bump, state-file format change, marketplace registry contract change.
+
+Pre-releases (e.g. `2.1.0-rc.1`) ship under the `next` dist-tag with a ≥7-day soak window for minors and ≥14 days for majors. The 1.x line stays on the `1.x` dist-tag for security-only patches.
 
 ## What's NOT changing
 
