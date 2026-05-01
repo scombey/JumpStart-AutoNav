@@ -25,11 +25,9 @@
  * functions in `src/lib/registry.ts` are invoked indirectly via
  * `validate-module` (already in spec-validation.ts batch 1).
  *
- * @see bin/cli.js (lines 1350-1732 — legacy reference)
  * @see src/lib/install.ts (install/uninstallItem/getStatus/checkUpdates/...)
  * @see src/lib/integrate.ts (applyIntegration/cleanIntegration/readIntegrationLog)
  * @see src/lib/upgrade.ts  (upgrade/restore/listUpgradeBackups)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { defineCommand } from 'citty';
@@ -431,9 +429,8 @@ export interface UpgradeArgs {
  *  hanging. */
 async function defaultConfirm(message: string): Promise<boolean> {
   try {
-    // Strangler-phase: bare require() is the M4-M8 norm for optional
-    // CJS deps (matches deps.ts, lifecycle.ts). M9 ESM cutover swaps
-    // to dynamic `import()`.
+    // Optional CJS dep (`prompts`); loaded via createRequire so it stays
+    // out of the static module graph and absent installs degrade gracefully.
     const prompts = require('prompts') as (q: {
       type: string;
       name: string;

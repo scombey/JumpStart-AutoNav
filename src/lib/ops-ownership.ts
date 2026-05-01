@@ -1,7 +1,7 @@
 /**
  * ops-ownership.ts — operational ownership modeling port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/ops-ownership.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `defaultState()`, `loadState(stateFile?)`, `saveState(state, stateFile?)`
@@ -10,14 +10,12 @@
  *   - `generateReport(options?)` => OpsReport
  *   - `OWNERSHIP_FIELDS`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/ops-ownership.json`.
  *   - 7 ownership fields preserved verbatim.
  *   - Replace-by-name semantics preserved.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/ops-ownership.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

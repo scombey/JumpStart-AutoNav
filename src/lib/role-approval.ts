@@ -1,7 +1,7 @@
 /**
  * role-approval.ts — human approval workflows with roles port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/role-approval.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `loadRoleApprovalStore(stateFile?)` => RoleApprovalStore
@@ -13,14 +13,12 @@
  *   - `listApprovalWorkflows(filter?, options?)` => ListResult
  *   - `APPROVER_ROLES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/role-approvals.json`.
  *   - 7 approver roles preserved verbatim.
  *   - Multi-role approval chain logic preserved.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/role-approval.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

@@ -1,7 +1,7 @@
 /**
  * credential-boundary.ts — secrets & credential boundary checks port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/credential-boundary.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `scanBoundaries(files, root, options?)` => ScanResult
@@ -9,7 +9,7 @@
  *   - `generateReport(scanResult)` => Report
  *   - `BOUNDARY_PATTERNS`, `SAFE_PATTERNS`
  *
- * Behavior parity:
+ * Invariants:
  *   - 7 boundary patterns (hardcoded secret, vault missing, connection
  *     string, private key, AWS creds, bearer token, env var) preserved.
  *   - 6 safe-pattern allow-list preserved verbatim.
@@ -18,9 +18,7 @@
  *     the per-finding `matched` field never echoes a real secret out
  *     to a downstream report.
  *
- * @see bin/lib/credential-boundary.js (legacy reference)
  * @see bin/lib-ts/secret-scanner.ts (redaction)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

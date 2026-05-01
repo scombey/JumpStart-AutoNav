@@ -1,31 +1,24 @@
 /**
- * hashing.ts — content-addressable specs (T4.1.2 port).
+ * hashing.ts — content-addressable specs.
  *
  * SHA-256 hashing utilities for tamper detection on spec artifacts.
- * Pure-library port of `bin/lib/hashing.js` — no IPC subprocess shape,
- * no CLI driver, no fixture pair required.
  *
- * Behavior parity with the legacy module:
- *   - Same hex-encoded SHA-256 output for identical inputs (verified
- *     by the test corpus's known-vector cases).
- *   - Same manifest schema: `{ version, generated, lastUpdated?, artifacts }`.
- *   - Same throw semantics: `fs` errors and JSON parse errors bubble
- *     unchanged. (Wrapping into typed `JumpstartError` subclasses is a
- *     forward-secure improvement deferred to M5 alongside the IPC
- *     wrapper layer per ADR-013 — see Deviation Log entry.)
+ * Invariants:
+ *   - Hex-encoded SHA-256 output (verified against the test corpus's
+ *     known-vector cases).
+ *   - Manifest schema: `{ version, generated, lastUpdated?, artifacts }`.
+ *   - Throw semantics: `fs` errors and JSON parse errors bubble
+ *     unchanged; ADR-013 wrapper layer would translate to typed
+ *     `JumpstartError` subclasses.
  *
  * Security note (ADR-009): all four file-path-accepting functions
- * (`hashFile`, `loadManifest`, `saveManifest`, `verifyAll`) currently
- * trust the caller's path. A future caller migrating from
- * `require('./hashing.js')` → `import from '@lib/hashing'` should pass
- * pre-validated paths from `safePathSchema`. The wrapper layer planned
- * in ADR-013 (`safeReadFile`/`safeWriteFile`) will make this automatic.
+ * (`hashFile`, `loadManifest`, `saveManifest`, `verifyAll`) trust the
+ * caller's path. Callers should pass pre-validated paths from
+ * `safePathSchema`; the planned ADR-013 wrappers
+ * (`safeReadFile`/`safeWriteFile`) will make this automatic.
  *
- * @see specs/decisions/adr-005-module-layout.md (strangler-fig)
  * @see specs/decisions/adr-006-error-model.md
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
- * @see specs/implementation-plan.md T4.1.2
- * @see bin/lib/hashing.js (legacy — kept unchanged during strangler)
  */
 
 import { createHash } from 'node:crypto';

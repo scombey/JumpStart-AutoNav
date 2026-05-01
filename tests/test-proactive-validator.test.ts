@@ -12,7 +12,6 @@
  *   - renderValidationReport: per-file sections + cross-file
  *
  * @see src/lib/proactive-validator.ts
- * @see bin/lib/proactive-validator.js (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';

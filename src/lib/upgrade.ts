@@ -1,14 +1,14 @@
 /**
  * upgrade.ts — Safe Framework Upgrade with Backup/Restore port (T4.5.2, cluster M6).
  *
- * Pure-library port of `bin/lib/upgrade.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `upgrade(projectRoot, options?)` => Promise<UpgradeResult>
  *   - `restore(projectRoot, options?)` => RestoreResult
  *   - `listUpgradeBackups(projectRoot)` => UpgradeBackup[]
  *
- * Behavior parity:
+ * Invariants:
  *   - Updates framework-owned files while preserving user content.
  *   - Backs up modified files before overwriting via the archive system.
  *   - Three-way YAML merge on `config.yaml` (delegates to `config-merge.ts`).
@@ -43,9 +43,7 @@
  * **Deferred from legacy** — no CLI entry block to skip (legacy had none
  * — the file is library-only, the CLI surface is in `bin/cli.js`).
  *
- * @see bin/lib/upgrade.mjs (legacy reference)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.5.2
  */
 
 import {

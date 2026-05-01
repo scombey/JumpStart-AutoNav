@@ -1,103 +1,59 @@
 /**
- * headless-runner.ts — Jump Start Headless Agent Runner port (T4.6.2, cluster M7).
+ * headless-runner.ts — Jump Start Headless Agent Runner.
  *
- * Pure-library port reconciling the divergence between
- *   - `bin/headless-runner.js`     (808L — CLI + dynamic-ESM-loaded
- *                                    usage/timeline integration)
- *   - `bin/lib/headless-runner.js` (658L — core HeadlessRunner class
- *                                    with no usage/timeline integration)
+ * Orchestrates a non-interactive agent simulation: drives the six-phase
+ * agent loop end-to-end against a configured LLM provider, with a
+ * persona-based proxy answering elicitation questions. Persists per-run
+ * report JSON, per-agent usage entries, and timeline events.
  *
- * **Divergence reconciliation choice (Deviation Log entry).**
- *   This port canonicalizes the LONGER (808L) `bin/headless-runner.js`
- *   library core but DROPS its CLI bootstrap. Specifically:
- *
- *   PORTED (from 808L, present-only-there, treated as core runtime):
- *     - Timeline integration in `runAgent` (phase_start/phase_end,
- *       llm_turn_start/end, prompt_logged, question_asked/answered).
- *     - Per-agent usage-log persistence (`logUsage` after each agent
- *       returns, with model/tokens/turns/calls/status metadata).
- *     - Timeline session lifecycle (`endSession` after all agents).
- *     - Connecting timeline to the usage logger via
- *       `setUsageTimelineHook` so usage events surface in timeline.
- *
- *   PORTED (from 658L, present in BOTH, library-only):
- *     - The HeadlessRunner class: setup, copyScenarioFixtures,
- *       copyJumpstartConfig, initializeProviders, loadAgentPrompt,
- *       loadPersonaPrompt, callUserProxy, formatQuestionsForProxy,
- *       parseProxyResponse, runAgent main loop, getAgentStartMessage,
- *       isPhaseComplete, run.
- *
- *   NOT PORTED (CLI wrapper — strangler-phase out-of-scope):
- *     - `parseArgs()` / `showHelp()` / top-level `main()` (lines 783-808
- *       of legacy 808L). These use process.argv + process.exit which
- *       library code is forbidden to call per ADR-006.
- *     - `require('dotenv').config()` (line 28 of 808L). Library callers
- *       configure their environment via the constructor's `options.env`
- *       hook (when supplied) or by reading `process.env` directly. The
- *       CLI wrapper at M8/M9 will call `dotenv.config()` itself.
- *
- *   DEFERRED — `__dirname` removal:
- *     - Legacy uses `path.join(__dirname, '..', ...)` to compute
- *       AGENTS_DIR / PERSONAS_DIR / SCENARIOS_DIR / OUTPUT_DIR /
- *       REPORTS_DIR. The TS port accepts these as optional
- *       `HeadlessOptions` fields defaulting to `process.cwd()`-relative
- *       paths. CLI wrappers (M8+) construct the orchestrator with
- *       explicit paths.
- *
- *   DEFERRED — chalk integration:
- *     - Legacy console output uses `chalk` for color. We keep chalk
- *       as a dependency but route output through a logger callback
- *       (`HeadlessOptions.logger`) so library consumers can disable
- *       color or capture output. Default logger uses `console.log`
- *       and falls back to plaintext when `process.stdout.isTTY` is
- *       false (a behavior change documented as a Deviation Log entry).
- *
- * Public surface preserved verbatim by name + signature shape:
- *
+ * Public surface:
  *   - `HeadlessRunner` class
- *      constructor(options: HeadlessOptions)
- *      log(message, level?)
- *      setup() => Promise<void>
- *      copyScenarioFixtures(scenarioDir) => void
- *      copyJumpstartConfig() => void
- *      initializeProviders(agentName) => Promise<void>
- *      loadAgentPrompt(agentName) => string
- *      loadPersonaPrompt() => string
- *      callUserProxy(askQuestionsArgs) => Promise<ProxyAnswerEnvelope>
- *      formatQuestionsForProxy(args) => string
- *      parseProxyResponse(args, proxyAnswer) => ProxyAnswerEnvelope
- *      runAgent(agentName) => Promise<string>
- *      getAgentStartMessage(agentName) => string
- *      isPhaseComplete(content) => boolean
- *      run() => Promise<number>
- *
+ *       constructor(options: HeadlessOptions)
+ *       log(message, level?)
+ *       setup() => Promise<void>
+ *       copyScenarioFixtures(scenarioDir) => void
+ *       copyJumpstartConfig() => void
+ *       initializeProviders(agentName) => Promise<void>
+ *       loadAgentPrompt(agentName) => string
+ *       loadPersonaPrompt() => string
+ *       callUserProxy(askQuestionsArgs) => Promise<ProxyAnswerEnvelope>
+ *       formatQuestionsForProxy(args) => string
+ *       parseProxyResponse(args, proxyAnswer) => ProxyAnswerEnvelope
+ *       runAgent(agentName) => Promise<string>
+ *       getAgentStartMessage(agentName) => string
+ *       isPhaseComplete(content) => boolean
+ *       run() => Promise<number>
  *   - `AGENT_PHASES` constant
  *   - `DEFAULT_CONFIG` constant
  *
- * **ADR-012 redaction (NEW in this port).**
- *   The runner persists two artifacts directly:
- *     1. A run report JSON (`headless-<scenario>-<ts>.json`) — wrapped
- *        in `redactSecrets` at the boundary before `writeFileSync`.
- *     2. Per-agent usage entries (delegated to `usage.ts`, which
- *        applies its own redaction layer per T4.3.1).
- *   The timeline persistence is also delegated to `timeline.ts`, which
- *   applies redaction internally per T4.3.3.
+ * Invariants:
+ *   - Per-run report JSON (`headless-<scenario>-<ts>.json`) is wrapped
+ *     in `redactSecrets` at the boundary before `writeFileSync`.
+ *   - Per-agent usage entries are delegated to `usage.ts`, which
+ *     applies its own redaction layer.
+ *   - Timeline persistence is delegated to `timeline.ts`, which applies
+ *     redaction internally.
+ *   - Output directories (`AGENTS_DIR` / `PERSONAS_DIR` / `SCENARIOS_DIR` /
+ *     `OUTPUT_DIR` / `REPORTS_DIR`) are accepted as optional
+ *     `HeadlessOptions` fields, defaulting to `process.cwd()`-relative
+ *     paths. CLI wrappers construct the orchestrator with explicit paths.
+ *   - Default logger uses `console.log` and falls back to plaintext when
+ *     `process.stdout.isTTY` is false; library consumers can supply
+ *     their own `HeadlessOptions.logger` to capture or recolor output.
+ *   - The runner does not call `process.exit` — it returns the exit
+ *     code from `run()` so the CLI boundary owns process lifecycle.
  *
- * **Path-safety hardening (NEW in this port).**
- *   Every `path.join(workspaceDir | rootDir, userInput)` is gated by
- *   `assertInsideRoot`. Scenario names, persona names, and agent names
- *   are runtime inputs that could be `'..\\..\\etc\\passwd'`-shaped on
- *   Windows or `'/etc/passwd'` on POSIX. The legacy was permissive.
+ * Path-safety: every `path.join(workspaceDir | rootDir, userInput)` is
+ * gated by `assertInsideRoot`. Scenario names, persona names, and agent
+ * names are runtime inputs that could be `'..\\..\\etc\\passwd'`-shaped
+ * on Windows or `'/etc/passwd'` on POSIX.
  *
- * **JSON shape validation.**
- *   The runner doesn't load JSON config of its own. Scenario files
- *   loaded for fixture copying go through `validator.ts` (markdown
- *   only). Provider responses are validated by `llm-provider.ts`.
+ * JSON shape validation: the runner doesn't load JSON config of its
+ * own. Scenario files loaded for fixture copying go through
+ * `validator.ts` (markdown only). Provider responses are validated by
+ * `llm-provider.ts`.
  *
- * @see bin/headless-runner.js     (legacy reference — 808L, full)
- * @see bin/lib/headless-runner.js (legacy reference — 658L, library-core)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.6.2
  */
 
 import {
@@ -591,7 +547,7 @@ Be brief and supportive.`;
         for (const opt of q.options) {
           const rec = opt.recommended ? ' (recommended)' : '';
           const desc = opt.description ? ` - ${opt.description}` : '';
-          text += `  - ${opt.label}${rec}${desc}\n`;
+          text += ` - ${opt.label}${rec}${desc}\n`;
         }
       } else {
         text += '(Free text response expected)\n';

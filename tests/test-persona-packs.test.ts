@@ -7,7 +7,6 @@
  *   - PERSONAS / PERSONA_CATALOG byte-identical to legacy
  *
  * @see src/lib/persona-packs.ts
- * @see bin/lib/persona-packs.js (legacy reference)
  */
 
 import { describe, expect, it } from 'vitest';

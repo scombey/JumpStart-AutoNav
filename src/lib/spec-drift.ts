@@ -1,7 +1,7 @@
 /**
  * spec-drift.ts — drift detector port (T4.2.3).
  *
- * Pure-library port of `bin/lib/spec-drift.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `extractStoryIds(content)`
@@ -10,7 +10,7 @@
  *   - `checkSpecDrift(specsDir)`
  *   - `checkCodeTraceability(sourceDir, planPath)`
  *
- * Behavior parity:
+ * Invariants:
  *   - Story-id pattern: `/E\d+-S\d+/g`, deduped via `Set`.
  *   - Task-id pattern: `/M\d+-T\d+/g`.
  *   - Component header: `### Component: <name>` (trimmed).
@@ -26,9 +26,7 @@
  * a `{drifts, warnings, summary}` plain object so callers decide how
  * to surface mismatches.
  *
- * @see bin/lib/spec-drift.js (legacy reference)
  * @see specs/decisions/adr-006-error-model.md
- * @see specs/implementation-plan.md T4.2.3
  */
 
 import { existsSync, readFileSync } from 'node:fs';

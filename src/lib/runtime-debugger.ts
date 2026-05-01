@@ -1,17 +1,17 @@
 /**
- * runtime-debugger.ts — Runtime-Aware Debugging Mode port (M11 batch 6).
+ * runtime-debugger.ts — Runtime-Aware Debugging Mode.
  *
- * Pure-library port of `bin/lib/runtime-debugger.js` (CJS). Public surface:
+ * Public surface:
  *   - `analyzeLogs(logContent, options?)` => LogAnalysisResult
  *   - `analyzeLogFile(filePath, options?)` => LogAnalysisResult
  *   - `correlateWithSource(findings, root)` => CorrelateResult
  *   - `generateHypotheses(analysis)` => HypothesesResult
  *   - `LOG_PATTERNS`
  *
- * M3 hardening: No JSON parse paths. Not applicable.
- * Path-safety per ADR-009: `analyzeLogFile` receives filePath from CLI wiring.
- *
- * @see bin/lib/runtime-debugger.js (legacy reference)
+ * Invariants:
+ *   - No JSON state files — the module operates on raw log content.
+ *   - `analyzeLogFile` receives filePath from CLI wiring; the library
+ *     does not gate the path itself.
  */
 
 import { existsSync, readFileSync } from 'node:fs';

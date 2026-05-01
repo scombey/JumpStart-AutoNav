@@ -1,7 +1,7 @@
 /**
  * dependency-upgrade.ts — Dependency Upgrade Autopilot port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/dependency-upgrade.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `UPGRADE_TYPES` (constant array)
@@ -13,15 +13,13 @@
  *   - `createUpgradePlan(plan, options?)` => CreatePlanResult
  *   - `generateReport(options?)` => ReportResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/dependency-upgrades.json`.
  *   - Risk mapping: patch=low, minor=medium, major=high.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *   - CLI entry-point intentionally omitted.
  *
- * @see bin/lib/dependency-upgrade.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

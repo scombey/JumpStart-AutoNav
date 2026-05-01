@@ -1,7 +1,7 @@
 /**
  * context-summarizer.ts — smart context summarizer port (T4.3.3, cluster H).
  *
- * Pure-library port of `bin/lib/context-summarizer.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `PHASE_CONTEXT` (constant map)
@@ -19,7 +19,7 @@
  *   - `generateContextPacket(options)`
  *   - `renderContextMarkdown(packet)`
  *
- * Behavior parity:
+ * Invariants:
  *   - Verbatim section detection: acceptance-criteria keyword,
  *     `[NEEDS CLARIFICATION]` tag, `NFR-#` token, or `Given/When/Then`
  *     trio (regexes verbatim from legacy).
@@ -34,8 +34,6 @@
  * pattern allowed accidental drift if the regex was reused across
  * functions on the same input.
  *
- * @see bin/lib/context-summarizer.js (legacy reference)
- * @see specs/implementation-plan.md T4.3.3
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

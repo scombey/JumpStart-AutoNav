@@ -1,9 +1,7 @@
 /**
- * reference-architectures.ts — Org-wide Reference Architectures port (M11 batch 5).
+ * reference-architectures.ts — Org-wide Reference Architectures.
  *
- * Pure-library port of `bin/lib/reference-architectures.js` (CJS) to a
- * typed ES module. Public surface preserved verbatim by name + signature:
- *
+ * Public surface:
  *   - `defaultRegistry()` => Registry
  *   - `loadRegistry(registryFile?)` => Registry
  *   - `saveRegistry(registry, registryFile?)` => void
@@ -14,11 +12,10 @@
  *   - `BUILTIN_PATTERNS` (frozen-shape array of 4 default patterns)
  *   - `PATTERN_CATEGORIES` (frozen list)
  *
- * Behavior parity:
+ * Invariants:
  *   - Default registry file: `.jumpstart/reference-architectures.json`.
  *   - Built-in patterns: rag-pipeline, agent-app, api-platform,
- *     event-driven (4 entries, identical components/tech_stack/structure
- *     to legacy).
+ *     event-driven (4 entries with fixed components/tech_stack/structure).
  *   - Pattern IDs auto-generated from name (`name.toLowerCase()
  *     .replace(/\s+/g, '-')`) when not supplied.
  *   - Custom patterns persist under `registry.custom_patterns[]`.
@@ -27,7 +24,7 @@
  *     each directory; writes a `README.md` in each new directory; skips
  *     pre-existing directories.
  *
- * M3 hardening: every JSON parse path runs through a recursive shape
+ * Security note: every JSON parse path runs through a recursive shape
  * check that rejects __proto__/constructor/prototype keys; falls back
  * to `defaultRegistry()` on parse failure or pollution detection. This
  * also guards against an attacker-controlled registry file injecting a
@@ -35,15 +32,13 @@
  * (which would otherwise iterate Object.entries that includes the
  * polluted key and create a directory named `__proto__`).
  *
- * Path-safety per ADR-009:
- *   - `instantiatePattern(patternId, root, opts)` gates `root` through
- *     `assertInsideRoot` before any fs probe. Each directory key from
- *     `pattern.structure` is also re-asserted to resolve inside `root`
- *     before mkdirSync — defends against a custom pattern injecting
- *     `'../../../etc/'` or absolute paths.
+ * Path-safety: `instantiatePattern(patternId, root, opts)` gates `root`
+ * through `assertInsideRoot` before any fs probe. Each directory key
+ * from `pattern.structure` is also re-asserted to resolve inside `root`
+ * before mkdirSync — defends against a custom pattern injecting
+ * `'../../../etc/'` or absolute paths.
  *
- * @see bin/lib/reference-architectures.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
+ * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

@@ -1,7 +1,7 @@
 /**
  * role-views.ts — role-based project views port (T4.3.3, cluster H).
  *
- * Pure-library port of `bin/lib/role-views.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `ROLES` (constant array)
@@ -10,15 +10,13 @@
  *   - `listRoles()` => {success, roles}
  *   - `generateRoleSummary(root, role)` => {success, summary?, error?}
  *
- * Behavior parity:
+ * Invariants:
  *   - Role list, focus areas, and exclude lists verbatim from legacy.
  *   - State file path: `.jumpstart/state/state.json`.
  *   - Risk register path: `.jumpstart/state/risk-register.json` (only
  *     read for roles whose focus includes `risks`).
  *   - JSON parse failures return safe defaults (no throw).
  *
- * @see bin/lib/role-views.js (legacy reference)
- * @see specs/implementation-plan.md T4.3.3
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

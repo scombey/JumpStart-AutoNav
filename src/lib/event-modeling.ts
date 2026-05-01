@@ -1,7 +1,7 @@
 /**
- * event-modeling.ts — Event-Driven Architecture Modeling port (M11 batch 2).
+ * event-modeling.ts — Event-Driven Architecture Modeling port.
  *
- * Pure-library port of `bin/lib/event-modeling.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()` => EventModelingState
@@ -13,14 +13,12 @@
  *   - `generateReport(options?)` => EventModelingReport
  *   - `EVENT_TYPES`, `PATTERNS`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/event-modeling.json`.
  *   - 4 event types: domain-event, integration-event, command, query.
  *   - 5 patterns: saga, choreography, orchestration, cqrs, event-sourcing.
  *   - M3 hardening: shape-validated JSON; rejects __proto__/constructor/prototype.
  *
- * @see bin/lib/event-modeling.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

@@ -1,7 +1,7 @@
 /**
  * bidirectional-trace.ts — code <-> spec traceability port (T4.2.5).
  *
- * Pure-library port of `bin/lib/bidirectional-trace.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `scanTraceLinks(root, options?)`
@@ -11,7 +11,7 @@
  *   - `saveTraceMap(traceMap, outputPath)`
  *   - `loadTraceMap(inputPath)`
  *
- * Behavior parity:
+ * Invariants:
  *   - Spec ID pattern: `(?:E\d+-S\d+|M\d+-T\d+|NFR-[A-Z]+\d+|VC-\d+)`.
  *   - Walks `<root>/<srcDir||'src'>` (type='source'),
  *     `<root>/<testsDir||'tests'>` (type='test'), and `<root>/specs`
@@ -20,8 +20,6 @@
  *     implementation-plan; `covered` counts only IDs that appear in
  *     source/test files (NOT spec-only links).
  *
- * @see bin/lib/bidirectional-trace.js (legacy reference)
- * @see specs/implementation-plan.md T4.2.5
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';

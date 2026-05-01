@@ -24,8 +24,6 @@
  *      than `process.exit` calls per ADR-006.
  *
  * @see specs/decisions/adr-002-cli-framework.md
- * @see specs/implementation-plan.md T4.7.1
- * @see bin/cli.js (lines 1100–1111 — legacy reference, contains the bug)
  */
 
 import { defineCommand } from 'citty';

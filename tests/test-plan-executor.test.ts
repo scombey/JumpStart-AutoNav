@@ -18,7 +18,6 @@
  *   - M3 hardening: pollution-key state payloads fall back to default
  *
  * @see src/lib/plan-executor.ts
- * @see bin/lib/plan-executor.js (legacy reference)
  */
 
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';

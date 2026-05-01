@@ -1,7 +1,7 @@
 /**
  * vendor-risk.ts — vendor & dependency risk scoring port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/vendor-risk.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `defaultState()`, `loadState(stateFile?)`, `saveState(state, stateFile?)`
@@ -10,14 +10,12 @@
  *   - `generateReport(options?)` => VendorReport
  *   - `RISK_FACTORS`, `LICENSE_RISK`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/vendor-risk.json`.
  *   - License risk map preserved verbatim.
  *   - Scoring formulas preserved verbatim.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/vendor-risk.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

@@ -1,7 +1,7 @@
 /**
  * diagram-studio.ts — Diagram Studio port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/diagram-studio.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `DIAGRAM_TYPES` (constant array)
@@ -11,12 +11,10 @@
  *   - `compareDiagrams(a, b, options?)` => CompareResult
  *   - `listDiagramTypes()` => ListResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Preserves the exact mermaid templates from legacy.
  *   - Bracket balance check + fence detection identical to legacy.
  *
- * @see bin/lib/diagram-studio.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 export type DiagramType =

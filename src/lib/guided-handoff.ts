@@ -1,24 +1,20 @@
 /**
- * guided-handoff.ts — Guided Handoff Packages port (M11 batch 6).
+ * guided-handoff.ts — Guided Handoff Packages.
  *
- * Pure-library port of `bin/lib/guided-handoff.js` (CJS) to a typed ES
- * module. Public surface preserved verbatim by name + signature:
+ * Stateless helper for assembling and validating handoff checklists
+ * between phase boundaries (product → engineering, engineering → QA,
+ * engineering → ops, ops → support).
  *
+ * Public surface:
  *   - `generateHandoff(type, root, options?)` => HandoffResult
  *   - `listHandoffTypes()` => ListHandoffTypesResult
  *   - `validateHandoff(type, provided, options?)` => ValidateHandoffResult
  *   - `HANDOFF_TYPES` (frozen list)
  *   - `HANDOFF_CHECKLISTS` (typed map)
  *
- * M3 hardening:
- *   - No JSON parse paths — module is stateless (no state file).
- *     Not applicable for prototype-pollution check.
- *
- * Path-safety per ADR-009:
- *   - No user-supplied paths used in file I/O. Not applicable.
- *
- * @see bin/lib/guided-handoff.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
+ * Invariants:
+ *   - No persisted state file — module is stateless.
+ *   - No user-supplied paths reach the filesystem.
  */
 
 export const HANDOFF_TYPES = [

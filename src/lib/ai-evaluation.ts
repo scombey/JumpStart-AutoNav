@@ -1,7 +1,7 @@
 /**
  * ai-evaluation.ts — evaluation framework for AI systems port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/ai-evaluation.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `evaluate(name, scores, options?)` => EvaluateResult
@@ -10,14 +10,12 @@
  *   - `loadState(stateFile?)`, `saveState(state, stateFile?)`, `defaultState()`
  *   - `EVAL_DIMENSIONS`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/ai-evaluation.json`.
  *   - 7 evaluation dimensions preserved verbatim.
  *   - Overall = mean of provided dimension scores.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/ai-evaluation.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

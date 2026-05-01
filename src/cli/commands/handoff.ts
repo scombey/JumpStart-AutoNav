@@ -15,7 +15,6 @@
  *   - validate-module (registry.validateForPublishing)
  *   - handoff        (export.exportHandoffPackage)
  *
- * @see bin/cli.js (lines 1217–1349 + 2309–2329 — legacy reference)
  */
 
 import { existsSync } from 'node:fs';

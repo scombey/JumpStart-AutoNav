@@ -1,7 +1,7 @@
 /**
- * spec-maturity.ts — Spec Maturity Model port (M11 batch 6).
+ * spec-maturity.ts — Spec Maturity Model.
  *
- * Pure-library port of `bin/lib/spec-maturity.js` (CJS). Public surface:
+ * Public surface:
  *   - `runMaturityChecks(content)` => MaturityChecks
  *   - `assessMaturity(content, options?)` => MaturityResult
  *   - `assessFile(filePath, options?)` => MaturityResult
@@ -9,10 +9,10 @@
  *   - `MATURITY_LEVELS`
  *   - `MATURITY_CRITERIA`
  *
- * M3 hardening: No JSON state paths. Not applicable.
- * Path-safety per ADR-009: `assessFile`/`assessProject` paths come from CLI.
- *
- * @see bin/lib/spec-maturity.js (legacy reference)
+ * Invariants:
+ *   - No JSON state files — the module operates on Markdown content.
+ *   - `assessFile`/`assessProject` paths come from CLI wiring; the
+ *     library does not gate them again.
  */
 
 import { existsSync, readFileSync } from 'node:fs';

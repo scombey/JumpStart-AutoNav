@@ -1,7 +1,7 @@
 /**
  * rewind.ts — phase rewind with cascade port (T4.3.2).
  *
- * Pure-library port of `bin/lib/rewind.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `PHASE_ORDER` (constant)
@@ -20,8 +20,6 @@
  * is replaced with an import — the resulting TS file flips imports
  * without breaking any consumer.
  *
- * @see bin/lib/rewind.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.3.2
  */
 
 import { copyFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';

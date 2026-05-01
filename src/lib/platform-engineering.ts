@@ -1,7 +1,7 @@
 /**
- * platform-engineering.ts — Platform engineering integration port (M11 batch 1).
+ * platform-engineering.ts — Platform engineering integration port.
  *
- * Pure-library port of `bin/lib/platform-engineering.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()` => PlatformEngineeringState
@@ -13,14 +13,12 @@
  *   - `generateReport(options?)` => PlatformReport
  *   - `TEMPLATE_TYPES`, `GOLDEN_PATH_STAGES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/platform-engineering.json`.
  *   - 5 template types: service, library, worker, api-gateway, frontend.
  *   - 5 golden path stages: scaffold, ci-cd, observability, security, deployment.
  *   - M3 hardening: shape-validated JSON; rejects __proto__/constructor/prototype.
  *
- * @see bin/lib/platform-engineering.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

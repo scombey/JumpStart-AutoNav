@@ -1,7 +1,7 @@
 /**
  * registry.ts — Module Registry for Jump Start Marketplace port (T4.5.2, cluster M6).
  *
- * Pure-library port of `bin/lib/registry.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `validateForPublishing(moduleDir)` => ValidateResult
@@ -10,7 +10,7 @@
  *   - `normalizeRegistryFormat(data)` => RegistryIndex
  *   - `publishToRegistry(registryPath, entry)` => RegistryIndex
  *
- * Behavior parity:
+ * Invariants:
  *   - Required manifest fields: `name`, `version`, `description`.
  *   - Recommended fields surfaced as warnings: `author`, `license`, `keywords`.
  *   - Validates referenced files exist for `agents`/`templates`/`commands`/`checks`/`skills`.
@@ -36,14 +36,7 @@
  *   `loadRegistry` rejects `__proto__`/`constructor`/`prototype`-keyed
  *   JSON. Wrong-typed sub-fields normalized to defaults.
  *
- * **Deferred from legacy** — the `if (process.argv[1].endsWith('registry.js'))`
- * CLI entry block at the bottom of legacy is NOT ported. The CLI
- * orchestrator that surfaces this module's output lives in `bin/cli.js`
- * and stays in legacy until the M9 ESM cutover.
- *
- * @see bin/lib/registry.mjs (legacy reference)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.5.2
  */
 
 import { createHash } from 'node:crypto';

@@ -1,7 +1,7 @@
 /**
- * sre-integration.ts — SRE Integration port (M11 batch 6).
+ * sre-integration.ts — SRE Integration.
  *
- * Pure-library port of `bin/lib/sre-integration.js` (CJS). Public surface:
+ * Public surface:
  *   - `generateMonitor(name, type, options?)` => MonitorResult
  *   - `generateAlert(name, severity, options?)` => AlertResult
  *   - `generateRunbook(name, steps, options?)` => RunbookResult
@@ -13,10 +13,8 @@
  *   - `MONITOR_TYPES`
  *   - `ALERT_SEVERITIES`
  *
- * M3 hardening:
+ * Invariants:
  *   - `loadState` runs `rejectPollutionKeys` on parsed JSON.
- *
- * @see bin/lib/sre-integration.js (legacy reference)
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

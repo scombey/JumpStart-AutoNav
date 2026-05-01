@@ -1,39 +1,37 @@
 /**
  * dashboard.ts — interactive progress dashboard port (T4.3.3, cluster H).
  *
- * Pure-library port of `bin/lib/dashboard.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
- *   - `PHASES` (constant array)
- *   - `STATUS_ICONS` (constant map)
- *   - `findClarifications(specsDir)` => Clarification[]
- *   - `getArtifactQualityScore(filePath)` => number | null
- *   - `gatherDashboardData(options?)` => Promise<DashboardData>
- *   - `renderDashboardText(data)` => string
- *   - `renderDashboardJSON(data)` => DashboardData
+ * - `PHASES` (constant array)
+ * - `STATUS_ICONS` (constant map)
+ * - `findClarifications(specsDir)` => Clarification[]
+ * - `getArtifactQualityScore(filePath)` => number | null
+ * - `gatherDashboardData(options?)` => Promise<DashboardData>
+ * - `renderDashboardText(data)` => string
+ * - `renderDashboardJSON(data)` => DashboardData
  *
- * Behavior parity:
- *   - Default project type: `greenfield`. Detected from
- *     `.jumpstart/config.yaml` (`type: <value>` line).
- *   - Scout phase (`brownfieldOnly: true`) skipped for greenfield.
- *   - Approved iff `isArtifactApproved(content)` returns true.
- *   - Quality score derived from `spec-tester.runAllChecks(content).score`.
- *   - Pipeline icons + colors verbatim from legacy.
- *   - Pipeline progress percentage rounded to whole number.
+ * Invariants:
+ * - Default project type: `greenfield`. Detected from
+ * `.jumpstart/config.yaml` (`type: <value>` line).
+ * - Scout phase (`brownfieldOnly: true`) skipped for greenfield.
+ * - Approved iff `isArtifactApproved(content)` returns true.
+ * - Quality score derived from `spec-tester.runAllChecks(content).score`.
+ * - Pipeline icons + colors verbatim from legacy.
+ * - Pipeline progress percentage rounded to whole number.
  *
  * Cross-module deps:
- *   - `loadState` from `state-store.ts` (TS sibling, T4.3.2).
- *   - `getTimelineSummary` from `timeline.ts` (TS sibling, this task).
- *   - `summarizeUsage` from `usage.ts` (TS sibling, T4.3.1).
- *   - `buildFromSpecs` / `getCoverage` from `graph.ts` (TS sibling).
- *   - JS-only siblings (`handoff.js`, `next-phase.js`,
- *     `spec-tester.js`, `coverage.js`) are loaded via lazy `require`
- *     because they have not yet ported to TS. The legacy modules
- *     remain authoritative until those ports land in subsequent
- *     T4.3.x clusters.
+ * - `loadState` from `state-store.ts` (TS sibling, T4.3.2).
+ * - `getTimelineSummary` from `timeline.ts` (TS sibling, this task).
+ * - `summarizeUsage` from `usage.ts` (TS sibling, T4.3.1).
+ * - `buildFromSpecs` / `getCoverage` from `graph.ts` (TS sibling).
+ * - JS-only siblings (`handoff.js`, `next-phase.js`,
+ * `spec-tester.js`, `coverage.js`) are loaded via lazy `require`
+ * because they have not yet ported to TS. The legacy modules
+ * remain authoritative until those ports land in subsequent
+ * T4.3.x clusters.
  *
- * @see bin/lib/dashboard.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.3.3
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -47,12 +45,9 @@ import { loadState } from './state-store.js';
 import { getTimelineSummary } from './timeline.js';
 import { summarizeUsage } from './usage.js';
 
-// M9 ESM cutover (per Pit Crew M4 Reviewer M3 resolution): replaced
-// the strangler-phase bare `require()` with the canonical
-// `createRequire(import.meta.url)` form. The lazy sibling-loaders
-// below resolve their JS modules from `bin/lib/` for any sibling that
-// hasn't yet ported to TS — once a port lands, the call site flips to
-// a static `import` from the sibling's TS module.
+// `createRequire(import.meta.url)` is used solely for the lazy
+// `require('chalk')` fallback in `_chalkCache` below — chalk stays
+// optional so the dashboard renders (uncoloured) without it.
 const require = createRequire(import.meta.url);
 
 // Public types
@@ -182,15 +177,11 @@ interface SpecTesterModule {
   runAllChecks(content: string): { score: number };
 }
 
-// Pit Crew M9 BLOCKER B1 fix: handoff and next-phase legacy modules ported
-// to ESM (`.mjs`) at the M9 cutover. CommonJS `require()` cannot
-// synchronously load `.mjs`; the previous code threw `ERR_REQUIRE_ESM`,
-// the bare `catch {}` swallowed it, and dashboard rendered with both
-// sections silently missing. The fix uses dynamic `import()` (async) and
-// `gatherDashboardData` (already async) awaits both. Errors are still
-// degraded to `null` to preserve the "best-effort sibling" semantics, but
-// the catch now rebinds via a debug-only logger so a regression surfaces
-// when DEBUG=1.
+// Sibling-module loaders return `null` on failure to preserve the
+// "best-effort sibling" rendering semantics — handoff and next-phase
+// sections degrade to absent rather than crashing the whole dashboard.
+// Errors surface via the debug-only logger so regressions are visible
+// under DEBUG=1.
 async function loadHandoffSibling(): Promise<HandoffModule | null> {
   // M11 batch7: handoff is now a TS port -- return a thin wrapper.
   return { isArtifactApproved: (content) => handoffIsArtifactApproved(content) };
@@ -260,7 +251,7 @@ export function findClarifications(specsDir: string): Clarification[] {
 }
 
 /** Compute a quality score for a single artifact file. Returns null if
- *  file missing/empty or the spec-tester sibling is unavailable. */
+ * file missing/empty or the spec-tester sibling is unavailable. */
 export function getArtifactQualityScore(filePath: string): number | null {
   if (!existsSync(filePath)) return null;
   try {
@@ -562,21 +553,19 @@ export function renderDashboardText(data: DashboardData): string {
   lines.push('');
   lines.push(chalk.bold.blue('╔══════════════════════════════════════════════════════════════╗'));
   lines.push(
-    chalk.bold.blue('║') +
-      chalk.bold.white('           JumpStart Progress Dashboard                     ') +
-      chalk.bold.blue('║')
+    chalk.bold.blue('║') + chalk.bold.white(' JumpStart Progress Dashboard ') + chalk.bold.blue('║')
   );
   lines.push(chalk.bold.blue('╚══════════════════════════════════════════════════════════════╝'));
   lines.push('');
 
   // Pipeline
-  lines.push(chalk.bold('  Pipeline:'));
-  lines.push(`  ${renderPipeline(data.phases)}`);
+  lines.push(chalk.bold(' Pipeline:'));
+  lines.push(` ${renderPipeline(data.phases)}`);
   lines.push('');
 
   // Progress bar
   lines.push(
-    `${chalk.bold('  Progress: ')}${renderBar(data.progress.pct)}${chalk.gray(
+    `${chalk.bold(' Progress: ')}${renderBar(data.progress.pct)}${chalk.gray(
       ` ${data.progress.completed}/${data.progress.total} phases (${data.progress.pct}%)`
     )}`
   );
@@ -586,24 +575,24 @@ export function renderDashboardText(data: DashboardData): string {
   if (data.current.phase !== null && data.current.phase !== undefined) {
     const phaseInfo = data.phases.find((p) => p.phase === data.current.phase);
     lines.push(
-      `${chalk.bold('  Current: ')}${chalk.cyan(
+      `${chalk.bold(' Current: ')}${chalk.cyan(
         `Phase ${data.current.phase} — ${phaseInfo ? phaseInfo.name : 'Unknown'}`
       )}${data.current.agent ? chalk.gray(` (${data.current.agent})`) : ''}`
     );
   } else {
-    lines.push(`${chalk.bold('  Current: ')}${chalk.gray('No phase started')}`);
+    lines.push(`${chalk.bold(' Current: ')}${chalk.gray('No phase started')}`);
   }
   lines.push('');
 
   // Quality Scores
   if (data.quality.scores.length > 0) {
-    lines.push(chalk.bold('  Quality Scores:'));
+    lines.push(chalk.bold(' Quality Scores:'));
     for (const q of data.quality.scores) {
       const scoreColor = q.score >= 80 ? chalk.green : q.score >= 60 ? chalk.yellow : chalk.red;
-      lines.push(`    Phase ${q.phase} (${q.name}): ${scoreColor(`${q.score}/100`)}`);
+      lines.push(` Phase ${q.phase} (${q.name}): ${scoreColor(`${q.score}/100`)}`);
     }
     if (data.quality.avg_score !== null) {
-      lines.push(chalk.gray(`    Average: ${data.quality.avg_score}/100`));
+      lines.push(chalk.gray(` Average: ${data.quality.avg_score}/100`));
     }
     lines.push('');
   }
@@ -617,12 +606,12 @@ export function renderDashboardText(data: DashboardData): string {
           ? chalk.yellow
           : chalk.red;
     lines.push(
-      `${chalk.bold('  Story Coverage: ')}${covColor(`${data.coverage.story_pct}%`)}${chalk.gray(
+      `${chalk.bold(' Story Coverage: ')}${covColor(`${data.coverage.story_pct}%`)}${chalk.gray(
         ` (${data.coverage.total_stories} stories, ${data.coverage.total_tasks} tasks)`
       )}`
     );
     if (data.coverage.gaps > 0) {
-      lines.push(chalk.yellow(`    ⚠ ${data.coverage.gaps} uncovered stories`));
+      lines.push(chalk.yellow(` ⚠ ${data.coverage.gaps} uncovered stories`));
     }
     lines.push('');
   }
@@ -633,13 +622,13 @@ export function renderDashboardText(data: DashboardData): string {
     // clarifications header — yellow signals "warning/attention".
     // Earlier port used bold.white which is informationally neutral
     // and was a visible UX regression.
-    lines.push(chalk.bold.yellow(`  Open Clarifications (${data.clarifications.length}):`));
+    lines.push(chalk.bold.yellow(` Open Clarifications (${data.clarifications.length}):`));
     const shown = data.clarifications.slice(0, 5);
     for (const c of shown) {
-      lines.push(chalk.yellow(`    ▸ ${c.file}:${c.line} — ${c.text}`));
+      lines.push(chalk.yellow(` ▸ ${c.file}:${c.line} — ${c.text}`));
     }
     if (data.clarifications.length > 5) {
-      lines.push(chalk.gray(`    ... and ${data.clarifications.length - 5} more`));
+      lines.push(chalk.gray(` ... and ${data.clarifications.length - 5} more`));
     }
     lines.push('');
   }
@@ -647,7 +636,7 @@ export function renderDashboardText(data: DashboardData): string {
   // Usage
   if (data.usage) {
     lines.push(
-      `${chalk.bold('  Token Usage: ')}${chalk.gray(
+      `${chalk.bold(' Token Usage: ')}${chalk.gray(
         `${data.usage.total_tokens.toLocaleString()} tokens`
       )}${data.usage.total_cost ? chalk.gray(` ($${data.usage.total_cost.toFixed(2)})`) : ''}`
     );
@@ -657,14 +646,14 @@ export function renderDashboardText(data: DashboardData): string {
   // Timeline
   if (data.timeline && data.timeline.total_events > 0) {
     lines.push(
-      `${chalk.bold('  Timeline: ')}${chalk.gray(`${data.timeline.total_events} events`)}${
+      `${chalk.bold(' Timeline: ')}${chalk.gray(`${data.timeline.total_events} events`)}${
         data.timeline.duration_s ? chalk.gray(` over ${Math.round(data.timeline.duration_s)}s`) : ''
       }`
     );
     if (data.timeline.by_phase && Object.keys(data.timeline.by_phase).length > 0) {
       const phaseEntries = Object.entries(data.timeline.by_phase).slice(0, 5);
       for (const [p, c] of phaseEntries) {
-        lines.push(chalk.gray(`    ${p}: ${c} events`));
+        lines.push(chalk.gray(` ${p}: ${c} events`));
       }
     }
     lines.push('');
@@ -672,7 +661,7 @@ export function renderDashboardText(data: DashboardData): string {
 
   // Next Action
   lines.push(
-    `${chalk.bold.green('  ▶ Next: ')}${chalk.white(data.next_action.command)}${chalk.gray(
+    `${chalk.bold.green(' ▶ Next: ')}${chalk.white(data.next_action.command)}${chalk.gray(
       ` — ${data.next_action.message}`
     )}`
   );

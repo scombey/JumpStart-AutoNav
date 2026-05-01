@@ -1,7 +1,7 @@
 /**
- * enterprise-templates.ts — Industry-vertical template catalog port (M11 batch 2).
+ * enterprise-templates.ts — Industry-vertical template catalog port.
  *
- * Pure-library port of `bin/lib/enterprise-templates.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `listTemplates()` => ListTemplatesResult
@@ -9,15 +9,13 @@
  *   - `applyTemplate(root, vertical, options?)` => ApplyTemplateResult
  *   - `VERTICALS`, `TEMPLATE_CATALOG`
  *
- * Behavior parity:
+ * Invariants:
  *   - Same 7 verticals (healthcare, insurance, banking, manufacturing,
  *     retail, public-sector, platform-engineering).
  *   - `applyTemplate` writes `.jumpstart/state/enterprise-template.json`
  *     with the same shape (vertical, label, compliance_frameworks,
  *     data_concerns, nfr_requirements, personas, applied_at).
  *
- * @see bin/lib/enterprise-templates.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';

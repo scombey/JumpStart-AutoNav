@@ -1,44 +1,42 @@
 /**
- * config-loader.ts — global+project config merger (T4.1.9 port).
+ * config-loader.ts — global+project config merger.
  *
- * Pure-library port of `bin/lib/config-loader.mjs`. The legacy module
+ * The legacy module
  * shipped a hand-rolled `parseSimpleYaml` that the implementation plan
  * (T4.1.9) explicitly orders deleted in favor of the unified `yaml`
  * package — this port satisfies that mandate.
  *
  * **Public surface trimming.**
- *   Legacy exported: `loadConfig`, `parseSimpleYaml`, `deepMerge`.
- *   Port exports:    `loadConfig`, `deepMerge`.
- *   `parseSimpleYaml` is intentionally NOT re-exported. Its only
- *   surviving caller is legacy `bin/lib/next-phase.mjs`, which imports
- *   directly from `bin/lib/config-loader.mjs` (relative path) and is
- *   unaffected by this port. When `next-phase.js` itself ports, it
- *   will use the yaml package directly.
+ * Legacy exported: `loadConfig`, `parseSimpleYaml`, `deepMerge`.
+ * Port exports: `loadConfig`, `deepMerge`.
+ * `parseSimpleYaml` is intentionally NOT re-exported. Its only
+ * surviving caller is legacy `bin/lib/next-phase.mjs`, which imports
+ * directly from `bin/lib/config-loader.mjs` (relative path) and is
+ * unaffected by this port. When `next-phase.js` itself ports, it
+ * will use the yaml package directly.
  *
  * **First IPC subprocess port.** `config-loader` is the canonical
  * IPC-eligible module per ADR-007, and this port is the first to wire
  * `runIpc` + `isDirectRun` end-to-end. The subprocess driver:
- *   - Validates `{ root, global_path }` via `ConfigLoaderInputSchema`
- *     (Zod refinement gated by `safePathSchema` per ADR-009).
- *   - Treats both v0 and v1 envelopes per ADR-007.
- *   - Translates typed errors to exit codes per ADR-006.
+ * - Validates `{ root, global_path }` via `ConfigLoaderInputSchema`
+ * (Zod refinement gated by `safePathSchema` per ADR-009).
+ * - Treats both v0 and v1 envelopes per ADR-007.
+ * - Translates typed errors to exit codes per ADR-006.
  *
- * **Behavior parity preserved:**
- *   - Project config wins over global on key collision.
- *   - Missing global config silently produces `globalConfig = {}`.
- *   - Malformed project config returns
- *     `{ error: 'Failed to parse project config: <path>', config: {}, sources }`
- *     (legacy semantics; NOT a thrown error).
- *   - Ceremony profile expansion calls `bin/lib/ceremony.mjs` via
- *     dynamic import to preserve the legacy "if ceremony.profile is
- *     set and not 'standard', apply it as a base layer" behavior.
- *     When ceremony.js itself ports, the dynamic import resolves to
- *     the TS version via the `@lib/*` strangler alias.
+ * **Invariants:**
+ * - Project config wins over global on key collision.
+ * - Missing global config silently produces `globalConfig = {}`.
+ * - Malformed project config returns
+ * `{ error: 'Failed to parse project config: <path>', config: {}, sources }`
+ * (legacy semantics; NOT a thrown error).
+ * - Ceremony profile expansion calls `bin/lib/ceremony.mjs` via
+ * dynamic import to preserve the legacy "if ceremony.profile is
+ * set and not 'standard', apply it as a base layer" behavior.
+ * When ceremony.js itself ports, the dynamic import resolves to
+ * the TS version via the `@lib/*` strangler alias.
  *
- * @see bin/lib/config-loader.mjs (legacy reference)
  * @see specs/decisions/adr-003-yaml-roundtrip.md
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
- * @see specs/implementation-plan.md T4.1.9
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -46,6 +44,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { parse as yamlParse } from 'yaml';
 import { z } from 'zod';
+import { applyProfile, VALID_PROFILES } from './ceremony.js';
 import { assertInsideRoot } from './path-safety.js';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -169,41 +168,55 @@ interface CeremonyProfileResult {
 }
 
 /**
- * Ceremony-profile expansion DEFERRED to M9 ESM cutover. Pit Crew
- * M2-Final Reviewer #1 caught the legacy implementation depending on
- * `process.cwd()` to locate `bin/lib/ceremony.mjs`, which silently
- * fails for every downstream consumer because their cwd is their
- * own project root, not our package install dir. The legacy CLI
- * driver `bin/lib/config-loader.mjs` continues to serve the
- * auto-expand path correctly via module-relative `import('./ceremony.js')`
- * until M9 retires it.
+ * Ceremony-profile expansion: read `merged.ceremony.profile`; if it's a
+ * known non-`standard` profile, apply it as a fill-defaults base layer
+ * via `ceremony.applyProfile`. User explicit values are NEVER
+ * overridden — only missing keys are filled in. Returns the expanded
+ * config + a structured `ProfileApplied` audit trail (or `null` if no
+ * expansion ran).
  *
- * Library callers that need profile expansion in the TS code path
- * import `applyProfile` directly:
- *
- *   import { applyProfile } from '@lib/ceremony'; // when ceremony.ts ports
- *   const expanded = applyProfile(merged, 'quick');
- *
- * Until ceremony.ts ports, `loadConfig` returns `profile_applied: null`
- * for any non-`standard` profile — same as the legacy fallback when
- * ceremony.js was unreachable.
+ * Pit Crew M2-Final Reviewer #1 fix: the legacy implementation read
+ * `bin/lib/ceremony.mjs` via cwd-relative path, which silently failed
+ * for downstream consumers (their cwd is their own project root, not
+ * the framework install dir). This direct import resolves at module
+ * load via Node's standard ESM graph — no path-arithmetic needed.
  */
 async function maybeApplyCeremonyProfile(
   merged: Record<string, unknown>
 ): Promise<{ config: Record<string, unknown>; profileApplied: ProfileApplied | null }> {
-  // CeremonyProfileResult is preserved for the future when this wires
-  // back up; reference it via void cast to avoid unused-type lint.
+  // Reference for downstream callers that may consume CeremonyProfileResult.
   void (null as unknown as CeremonyProfileResult);
-  return { config: merged, profileApplied: null };
+  const ceremony = (merged.ceremony ?? null) as { profile?: unknown } | null;
+  const profileName = typeof ceremony?.profile === 'string' ? ceremony.profile : null;
+  // No profile, default `standard` (no expansion needed), or unknown name → soft-fall.
+  if (!profileName || profileName === 'standard' || !VALID_PROFILES.includes(profileName)) {
+    return { config: merged, profileApplied: null };
+  }
+  try {
+    const result = applyProfile(merged, profileName);
+    return {
+      config: result.config,
+      profileApplied: {
+        profile: profileName,
+        settings_applied: result.applied.length,
+        settings_skipped: result.skipped.length,
+        applied: result.applied,
+        skipped: result.skipped,
+      },
+    };
+  } catch {
+    // Soft-fall on unexpected failure (legacy parity).
+    return { config: merged, profileApplied: null };
+  }
 }
 
 /**
  * Load and merge global + project configuration.
  *
  * - `input.root` (default '.'): project root. Resolved against
- *   `process.cwd()` for the project config lookup.
+ * `process.cwd()` for the project config lookup.
  * - `input.global_path` (default `~/.jumpstart/config.yaml`): user-
- *   global override config. `~` is expanded to `os.homedir()`.
+ * global override config. `~` is expanded to `os.homedir()`.
  *
  * Returns the merged config plus provenance + override-tracking
  * metadata in the legacy shape (every field preserved).
@@ -286,12 +299,12 @@ export async function loadConfig(input: ConfigLoaderInput): Promise<LoadedConfig
  * `ValidationError` (exit 2) before any fs access.
  *
  * - `root`: bounded to the IPC server's `process.cwd()` (the user's
- *   project root). Library callers bypass this by calling `loadConfig`
- *   directly.
+ * project root). Library callers bypass this by calling `loadConfig`
+ * directly.
  * - `global_path`: bounded to `os.homedir()`. The `~` prefix is
- *   stripped before bounds-checking so user input like `~/foo`
- *   resolves correctly. For absolute paths inside homedir, both are
- *   accepted.
+ * stripped before bounds-checking so user input like `~/foo`
+ * resolves correctly. For absolute paths inside homedir, both are
+ * accepted.
  *
  * **Pit Crew M2-Final Reviewer #4 — parse-time boundary capture.**
  * Earlier draft baked `safePathSchema(process.cwd())` at module load,
@@ -355,27 +368,12 @@ export const ConfigLoaderInputSchema = z
     }
   });
 
-// ─────────────────────────────────────────────────────────────────────────
-// Subprocess entry point — DEFERRED to M9 cutover.
-// ─────────────────────────────────────────────────────────────────────────
-//
-// The canonical pattern from specs/architecture.md §IPC module contract:
-//
-//   if (isDirectRun(import.meta.url)) {
-//     await runIpc(loadConfig, ConfigLoaderInputSchema);
-//   }
-//
-// is NOT wired here yet because the strangler-phase tsconfig classifies
-// .ts files as CommonJS (no `"type": "module"` in package.json). That
-// blocks `import.meta.url` (TS1470) and top-level `await` (TS1309).
-// Deviation-Log entry M2/T4.1.9 covers the deferral; the legacy
-// `bin/lib/config-loader.mjs` continues to serve the IPC subprocess
-// contract until M9's ESM flip retires it.
-//
-// Library callers can still drive `runIpc` themselves via:
+// Library callers can drive `runIpc` themselves via:
 //
 //   import { loadConfig, ConfigLoaderInputSchema } from '@lib/config-loader';
 //   import { runIpc } from '@lib/ipc';
-//   await runIpc(loadConfig, ConfigLoaderInputSchema);
+//   if (isDirectRun(import.meta.url)) {
+//     await runIpc(loadConfig, ConfigLoaderInputSchema);
+//   }
 //
 // The schema export above is the load-bearing piece for that path.

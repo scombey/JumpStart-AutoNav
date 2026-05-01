@@ -1,7 +1,7 @@
 /**
- * legacy-modernizer.ts — Legacy Code Modernization Mode port (M11 batch 3).
+ * legacy-modernizer.ts — Legacy Code Modernization Mode port.
  *
- * Pure-library port of `bin/lib/legacy-modernizer.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()` => LegacyModernizerState
@@ -12,7 +12,7 @@
  *   - `generateReport(options?)` => LegacyModernizerReport
  *   - `LEGACY_PLATFORMS`, `MODERNIZATION_PATTERNS`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/legacy-modernization.json`.
  *   - 8 known platforms (cobol, dotnet-framework, java-monolith, ssis,
  *     angular-legacy, react-legacy, jquery, php-legacy). Unknown platforms
@@ -21,8 +21,6 @@
  *   - M3 hardening: shape-validated JSON; rejects __proto__/constructor/
  *     prototype keys; defaultState fallback on parse failure.
  *
- * @see bin/lib/legacy-modernizer.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

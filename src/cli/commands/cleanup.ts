@@ -24,8 +24,6 @@
  *   - `summarize`, `validate-all`, `dashboard` (already in spec-quality),
  *     `timeline` (large-scope), `self-evolve` (process.argv-heavy).
  *
- * @see bin/cli.js (line ranges noted per command)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { defineCommand } from 'citty';
@@ -1036,11 +1034,6 @@ export interface TimestampArgs {
 }
 
 export function timestampImpl(deps: Deps, args: TimestampArgs): CommandResult {
-  // M9 ESM cutover: switched from `legacyRequire('timestamps')` to a
-  // static import of the TS port at `src/lib/timestamps.ts`. The legacy
-  // `bin/lib/timestamps.mjs` is now ESM and can't be require()d
-  // synchronously; the TS port has the same `now/validate/audit/
-  // ISO_UTC_REGEX` public surface (verified by `tests/test-leaf-parity.test.ts`).
   const lib = legacyTimestamps as LegacyLib;
   const action = args.action ?? 'now';
   if (action === 'validate') {
@@ -1103,7 +1096,6 @@ export function revertImpl(deps: Deps, args: RevertArgs): CommandResult {
     deps.logger.error('Usage: jumpstart-mode revert <artifact-path> [--reason "..."]');
     return { exitCode: 1 };
   }
-  // M11 strangler-tail cleanup: switched from `legacyImport('revert')`
   // (the ESM .mjs legacy file) to a static import of the TS port at
   // `src/lib/revert.ts`. The impl flips back to sync because the new
   // module is plain ESM that imports cleanly. Public surface preserved

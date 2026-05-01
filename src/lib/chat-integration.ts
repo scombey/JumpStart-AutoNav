@@ -1,7 +1,7 @@
 /**
  * chat-integration.ts — Slack/Teams Chat Integration port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/chat-integration.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `PLATFORMS` (constant array)
@@ -20,16 +20,14 @@
  *   `redactSecrets` before write — covering both webhook configuration
  *   and queued notification messages.
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/chat-integration.json`.
  *   - Platform validation: slack/teams only.
  *   - Event types: approval, risk, drift, blocker, phase_change, comment.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/chat-integration.js (legacy reference)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

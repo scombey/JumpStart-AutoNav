@@ -1,13 +1,11 @@
 /**
- * revert.ts — Rollback workflow port (M11 batch 1).
+ * revert.ts — Rollback workflow.
  *
- * Pure-library port of `bin/lib/revert.mjs` (legacy ESM). Public surface
- * preserved verbatim by name + signature:
- *
+ * Public surface:
  *   - `archiveFilename(originalPath)` => string
  *   - `revertArtifact(options)` => RevertResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default archive directory: `.jumpstart/archive`.
  *   - Archive filename format: `<basename>.<ISO-timestamp>.<ext>` with
  *     colons + dots in the timestamp replaced by hyphens.
@@ -18,17 +16,12 @@
  *     prior version, not in a repo, etc.), `restored_from` is null but
  *     the archive copy + metadata are still produced.
  *
- * Hardening (over legacy):
- *   - Legacy used a string-form invocation that interpolates the
- *     artifact path into a shell command. The TS port uses the
- *     array-args form from node:child_process so arguments pass to git
- *     directly without shell interpretation. Same approach used in
- *     src/lib/versioning.ts. ADR-009 path-safety remains the caller's
- *     responsibility (the cluster wrapper routes args.artifact through
- *     assertUserPath).
+ * Security note: git is invoked via the array-args form of
+ * `node:child_process` so the artifact path passes directly without
+ * shell interpretation (same approach as `src/lib/versioning.ts`).
+ * Path-safety remains the caller's responsibility — the cluster wrapper
+ * routes `args.artifact` through `assertUserPath`.
  *
- * @see bin/lib/revert.mjs (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
  */
 

@@ -1,7 +1,7 @@
 /**
  * smell-detector.ts — spec-smell detector port (T4.2.4).
  *
- * Pure-library port of `bin/lib/smell-detector.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `SMELL_PATTERNS` (constant)
@@ -10,7 +10,7 @@
  *   - `scanDirectory(dir, options?)` => DirectoryScanResult
  *   - `generateSmellReport(filePath)` => string (markdown)
  *
- * Behavior parity:
+ * Invariants:
  *   - Code blocks (fences) and YAML frontmatter are skipped.
  *   - Headings (`#...`) and table separator rows are skipped.
  *   - `undefined-acronym` matches uppercase 2-6 char tokens not
@@ -19,8 +19,6 @@
  *     (smells per 100 lines, two decimal places).
  *   - Default threshold for `scanDirectory`: 5.
  *
- * @see bin/lib/smell-detector.js (legacy reference)
- * @see specs/implementation-plan.md T4.2.4
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

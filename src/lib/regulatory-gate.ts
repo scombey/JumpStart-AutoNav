@@ -1,14 +1,14 @@
 /**
  * regulatory-gate.ts — regulatory focus gate port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/regulatory-gate.mjs`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `evaluateRegulatory(input)` => RegulatoryEvaluation
  *   - `generateChecklist(classification, regulations)` => ChecklistCategory[]
  *   - `DOMAIN_REGULATIONS`, `REGION_REGULATIONS`
  *
- * Behavior parity:
+ * Invariants:
  *   - 8 domains (healthcare/fintech/finance/banking/insurance/government/
  *     education/ecommerce) with regulation mappings.
  *   - 7 regions (EU/US/UK/CA/AU/BR/global).
@@ -16,8 +16,6 @@
  *   - PHI/PCI/PII data type implications preserved.
  *   - CLI entry-point intentionally NOT ported.
  *
- * @see bin/lib/regulatory-gate.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 export interface DomainRegulation {

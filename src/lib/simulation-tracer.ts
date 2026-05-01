@@ -1,7 +1,7 @@
 /**
  * simulation-tracer.ts — Headless Agent Simulation Tracer port (T4.6.3, M7).
  *
- * Pure-library port of `bin/lib/simulation-tracer.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature shape:
  *
  *   - `class SimulationTracer`
@@ -21,7 +21,7 @@
  *     getReport() / generateReport()
  *     printSummary() / saveReport(reportPath)
  *
- * Behavior parity:
+ * Invariants:
  *   - All collectors (errors, warnings, verifiedSubagents, documentCreations,
  *     handoffValidations, costTracking) initialised on construction even
  *     for pure-headless runs — downstream consumers rely on field presence.
@@ -42,9 +42,7 @@
  *   set via `setTimeline()`, every tracer hook also records a structured
  *   timeline event. Identical to legacy.
  *
- * @see bin/lib/simulation-tracer.js (legacy reference)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.6.3
  */
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';

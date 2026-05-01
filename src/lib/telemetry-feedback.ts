@@ -1,7 +1,7 @@
 /**
- * telemetry-feedback.ts — Production Telemetry Feedback Loop port (M11 batch 6).
+ * telemetry-feedback.ts — Production Telemetry Feedback Loop.
  *
- * Pure-library port of `bin/lib/telemetry-feedback.js` (CJS). Public surface:
+ * Public surface:
  *   - `ingestMetric(name, type, value, options?)` => IngestResult
  *   - `analyzeMetrics(options?)` => AnalysisResult
  *   - `generateFeedbackReport(options?)` => FeedbackReport
@@ -10,10 +10,8 @@
  *   - `defaultState()` => TelemetryState
  *   - `METRIC_TYPES`
  *
- * M3 hardening:
+ * Invariants:
  *   - `loadState` runs `rejectPollutionKeys` on parsed JSON.
- *
- * @see bin/lib/telemetry-feedback.js (legacy reference)
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

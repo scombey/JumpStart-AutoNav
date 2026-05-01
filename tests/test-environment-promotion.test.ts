@@ -12,7 +12,6 @@
  *   - getStatus shape
  *
  * @see src/lib/environment-promotion.ts
- * @see bin/lib/environment-promotion.js (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

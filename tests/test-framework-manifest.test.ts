@@ -4,7 +4,6 @@
  * Pin the file-classification rules + manifest round-trip + diff math.
  *
  * @see src/lib/framework-manifest.ts
- * @see bin/lib/framework-manifest.mjs (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';

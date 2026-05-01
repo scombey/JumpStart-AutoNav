@@ -1,8 +1,8 @@
 /**
- * scanner.ts — Project Context Discovery port (M11 batch 6).
+ * scanner.ts — Project Context Discovery port.
  *
  * Port of `bin/lib/scanner.mjs` (ESM). Near-trivial since it was already
- * ESM — mostly type annotations. Public surface preserved verbatim:
+ * ESM — mostly type annotations. Public surface:
  *   - `scan(opts)` => ScanResult
  *   - `scanDir(dir, ignore, root)` => { files, dirs }
  *   - `detectStack(root, files)` => StackInfo
@@ -12,7 +12,6 @@
  * M3 hardening: No JSON state file. package.json parsed with try/catch + defaulting.
  * Path-safety per ADR-009: `scan(opts)` receives root from CLI wiring.
  *
- * @see bin/lib/scanner.mjs (legacy reference)
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

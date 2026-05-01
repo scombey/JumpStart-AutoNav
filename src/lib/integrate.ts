@@ -1,48 +1,46 @@
 /**
  * integrate.ts — Dynamic Skill Integration Engine port (T4.5.2, cluster M6).
  *
- * Pure-library port of `bin/lib/integrate.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
- *   - `parseSkillFrontmatter(content)` => SkillFrontmatter
- *   - `scanInstalledSkills(projectRoot)` => SkillEntry[]
- *   - `generateIDEInstructions(projectRoot, skills)` => GeneratedFile | null
- *   - `generateSkillIndex(skills)` => GeneratedFile | null
- *   - `readIntegrationLog(projectRoot)` => IntegrationLog
- *   - `applyIntegration(projectRoot, options?)` => IntegrateResult
- *   - `cleanIntegration(projectRoot, options?)` => CleanResult
+ * - `parseSkillFrontmatter(content)` => SkillFrontmatter
+ * - `scanInstalledSkills(projectRoot)` => SkillEntry[]
+ * - `generateIDEInstructions(projectRoot, skills)` => GeneratedFile | null
+ * - `generateSkillIndex(skills)` => GeneratedFile | null
+ * - `readIntegrationLog(projectRoot)` => IntegrationLog
+ * - `applyIntegration(projectRoot, options?)` => IntegrateResult
+ * - `cleanIntegration(projectRoot, options?)` => CleanResult
  *
- * Behavior parity:
- *   - SKILL.md frontmatter parser handles ```skill ... ``` AND --- ... --- formats.
- *   - Skill discovery scans `.jumpstart/skills/` and cross-references
- *     installed.json for version/keyword metadata.
- *   - IDE instructions auto-detect VS Code/Copilot vs generic.
- *   - Integration log records every generated file with sha256 hash.
+ * Invariants:
+ * - SKILL.md frontmatter parser handles ```skill ... ``` AND --- ... --- formats.
+ * - Skill discovery scans `.jumpstart/skills/` and cross-references
+ * installed.json for version/keyword metadata.
+ * - IDE instructions auto-detect VS Code/Copilot vs generic.
+ * - Integration log records every generated file with sha256 hash.
  *
  * **ADR-012 redaction (NEW in this port).**
- *   Skill descriptions, install metadata, and discovery keywords can
- *   surface user-supplied content. Every persistence path runs through
- *   `redactSecrets` before write — covering `writeIntegrationLog` and
- *   the IDE/skill-index generated files (which embed the descriptions).
+ * Skill descriptions, install metadata, and discovery keywords can
+ * surface user-supplied content. Every persistence path runs through
+ * `redactSecrets` before write — covering `writeIntegrationLog` and
+ * the IDE/skill-index generated files (which embed the descriptions).
  *
  * **Path-safety hardening (NEW in this port).**
- *   Every `path.join(projectRoot, userInput)` is gated by
- *   `assertInsideRoot`. The legacy was permissive — the TS port
- *   rejects traversal-shaped inputs at the boundary.
+ * Every `path.join(projectRoot, userInput)` is gated by
+ * `assertInsideRoot`. The legacy was permissive — the TS port
+ * rejects traversal-shaped inputs at the boundary.
  *
  * **JSON shape validation (NEW in this port).**
- *   `readIntegrationLog` rejects `__proto__`/`constructor`/`prototype`-
- *   keyed JSON, non-object roots, and normalizes wrong-typed sub-fields.
+ * `readIntegrationLog` rejects `__proto__`/`constructor`/`prototype`-
+ * keyed JSON, non-object roots, and normalizes wrong-typed sub-fields.
  *
  * **Deferred from legacy** — the `if (process.argv[1].endsWith('integrate.js'))`
  * CLI entry block at the bottom of legacy is NOT ported. CLI-level
- * orchestration is the strangler-phase responsibility of the M9 ESM
+ * orchestration is the responsibility of the M9 ESM
  * cutover (the legacy block uses `process.exit` which library code is
  * forbidden to call per ADR-006).
  *
- * @see bin/lib/integrate.mjs (legacy reference)
  * @see specs/decisions/adr-012-secrets-redaction-in-logs.md
- * @see specs/implementation-plan.md T4.5.2
  */
 
 import { createHash } from 'node:crypto';
@@ -137,8 +135,8 @@ function isPlainObject(v: unknown): v is Record<string, unknown> {
 }
 
 /** Mirror of evidence-collector's `safeParseState` shape — rejects
- *  prototype-pollution keys, non-object roots, and array roots. Returns
- *  null on parse/shape failure so callers can fall back to a default. */
+ * prototype-pollution keys, non-object roots, and array roots. Returns
+ * null on parse/shape failure so callers can fall back to a default. */
 function safeParseIntegrationLog(raw: string): IntegrationLog | null {
   let parsed: unknown;
   try {
@@ -161,7 +159,7 @@ function safeParseIntegrationLog(raw: string): IntegrationLog | null {
 }
 
 /** Default-shape integration log used when the file is missing OR when
- *  shape validation rejects the on-disk JSON. */
+ * shape validation rejects the on-disk JSON. */
 function defaultIntegrationLog(): IntegrationLog {
   return {
     generatedAt: null,
@@ -251,8 +249,8 @@ interface InstalledManifest {
 }
 
 /** Read installed.json — soft-fails to an empty manifest on any parse
- *  or shape error (legacy semantics). Rejects prototype-pollution keys
- *  in the items map. */
+ * or shape error (legacy semantics). Rejects prototype-pollution keys
+ * in the items map. */
 function readInstalledManifest(installedPath: string): InstalledManifest {
   if (!existsSync(installedPath)) return { items: {} };
   let parsed: unknown;
@@ -454,7 +452,7 @@ export function generateSkillIndex(skills: SkillEntry[]): GeneratedFile | null {
 - **Entry File:** \`${s.entryFile}\`
 - **Description:** ${s.description}
 - **Discovery Keywords:** ${s.discoveryKeywords.join(', ') || '—'}
-- **Triggers:** ${s.triggers.length > 0 ? `\n${s.triggers.map((t) => `  - ${t}`).join('\n')}` : '—'}
+- **Triggers:** ${s.triggers.length > 0 ? `\n${s.triggers.map((t) => ` - ${t}`).join('\n')}` : '—'}
 - **Bundled Agents:** ${
       s.remappedFiles
         .filter((f) => f.endsWith('.agent.md'))
@@ -596,7 +594,7 @@ export function applyIntegration(
       if (existsSync(abs)) {
         rmSync(abs, { force: true });
         filesRemoved.push(relPath);
-        progress(`  Removed ${relPath}`);
+        progress(` Removed ${relPath}`);
       }
     }
     writeIntegrationLog(projectRoot, {
@@ -617,7 +615,7 @@ export function applyIntegration(
     mkdirSync(dirname(abs), { recursive: true });
     writeFileSync(abs, ideResult.content, 'utf8');
     filesWritten.push(ideResult.filePath);
-    progress(`  ✓ ${ideResult.filePath}`);
+    progress(` ✓ ${ideResult.filePath}`);
   }
 
   // Generate skill index
@@ -630,7 +628,7 @@ export function applyIntegration(
     mkdirSync(dirname(abs), { recursive: true });
     writeFileSync(abs, indexResult.content, 'utf8');
     filesWritten.push(indexResult.filePath);
-    progress(`  ✓ ${indexResult.filePath}`);
+    progress(` ✓ ${indexResult.filePath}`);
   }
 
   // Remove any previously generated files we didn't just regenerate.
@@ -648,7 +646,7 @@ export function applyIntegration(
       if (existsSync(abs)) {
         rmSync(abs, { force: true });
         filesRemoved.push(relPath);
-        progress(`  Removed stale ${relPath}`);
+        progress(` Removed stale ${relPath}`);
       }
     }
   }
@@ -711,7 +709,7 @@ export function cleanIntegration(projectRoot: string, options: IntegrateOptions 
     if (existsSync(abs)) {
       rmSync(abs, { force: true });
       filesRemoved.push(relPath);
-      progress(`  Removed ${relPath}`);
+      progress(` Removed ${relPath}`);
     }
   }
 

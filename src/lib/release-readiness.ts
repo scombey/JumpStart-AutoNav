@@ -1,7 +1,7 @@
 /**
- * release-readiness.ts — Release Readiness Reviews port (M11 batch 3).
+ * release-readiness.ts — Release Readiness Reviews port.
  *
- * Pure-library port of `bin/lib/release-readiness.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()` => ReleaseReadinessState
@@ -11,7 +11,7 @@
  *   - `generateReport(options?)` => GenerateReportResult
  *   - `READINESS_CATEGORIES`, `READINESS_LEVELS`
  *
- * Behavior parity:
+ * Invariants:
  *   - 8 readiness categories: quality, security, performance, dependencies,
  *     documentation, rollback, monitoring, compliance.
  *   - 4 readiness levels keyed by score floor (>=90 ready, >=70 conditional,
@@ -28,8 +28,6 @@
  *   - Path-safety: `assessReadiness` calls `assertInsideRoot` on the root
  *     argument before any fs probe.
  *
- * @see bin/lib/release-readiness.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

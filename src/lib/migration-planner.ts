@@ -1,7 +1,7 @@
 /**
- * migration-planner.ts — Brownfield Migration Planner port (M11 batch 2).
+ * migration-planner.ts — Brownfield Migration Planner port.
  *
- * Pure-library port of `bin/lib/migration-planner.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `defaultState()` => MigrationState
@@ -12,7 +12,7 @@
  *   - `generateReport(options?)` => MigrationReport
  *   - `MIGRATION_STRATEGIES`, `MIGRATION_PHASES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/migration-plan.json`.
  *   - 5 strategies (strangler-fig, big-bang, phased-cutover,
  *     parallel-run, feature-flag).
@@ -20,8 +20,6 @@
  *   - M3 hardening: shape-validated JSON; rejects __proto__/
  *     constructor/prototype keys.
  *
- * @see bin/lib/migration-planner.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

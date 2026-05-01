@@ -25,7 +25,6 @@
  *
  * @see specs/decisions/adr-002-cli-framework.md (citty + lazy subCommands)
  * @see specs/architecture.md §System Components (Deps Injection Seam)
- * @see specs/implementation-plan.md T4.7.1
  */
 
 /** Logger interface. Real impl wraps console; test impls capture. */
@@ -78,9 +77,7 @@ export interface Deps {
  */
 export function createRealDeps(): Deps {
   // chalk's type is dynamic and varies across major versions; we
-  // re-type its surface narrowly through CliLogger. Strangler-phase
-  // CJS classification means we use require() — switches to import()
-  // at the M9 ESM cutover.
+  // re-type its surface narrowly through CliLogger.
   const fs = require('node:fs') as typeof import('node:fs');
   const chalk = require('chalk') as { default?: unknown } & Record<string, (s: string) => string>;
   const c = (chalk.default ?? chalk) as Record<string, (s: string) => string>;

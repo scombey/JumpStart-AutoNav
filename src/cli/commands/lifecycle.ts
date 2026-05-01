@@ -21,9 +21,6 @@
  * Pattern: each leaf command is a `defineCommand` exported as
  * `<name>Command`. Pure logic lives in `<name>Impl(deps, args)`.
  *
- * @see bin/cli.js (lines ~1762, 1815-1898, 2166-2306, 2498-2553, 2997-3052,
- *       4162-4193, 5213-5273 — legacy reference)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { existsSync } from 'node:fs';
@@ -276,7 +273,6 @@ export interface AgentCheckpointArgs {
 }
 
 export function agentCheckpointImpl(deps: Deps, args: AgentCheckpointArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('agent-checkpoint')`
   // to a static import of the TS port at `src/lib/agent-checkpoint.ts`. Public
   // surface preserved verbatim — see refs in tests/test-agent-checkpoint.test.ts.
   const stateFile = safeJoin(deps, '.jumpstart', 'state', 'agent-checkpoints.json');
@@ -832,7 +828,6 @@ export interface PlanExecutorArgs {
 }
 
 export function planExecutorImpl(deps: Deps, args: PlanExecutorArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('plan-
   // executor')` to a static import of the TS port at
   // `src/lib/plan-executor.ts`. Existing wiring already invoked the
   // actual exports — no latent bugs to fix here.

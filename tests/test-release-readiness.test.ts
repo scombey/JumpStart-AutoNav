@@ -10,7 +10,6 @@
  *   - M3 hardening: rejects __proto__ / constructor / prototype keys
  *
  * @see src/lib/release-readiness.ts
- * @see bin/lib/release-readiness.js (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';

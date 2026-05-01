@@ -1,7 +1,7 @@
 /**
  * playback-summaries.ts — Stakeholder Playback Summaries port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/playback-summaries.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `AUDIENCES` (constant array)
@@ -9,15 +9,13 @@
  *   - `generateSummary(root, audience, options?)` => GenerateSummaryResult
  *   - `listAudiences()` => ListAudiencesResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default audiences: executive/technical/product/operations/compliance.
  *   - Specs scanned from `<root>/specs/*.md`.
  *   - State file at `<root>/.jumpstart/state/state.json` for project status.
  *   - JSON parse failures return defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/playback-summaries.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

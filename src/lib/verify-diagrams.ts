@@ -1,7 +1,7 @@
 /**
  * verify-diagrams.ts — Mermaid Diagram Verifier port (T4.6.x, M7).
  *
- * Pure-library port of `bin/verify-diagrams.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature shape:
  *
  *   - `extractMermaidBlocks(content)` => MermaidBlock[]
@@ -9,7 +9,7 @@
  *   - `detectDiagramType(firstLine)` => string | null
  *   - `run(argv?)` => RunOutcome
  *
- * Behavior parity:
+ * Invariants:
  *   - All KNOWN_DIAGRAM_TYPES, C4_DIAGRAM_TYPES, C4_FUNCTIONS preserved.
  *   - Bracket balance, subgraph/end pairing, arrow syntax checks
  *     preserved verbatim per legacy.
@@ -22,26 +22,18 @@
  *   `path.resolve` and reject NUL-byte names; the rest of the walk
  *   stays within the resolved root by construction (legacy parity).
  *
- * **Deferred to M9 ESM cutover:**
- *   - The chalk dependency is preserved via a no-color fallback.
- *   - `process.exit` is NOT called from library code per ADR-006.
- *     `run(argv)` returns a `RunOutcome` with the exit code; the CLI
- *     wrapper in `bin/verify-diagrams.js` is the only thing that calls
- *     `process.exit`.
  *
- * @see bin/verify-diagrams.js (legacy reference, 695L)
  * @see specs/decisions/adr-006-error-model.md
- * @see specs/implementation-plan.md T4.6.x
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import * as path from 'node:path';
 
-// M9 ESM cutover: chalk is loaded lazily via `createRequire(import.meta.url)`
-// so the module degrades gracefully when chalk is missing (no-color fallback)
-// without forcing a hard top-level import that would break under no-deps
-// installs.
+// chalk is loaded lazily via `createRequire(import.meta.url)` so the
+// module degrades gracefully when chalk is missing (no-color fallback)
+// without forcing a hard top-level import that would break under
+// no-deps installs.
 const require = createRequire(import.meta.url);
 
 // ─────────────────────────────────────────────────────────────────────────

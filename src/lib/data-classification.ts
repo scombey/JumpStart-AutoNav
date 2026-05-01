@@ -1,7 +1,7 @@
 /**
  * data-classification.ts — data classification & handling controls port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/data-classification.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `defaultState()`, `loadState(stateFile?)`, `saveState(state, stateFile?)`
@@ -10,7 +10,7 @@
  *   - `generateReport(options?)` => ClassificationReport
  *   - `CLASSIFICATION_LEVELS`, `HANDLING_REQUIREMENTS`, `DATA_TYPE_DEFAULTS`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/data-classification.json`.
  *   - 4 levels (public/internal/confidential/restricted) preserved verbatim.
  *   - Per-level handling requirements preserved verbatim.
@@ -18,9 +18,7 @@
  *   - ADR-012: redacts asset fields before persistence to prevent
  *     classification descriptions accidentally embedding secrets.
  *
- * @see bin/lib/data-classification.js (legacy reference)
  * @see bin/lib-ts/secret-scanner.ts (redaction)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

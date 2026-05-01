@@ -21,9 +21,6 @@
  * lib-ts imports are TOP-LEVEL ES imports — finops-planner ported to TS
  * in M11 batch 5, no remaining `legacyRequire` calls in this cluster.
  *
- * @see bin/cli.js (lines 1734-1746, 3643-3666, 3669-3691, 3694-3715,
- *       4096-4115, 4118-4135, 4997-5025 — legacy reference)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { defineCommand } from 'citty';
@@ -443,7 +440,6 @@ export interface FinopsPlannerArgs {
 }
 
 export function finopsPlannerImpl(deps: Deps, args: FinopsPlannerArgs): CommandResult {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('finops-
   // planner')` to a static import of the TS port at
   // `src/lib/finops-planner.ts`. Existing wiring already invoked the
   // actual exports (`generateReport`, `getOptimizations`) — no latent

@@ -1,7 +1,7 @@
 /**
  * traceability.ts — constraint tracking + traceability matrix port (T4.2.5).
  *
- * Pure-library port of `bin/lib/traceability.mjs`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `extractStories(content)`
@@ -11,7 +11,7 @@
  *   - `buildTraceabilityChain(root)`
  *   - `buildNFRMap(root)`
  *
- * Behavior parity:
+ * Invariants:
  *   - Test discovery walks `<root>/tests` recursively for `.test.js`,
  *     `.spec.js`, `.test.ts`, `.spec.ts`.
  *   - Story-task association uses a 5-line context window — if a task
@@ -20,8 +20,6 @@
  *   - Coverage percentages: round((linked / total) * 100), 0 when
  *     no stories.
  *
- * @see bin/lib/traceability.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.2.5
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

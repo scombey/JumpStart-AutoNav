@@ -1,7 +1,7 @@
 /**
  * regression.ts — Layer 5 Golden Master Regression Testing port (T4.6.x, M7).
  *
- * Pure-library port of `bin/lib/regression.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature shape:
  *
  *   - `loadGoldenMaster(name, mastersDir)` => GoldenMasterPair
@@ -11,7 +11,7 @@
  *   - `runRegressionSuite(mastersDir, options?)` => RegressionSuiteResult
  *   - `DEFAULT_THRESHOLD` constant
  *
- * Behavior parity:
+ * Invariants:
  *   - 85% similarity threshold default.
  *   - Section/story/component/table/codeBlock counts preserved.
  *   - ±20% variance tolerance on structural metrics.
@@ -27,9 +27,7 @@
  *   would happily include a name like `../../etc`). The new version
  *   rejects path-traversal-shaped names with `ValidationError`.
  *
- * @see bin/lib/regression.js (legacy reference, 224L)
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
- * @see specs/implementation-plan.md T4.6.x
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

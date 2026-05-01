@@ -7,7 +7,6 @@
  * vitest workers without touching the project's own tags.
  *
  * @see src/lib/versioning.ts
- * @see bin/lib/versioning.js (legacy reference)
  */
 
 import { execFileSync } from 'node:child_process';

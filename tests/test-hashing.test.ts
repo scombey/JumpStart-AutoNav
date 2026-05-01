@@ -13,7 +13,6 @@
  *     pre-rendered `summary` strings (callers grep them).
  *
  * @see src/lib/hashing.ts
- * @see bin/lib/hashing.js (legacy reference implementation)
  * @see specs/implementation-plan.md T4.1.2
  */
 

@@ -8,7 +8,6 @@
  *   - TEMPLATE_TYPES, GOLDEN_PATH_STAGES enum contents
  *
  * @see src/lib/platform-engineering.ts
- * @see bin/lib/platform-engineering.js (legacy reference)
  */
 
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';

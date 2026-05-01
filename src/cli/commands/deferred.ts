@@ -24,7 +24,6 @@
  *
  * **Quickstart bypass-prompts mode.** The legacy `quickstart` is
  * exclusively interactive (wraps `prompts` + `install()` from
- * bin/cli.js). To keep this command testable in CI we accept
  * `--name`, `--type`, `--domain`, `--ceremony` flags that bypass every
  * prompt; when ALL four are provided we run the non-interactive path
  * (which writes the patched `.jumpstart/config.yaml` only — the full
@@ -33,9 +32,6 @@
  * missing we drop into the interactive `prompts` path, mirroring the
  * legacy verbatim.
  *
- * @see bin/cli.js (lines 1748-1759 self-evolve, 1901-1925 summarize,
- *      1941-2029 timeline, 2031-2057 validate-all, 2059-2163 quickstart)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -276,7 +272,6 @@ export interface ValidateAllArgs {
 }
 
 export async function validateAllImpl(deps: Deps, args: ValidateAllArgs): Promise<CommandResult> {
-  // M11 strangler-tail cleanup: switched from `legacyRequire('proactive-
   // validator')` to a static import of the TS port at
   // `src/lib/proactive-validator.ts`. Existing wiring already invoked
   // the actual exports — no latent bugs to fix here.
@@ -374,9 +369,7 @@ const VALID_QUICKSTART_CEREMONIES = new Set(['light', 'standard', 'rigorous']);
  *      `applyConfigPatches`.
  *   3. Emit the summary lines via `generateQuickstartSummary`.
  *
- * This is the form that's smoke-testable. The full interactive path
- * (with `install()`) is documented in the module header but kept in
- * `bin/cli.js` until M9 ESM cutover.
+ * This is the form that's smoke-testable.
  */
 export async function quickstartImpl(deps: Deps, args: QuickstartArgs): Promise<CommandResult> {
   const allFlags =

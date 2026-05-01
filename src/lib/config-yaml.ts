@@ -1,7 +1,7 @@
 /**
- * config-yaml.ts — YAML config Document AST helpers (T4.1.8 port).
+ * config-yaml.ts — YAML config Document AST helpers.
  *
- * Pure-library port of `bin/lib/config-yaml.cjs`. Five exports
+ * Five exports
  * preserved verbatim by name + signature:
  *   - `parseConfigDocument(path)` → `Document`
  *   - `writeConfigDocument(path, doc)` → void
@@ -14,7 +14,7 @@
  * blank lines, and key ordering survive the round-trip — critical for
  * `config.yaml` consumers who expect their formatting preserved.
  *
- * Behavior parity:
+ * Invariants:
  *   - `parseConfigDocument` throws the same `Error('Config file not
  *     found: <path>')` and `Error('Invalid YAML in <path>: <msg>')`
  *     shapes as the legacy. Errors are NOT wrapped as JumpstartError
@@ -28,9 +28,7 @@
  * `bin/lib-ts/config-loader.ts` (T4.1.9) which composes config-yaml's
  * primitives with safePathSchema + runIpc.
  *
- * @see bin/lib/config-yaml.cjs (legacy reference)
  * @see specs/decisions/adr-003-yaml-roundtrip.md
- * @see specs/implementation-plan.md T4.1.8
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

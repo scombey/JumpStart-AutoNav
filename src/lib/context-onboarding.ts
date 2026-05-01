@@ -1,14 +1,14 @@
 /**
  * context-onboarding.ts — Context-Aware Onboarding port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/context-onboarding.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `ONBOARDING_SECTIONS` (constant array)
  *   - `generateOnboarding(root, options?)` => GenerateResult
  *   - `customizeForRole(onboarding, role)` => CustomizeResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Reads `<root>/.jumpstart/config.yaml`,
  *     `<root>/specs/decisions/*.md`,
  *     `<root>/.jumpstart/state/risk-register.json`,
@@ -17,8 +17,6 @@
  *   - Default role: engineer.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/context-onboarding.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

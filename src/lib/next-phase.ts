@@ -1,7 +1,7 @@
 /**
  * next-phase.ts — auto-pilot phase progression port (T4.3.2).
  *
- * Pure-library port of `bin/lib/next-phase.mjs`. Public surface preserved:
+ * Public surface preserved:
  *
  *   - `determineNextAction(options?)` => NextAction
  *
@@ -11,8 +11,6 @@
  * T4.1.9 in favor of the yaml package). Both are inlined here so the
  * port is self-contained until those modules port.
  *
- * @see bin/lib/next-phase.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.3.2
  */
 
 import { existsSync, readFileSync } from 'node:fs';

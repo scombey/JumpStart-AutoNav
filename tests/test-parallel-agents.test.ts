@@ -12,7 +12,6 @@
  *   - M3 hardening: rejects pollution payloads
  *
  * @see src/lib/parallel-agents.ts
- * @see bin/lib/parallel-agents.js (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

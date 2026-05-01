@@ -1,7 +1,7 @@
 /**
  * focus.ts — phase focus mode port (T4.3.2).
  *
- * Pure-library port of `bin/lib/focus.mjs`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `VALID_PRESETS` (constant)
@@ -16,8 +16,6 @@
  *   - `clearFocusFromConfig(configPath)` => {success, error?}
  *   - `getFocusStatus(options?)` => FocusStatus
  *
- * @see bin/lib/focus.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.3.2
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';

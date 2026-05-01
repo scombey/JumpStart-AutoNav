@@ -1,31 +1,22 @@
 /**
- * config-merge.ts — three-way YAML merge for framework upgrades (T4.1.10 port).
+ * config-merge.ts — three-way YAML merge for framework upgrades.
  *
- * Pure-library port of `bin/lib/config-merge.mjs` (5 exports preserved
- * verbatim: `flattenYaml`, `mergeConfigs`, `readConfig`, `writeConfig`,
- * `writeConflictsFile`). The merge logic is the load-bearing piece for
- * `bin/upgrade.js`'s "framework version bump preserves user
- * customizations" workflow — every branch is preserved bit-for-bit so
- * upgrade-time semantics don't drift.
+ * Five exports: `flattenYaml`, `mergeConfigs`, `readConfig`,
+ * `writeConfig`, `writeConflictsFile`. The merge math is the
+ * load-bearing piece of the "framework version bump preserves user
+ * customizations" workflow driven by the `upgrade` command.
  *
- * **Note on `flattenYaml`.** The legacy module ships its own indentation-
- * based YAML flattener that produces a `Record<string, rawValueString>`
- * with dotted-key paths. This is DIFFERENT from `parseSimpleYaml` (which
- * T4.1.9 deleted) — `flattenYaml` returns RAW VALUE STRINGS (with
- * type-coercion deferred to the caller) rather than fully parsed
- * objects. The merge math depends on raw-string equality (`oldValue !==
- * newValue` compares strings, not parsed values), so we preserve
- * `flattenYaml` verbatim. It's a different beast from `parseSimpleYaml`.
+ * **`flattenYaml` is intentionally string-typed.** Unlike a full YAML
+ * parser, `flattenYaml` returns `Record<string, rawValueString>` with
+ * dotted-key paths and type-coercion deferred to the caller. The merge
+ * math depends on raw-string equality (`oldValue !== newValue`
+ * compares strings, not parsed values).
  *
- * **The hooks: section preservation is a hard contract.** Per legacy
- * line 94, four prefixes are NEVER overwritten: `hooks.`,
- * `project.name`, `project.description`, `project.approver`. If you
- * change the prefix list you change framework-upgrade behavior for
- * every existing project.
- *
- * @see bin/lib/config-merge.mjs (legacy reference)
- * @see bin/upgrade.js (caller — drives the three-way merge during npm upgrade)
- * @see specs/implementation-plan.md T4.1.10
+ * **Hard contract: hook + project metadata preservation.** Four
+ * prefixes are NEVER overwritten by the merge:
+ * `hooks.`, `project.name`, `project.description`, `project.approver`.
+ * Changing this list changes upgrade behavior for every existing
+ * project.
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';

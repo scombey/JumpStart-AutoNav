@@ -1,7 +1,7 @@
 /**
  * delivery-confidence.ts — Delivery Confidence Scoring port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/delivery-confidence.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `DIMENSIONS` (constant array)
@@ -16,7 +16,7 @@
  *   - `scoreFile(filePath, options?)` => ScoreResult
  *   - `scoreProject(root, options?)` => ProjectScoreResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default weights: completeness 0.25, risk 0.20, ambiguity 0.20,
  *     quality 0.20, enterprise_readiness 0.15.
  *   - Confidence levels: Very High (90+), High (75+), Medium (50+),
@@ -25,8 +25,6 @@
  *     architecture / implementation-plan markdown files.
  *   - CLI entry-point intentionally omitted.
  *
- * @see bin/lib/delivery-confidence.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, readFileSync } from 'node:fs';

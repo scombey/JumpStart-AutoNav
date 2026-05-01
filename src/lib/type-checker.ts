@@ -1,14 +1,14 @@
 /**
  * type-checker.ts — automated type-check gate port (T4.4.1, cluster J).
  *
- * Pure-library port of `bin/lib/type-checker.mjs`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `runTypeCheck(input)` => RunTypeCheckResult
  *   - `detectTypeChecker(root)` => TypeCheckerInfo | null
  *   - `parseTypeErrors(output, checkerName)` => TypeCheckFinding[]
  *
- * Behavior parity:
+ * Invariants:
  *   - Detector probes `tsconfig.json` -> `jsconfig.json` ->
  *     `pyrightconfig.json` -> `mypy.ini` -> `.mypy.ini`, plus
  *     `pyproject.toml` table sniffing for `[tool.mypy]` / `[tool.pyright]`.
@@ -38,9 +38,7 @@
  *   - Static `node:fs` + `node:path` imports.
  *   - Detector lookup never uses attacker-controlled keys.
  *
- * @see bin/lib/type-checker.mjs (legacy reference)
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
- * @see specs/implementation-plan.md T4.4.1
  */
 
 import { execFileSync } from 'node:child_process';

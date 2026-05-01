@@ -1,16 +1,16 @@
 /**
- * root-cause-analysis.ts — Root Cause Analysis Assistant port (M11 batch 6).
+ * root-cause-analysis.ts — Root Cause Analysis Assistant.
  *
- * Pure-library port of `bin/lib/root-cause-analysis.js` (CJS). Public surface:
+ * Public surface:
  *   - `analyzeFailure(output, options?)` => AnalyzeResult
  *   - `analyzeTestFile(filePath, options?)` => AnalyzeResult
  *   - `generateReport(analysis)` => ReportResult
  *   - `FAILURE_PATTERNS`
  *
- * M3 hardening: No JSON parse paths. Not applicable.
- * Path-safety per ADR-009: `analyzeTestFile` receives filePath from CLI wiring.
- *
- * @see bin/lib/root-cause-analysis.js (legacy reference)
+ * Invariants:
+ *   - No JSON state files — the module operates on raw output strings.
+ *   - `analyzeTestFile` receives filePath from CLI wiring; the library
+ *     does not gate the path itself.
  */
 
 import { existsSync, readFileSync } from 'node:fs';

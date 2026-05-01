@@ -1,7 +1,7 @@
 /**
  * branch-workflow.ts — Branch-Aware Workflow Engine port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/branch-workflow.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `getCurrentBranch(cwd?)` => string
@@ -15,15 +15,13 @@
  *   - `getBranchStatus(root, options?)` => StatusResult
  *   - `listTrackedBranches(options?)` => ListResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/branch-workflows.json`.
  *   - Shells out to git via `execFileSync` (no shell, hardcoded args).
  *     Failures fall back to the literal string `'unknown'`.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/branch-workflow.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { execFileSync } from 'node:child_process';

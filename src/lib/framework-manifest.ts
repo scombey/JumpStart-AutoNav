@@ -1,7 +1,7 @@
 /**
  * framework-manifest.ts — file ownership classification + manifests (T4.1.11).
  *
- * Pure-library port of `bin/lib/framework-manifest.mjs`. The classification
+ * The classification
  * lists drive `bin/upgrade.js`'s "what's safe to overwrite vs what's
  * the user's customization?" decision; the manifest functions hash every
  * framework-owned file at install time so subsequent upgrades can do a
@@ -20,7 +20,7 @@
  *   - `writeFrameworkManifest(projectRoot, manifest)`
  *   - `getPackageVersion(packageRoot)` → string
  *
- * Behavior parity:
+ * Invariants:
  *   - User-owned takes precedence over framework-owned (legacy
  *     `isFrameworkOwned` returns false if `isUserOwned` is true).
  *   - Pattern matching is forward-slash-normalized; trailing-slash
@@ -36,9 +36,7 @@
  * `.jumpstart/templates/` (which can be markdown, JSON, YAML, or
  * binary blobs in the future). Preserved verbatim.
  *
- * @see bin/lib/framework-manifest.mjs (legacy reference)
  * @see bin/upgrade.js (caller — drives the three-way diff during npm upgrade)
- * @see specs/implementation-plan.md T4.1.11
  */
 
 import { createHash } from 'node:crypto';

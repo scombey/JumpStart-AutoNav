@@ -1,7 +1,7 @@
 /**
  * promptless-mode.ts — promptless mode wizard port (T4.3.3, cluster H).
  *
- * Pure-library port of `bin/lib/promptless-mode.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `WIZARDS` (constant array)
@@ -13,14 +13,12 @@
  *   - `answerStep(sessionId, answer, options?)` => AnswerStepResult
  *   - `getWizardStatus(options?)` => WizardStatusResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/promptless.json`.
  *   - Auto-incrementing session ID `WIZ-<unix-ms>`.
  *   - JSON parse failures load default state silently.
  *   - Wizard completion: `current_step >= steps.length` → `complete`.
  *
- * @see bin/lib/promptless-mode.js (legacy reference)
- * @see specs/implementation-plan.md T4.3.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

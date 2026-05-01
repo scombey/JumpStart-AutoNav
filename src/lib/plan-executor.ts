@@ -1,9 +1,7 @@
 /**
- * plan-executor.ts — Rich Plan Execution Engine port (M11 batch 5).
+ * plan-executor.ts — Rich Plan Execution Engine.
  *
- * Pure-library port of `bin/lib/plan-executor.js` (CJS) to a typed ES
- * module. Public surface preserved verbatim by name + signature:
- *
+ * Public surface:
  *   - `defaultExecutionState()` => ExecutionState
  *   - `loadExecutionState(stateFile?)` => ExecutionState
  *   - `saveExecutionState(state, stateFile?)` => void  (sets last_updated)
@@ -15,7 +13,7 @@
  *   - `resetExecution(options?)` => ResetResult
  *   - `TASK_STATUSES` (frozen list)
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/plan-execution.json`.
  *   - Default plan source: `<root>/specs/implementation-plan.md`.
  *   - Milestone heading regex: `^#{2,3}\s+(?:Milestone\s+)?(\d+|M\d+)…`.
@@ -27,19 +25,18 @@
  *   - verifyJob aggregates output_files existence, status_completed,
  *     has_completion_time, no_errors checks.
  *
- * M3 hardening: every JSON parse path runs through a recursive shape
+ * Security note: every JSON parse path runs through a recursive shape
  * check that rejects __proto__/constructor/prototype keys; falls back
  * to `defaultExecutionState()` on parse failure or pollution detection.
  *
- * Path-safety per ADR-009:
- *   - `initializeExecution(root, opts)` and `verifyJob(jobId, root, opts)`
- *     gate `root` through `assertInsideRoot` before any fs access. The
- *     `output_files` membership check (`fs.existsSync(path.join(root,
- *     file))`) re-asserts each file-name resolves inside root to defend
- *     against a malicious state file injecting `../../../etc/passwd`.
+ * Path-safety: `initializeExecution(root, opts)` and
+ * `verifyJob(jobId, root, opts)` gate `root` through `assertInsideRoot`
+ * before any fs access. The `output_files` membership check
+ * (`fs.existsSync(path.join(root, file))`) re-asserts each file-name
+ * resolves inside root to defend against a malicious state file
+ * injecting `../../../etc/passwd`.
  *
- * @see bin/lib/plan-executor.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
+ * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

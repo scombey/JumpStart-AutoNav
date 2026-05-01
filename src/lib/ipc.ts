@@ -31,7 +31,6 @@
  * @see specs/decisions/adr-006-error-model.md
  * @see specs/decisions/adr-007-ipc-envelope-versioning.md
  * @see specs/architecture.md §IPC module contract
- * @see specs/implementation-plan.md T4.1.8
  */
 
 import { fileURLToPath } from 'node:url';

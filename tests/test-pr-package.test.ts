@@ -10,7 +10,6 @@
  *   - M3 hardening: pollution-key payloads in test-results don't leak
  *
  * @see src/lib/pr-package.ts
- * @see bin/lib/pr-package.js (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';

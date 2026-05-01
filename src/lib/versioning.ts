@@ -1,31 +1,18 @@
 /**
- * versioning.ts — git-tag-driven spec versioning (T4.1.6 port).
+ * versioning.ts — git-tag-driven spec versioning.
  *
- * Pure-library port of `bin/lib/versioning.js` (5 exports preserved
- * verbatim by name + signature). The git tag scheme `spec/<artifact>/vX.Y.Z`
- * is preserved exactly, as is the "auto-bump minor on tag" semver
- * heuristic and the spec-file frontmatter injection logic.
+ * Tags use the scheme `spec/<artifact>/vX.Y.Z`. The "auto-bump minor
+ * on tag" semver heuristic and the spec-file frontmatter injection
+ * logic are part of the contract.
  *
- * **Security improvement** (the only behavior change vs legacy):
- *   - Legacy `bin/lib/versioning.js` interpolated user-controlled
- *     `artifactName`, `version`, and `message` into a shell command
- *     string via `child_process.execSync` with backtick templates.
- *     A malicious tag-message containing `"; rm -rf ~"` would run on
- *     the user's shell.
- *   - The port uses the array-args form of `child_process.execFileSync`
- *     so arguments pass to git directly without shell interpretation.
- *     Result-shape is byte-identical for legitimate inputs; malicious
- *     inputs that would have shelled out under legacy now reach git
- *     as literal strings (rejected by git's own validation).
+ * **Security note (ADR-009):** all five exports use the array-args
+ * form of execFileSync so arguments pass to git directly without
+ * shell interpretation. A shell-template implementation would have
+ * run a malicious tag-message such as `"; rm -rf ~"` against the
+ * user's shell; the array form rejects those as literal strings
+ * (git's own validation handles them).
  *
- * Per ADR-005 the legacy `bin/lib/versioning.js` stays in place during
- * the strangler window. A caller migrating to `import from '@lib/versioning'`
- * picks up the safer execution path.
- *
- * @see bin/lib/versioning.js (legacy reference)
- * @see specs/decisions/adr-005-module-layout.md
  * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
- * @see specs/implementation-plan.md T4.1.6
  */
 
 import { execFileSync } from 'node:child_process';
@@ -59,7 +46,7 @@ export function generateTag(artifactName: string, version: string): string {
  * `minor`. Returns `'1.0.0'` when no prior tags exist or when git is
  * unavailable.
  *
- * Behavior parity: identical sort key + identical fallback-to-1.0.0
+ * Invariants: identical sort key + identical fallback-to-1.0.0
  * branches as the legacy module.
  */
 export function getNextVersion(artifactName: string, cwd?: string): string {

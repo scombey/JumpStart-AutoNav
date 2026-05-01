@@ -1,17 +1,13 @@
 /**
- * install-bootstrap.ts — Bootstrap installer with --conflict merge support
- * (M11 follow-up port from deleted bin/cli.js, see #50).
+ * install-bootstrap.ts — Bootstrap installer with --conflict merge support.
  *
- * Pure-library port of the legacy install logic that lived in `bin/cli.js`
- * (~700 LoC across 9 functions, deleted in M11 phase 4 #52). The citty
- * `init` command in `src/cli/commands/lifecycle.ts` exposes the
- * `--name`, `--approver`, `--type`, `--conflict skip|overwrite|merge`
- * surface that consumers used as `npx jumpstart-mode . --conflict merge`
- * before the cutover.
+ * Drives the install flow that the citty `init` command (in
+ * `src/cli/commands/lifecycle.ts`) exposes via
+ * `--name`, `--approver`, `--type`, `--conflict skip|overwrite|merge`.
+ * Orchestrates fixture copy, integration-file merge, directory
+ * scaffolding, config persistence, and framework-manifest stamping.
  *
- * Public surface preserved verbatim by name + signature shape from the
- * legacy:
- *
+ * Public surface:
  *   - `installBootstrap(config)` — async install entry; orchestrates
  *     copy + merge + directory scaffolding + config persistence
  *   - `detectProjectType(targetDir)` — heuristic greenfield/brownfield
@@ -27,7 +23,7 @@
  *     idempotent insert/update of the merged block (regex-replaces an
  *     existing block, appends if absent)
  *
- * Behavior parity:
+ * Invariants:
  *   - `INTEGRATION_FILES` = `['AGENTS.md', 'CLAUDE.md', '.cursorrules']`
  *   - `MERGEABLE_INTEGRATION_FILES` = `['AGENTS.md', 'CLAUDE.md']`
  *     (`.cursorrules` is overwrite-only — it has no merge semantics)
@@ -41,27 +37,14 @@
  *     `.jumpstart/state/install-warnings.md` if AGENTS.md or CLAUDE.md
  *     was skipped (so AI assistants can detect missing instructions)
  *   - `--conflict overwrite` replaces existing files outright
+ *   - `installBootstrap` stamps the framework manifest at the end so
+ *     future `upgrade` runs have a baseline.
  *
- * **ADR-009 path-safety**: every `path.join(targetDir, userInput)` is
- * gated by `assertInsideRoot` from `src/lib/path-safety.ts` so the
- * install flow can't write outside the target directory even with a
- * malicious config (e.g., `targetDir = '/etc'`).
+ * Path-safety: every `path.join(targetDir, userInput)` is gated by
+ * `assertInsideRoot` from `src/lib/path-safety.ts` so the install flow
+ * can't write outside the target directory even with a malicious config
+ * (e.g., `targetDir = '/etc'`).
  *
- * **Deferred from this port:**
- *   - Interactive prompts (`runInteractive` in legacy) — the new citty
- *     `init` command takes args directly; interactive mode is a
- *     follow-up if needed.
- *   - Context7 MCP setup orchestration — the `context7-setup` citty
- *     subcommand (added in #54) handles that flow standalone; this port
- *     does NOT auto-invoke it. Callers can chain
- *     `init --conflict merge && context7-setup` if they want the legacy
- *     end-to-end behavior.
- *   - Framework-manifest stamping (the `framework-manifest.ts` port has
- *     `generateManifest` / `writeFrameworkManifest`; this port stamps
- *     the manifest at the end of `installBootstrap` so future
- *     `upgrade` runs have a baseline).
- *
- * @see bin/cli.js (legacy reference — recovered from git c483810~1:bin/cli.js)
  * @see src/cli/commands/lifecycle.ts (citty `init` wiring)
  * @see src/lib/config-yaml.ts (`updateBootstrapAnswers` for config persistence)
  * @see src/lib/framework-manifest.ts (manifest stamping)

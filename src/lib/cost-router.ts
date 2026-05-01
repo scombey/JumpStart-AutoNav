@@ -1,7 +1,7 @@
 /**
  * cost-router.ts — cost-aware model routing port (T4.3.1).
  *
- * Pure-library port of `bin/lib/cost-router.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `MODEL_COSTS` (constant catalog)
@@ -12,7 +12,7 @@
  *   - `recordSpending(model, tokens, options?)`
  *   - `generateReport(options?)`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default config file: `.jumpstart/cost-routing.json`.
  *   - Config defaults: `{budget_profile: 'balanced', spending: []}`.
  *   - Cost rounding: 4 decimal places (cost) / 2 decimal places (total).
@@ -20,8 +20,6 @@
  *     (avg of quality+speed).
  *   - Soft-fail on missing/corrupt config (returns defaults).
  *
- * @see bin/lib/cost-router.js (legacy reference)
- * @see specs/implementation-plan.md T4.3.1
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

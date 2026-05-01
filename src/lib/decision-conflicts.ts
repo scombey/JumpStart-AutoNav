@@ -1,7 +1,7 @@
 /**
  * decision-conflicts.ts — Decision Conflict Detection port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/decision-conflicts.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `CONFLICT_TYPES` (constant array)
@@ -13,7 +13,7 @@
  *   - `findConflicts(decisions)` => Conflict[]
  *   - `detectConflicts(root, options?)` => DetectResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Reads `specs/decisions/*.md`, `specs/architecture.md`, `specs/prd.md`.
  *   - Tech & pattern dictionaries identical to legacy.
  *   - Competing tech categories: frontend/backend/database/messaging/cloud.
@@ -21,8 +21,6 @@
  *     serverless↔kubernetes.
  *   - CLI entry-point intentionally omitted.
  *
- * @see bin/lib/decision-conflicts.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

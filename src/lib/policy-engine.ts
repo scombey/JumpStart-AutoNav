@@ -1,7 +1,7 @@
 /**
  * policy-engine.ts — enterprise policy engine port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/policy-engine.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `loadPolicies(policyFile?)` => Policies
@@ -12,14 +12,12 @@
  *   - `listPolicies(filter?, options?)` => ListResult
  *   - `POLICY_CATEGORIES`, `SEVERITY_LEVELS`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default policy file: `.jumpstart/policies.json`.
  *   - 7 categories, 3 severity levels.
  *   - File walker uses `String.matchAll` (not stateful regex.exec).
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/policy-engine.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';

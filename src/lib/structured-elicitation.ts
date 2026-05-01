@@ -1,7 +1,7 @@
 /**
  * structured-elicitation.ts — Structured Elicitation port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/structured-elicitation.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `DOMAINS` (constant array)
@@ -14,14 +14,12 @@
  *   - `getNextQuestion(sessionId, options?)` => NextResult
  *   - `generateReport(sessionId, options?)` => ReportResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/elicitation.json`.
  *   - Default domain when omitted: `general`.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/structured-elicitation.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

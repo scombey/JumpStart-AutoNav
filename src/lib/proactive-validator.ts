@@ -1,9 +1,7 @@
 /**
- * proactive-validator.ts — Proactive Validation & Suggestion Engine port (M11 batch 5).
+ * proactive-validator.ts — Proactive Validation & Suggestion Engine.
  *
- * Pure-library port of `bin/lib/proactive-validator.js` (CJS) to a typed
- * ES module. Public surface preserved verbatim by name + signature:
- *
+ * Public surface:
  *   - `DIAGNOSTIC_CODES` (frozen-shape constant)
  *   - `validateArtifactProactive(filePath, options?)` => FileValidationResult
  *   - `validateAllArtifacts(specsDir, options?)` => Promise<ValidateAllResult>
@@ -11,35 +9,26 @@
  *   - `renderValidationReport(result)` => string
  *   - `inferSchemaName(basename)` => string | null
  *
- * Behavior parity:
+ * Invariants:
  *   - Single-file pipeline: spec-tester (5 checks) → smell-detector →
  *     validator (schema + approval).
  *   - Cross-file pipeline: spec-drift, crossref, coverage, traceability.
  *   - Pass threshold: 70 (default) or 100 (strict).
  *   - All diagnostics conform to LSP-style `{line, column, severity,
  *     code, message, suggestion, source}`.
+ *   - No JSON parse path in this module — all checks operate on
+ *     Markdown content. Pollution-key checks are documented per-helper
+ *     for the rare cases where we serialize an issue payload.
  *
- * Module dependencies:
- *   - `spec-tester`: still legacy CJS (`bin/lib/spec-tester.js`); loaded
- *     via `createRequire` since no TS port exists yet.
- *   - `coverage`: still legacy CJS (`bin/lib/coverage.js`); same.
- *   - `smell-detector`, `validator`, `spec-drift`, `crossref`,
- *     `traceability`: all TS-ported, imported as ES modules.
- *
- * Path-safety per ADR-009:
- *   - `validateArtifactProactive(filePath, opts)` accepts a caller-supplied
- *     filePath that the cluster constructs via `safeJoin(deps, ...)`.
+ * Path-safety:
+ *   - `validateArtifactProactive(filePath, opts)` accepts a caller-
+ *     supplied filePath that the cluster constructs via `safeJoin`.
  *     The library does not gate again — paths are pre-validated upstream.
  *   - `validateAllArtifacts(specsDir, opts)` walks one directory level
  *     using `fs.readdirSync` then `path.join(specsDir, entry)`. The
  *     `specsDir` is gated by the cluster.
  *
- * No JSON parse path in this module — all checks operate on Markdown
- * content. M3 hardening notes are documented per-helper for the rare
- * cases where we serialize an issue payload.
- *
- * @see bin/lib/proactive-validator.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
+ * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

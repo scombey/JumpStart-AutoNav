@@ -13,7 +13,6 @@
  * (the v0 IPC envelope contract).
  *
  * @see src/lib/io.ts
- * @see bin/lib/io.js (legacy reference implementation)
  * @see specs/decisions/adr-006-error-model.md
  * @see specs/implementation-plan.md T4.1.1
  */

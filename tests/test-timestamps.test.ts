@@ -6,7 +6,6 @@
  * tmp-dir fixture so they exercise the real `fs.readFileSync` path.
  *
  * @see src/lib/timestamps.ts
- * @see bin/lib/timestamps.mjs (legacy reference)
  * @see specs/implementation-plan.md T4.1.3
  */
 

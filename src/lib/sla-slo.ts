@@ -1,7 +1,7 @@
 /**
- * sla-slo.ts — SLA & SLO Specification Support port (M11 batch 6).
+ * sla-slo.ts — SLA & SLO Specification Support.
  *
- * Pure-library port of `bin/lib/sla-slo.js` (CJS). Public surface:
+ * Public surface:
  *   - `defaultState()` => SlaState
  *   - `loadState(stateFile?)` => SlaState
  *   - `saveState(state, stateFile?)` => void
@@ -12,13 +12,10 @@
  *   - `SLO_TYPES`
  *   - `DEFAULT_SLO_TEMPLATES`
  *
- * M3 hardening:
- *   - `loadState` runs `rejectPollutionKeys` on parsed JSON before use.
- *   - On parse failure or pollution, returns `defaultState()`.
- *
- * Path-safety per ADR-009: Not applicable — no user-supplied paths to fs.
- *
- * @see bin/lib/sla-slo.js (legacy reference)
+ * Invariants:
+ *   - `loadState` runs `rejectPollutionKeys` on parsed JSON before use;
+ *     on parse failure or pollution, returns `defaultState()`.
+ *   - No user-supplied paths reach the filesystem.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

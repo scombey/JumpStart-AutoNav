@@ -1,8 +1,8 @@
 /**
  * environment-promotion.ts — Environment Promotion Governance port
- * (M11 batch 4).
+ *.
  *
- * Pure-library port of `bin/lib/environment-promotion.js`. Public
+ * Public
  * surface preserved verbatim by name + signature:
  *
  *   - `defaultState()` => EnvironmentPromotionState
@@ -15,7 +15,7 @@
  *   - `getStatus(options?)` => GetStatusResult
  *   - `ENVIRONMENTS`, `DEFAULT_GATES`
  *
- * Behavior parity:
+ * Invariants:
  *   - 4 environments: dev → test → staging → prod (linear progression).
  *   - Default gates per environment (preserved verbatim from legacy).
  *   - `dev` starts as `active`; the others start as `pending`.
@@ -26,8 +26,6 @@
  *   - M3 hardening: shape-validated JSON; rejects __proto__/constructor/
  *     prototype keys recursively; defaultState fallback on parse failure.
  *
- * @see bin/lib/environment-promotion.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

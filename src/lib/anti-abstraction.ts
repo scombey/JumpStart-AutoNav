@@ -1,7 +1,7 @@
 /**
  * anti-abstraction.ts — Anti-Abstraction Gate port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/anti-abstraction.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `WRAPPER_PATTERNS` (constant array)
@@ -9,13 +9,11 @@
  *   - `scanDirectory(dirPath, options?)` => ScanDirectoryResult
  *   - `hasJustification(abstractionName, decisionsDir)` => boolean
  *
- * Behavior parity:
+ * Invariants:
  *   - Pattern catalog (4 entries) verbatim from legacy.
  *   - Default extensions: .js, .ts, .jsx, .tsx, .py, .rb.
  *   - Default exclude dirs: node_modules, .git, dist, build, coverage, .next.
  *
- * @see bin/lib/anti-abstraction.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';

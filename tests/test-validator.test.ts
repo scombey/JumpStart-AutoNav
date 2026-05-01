@@ -8,7 +8,6 @@
  *   - Error-string shape compatibility (substring-grep parity).
  *
  * @see src/lib/validator.ts
- * @see bin/lib/validator.js (legacy reference)
  */
 
 import * as path from 'node:path';

@@ -1,7 +1,7 @@
 /**
  * evidence-collector.ts — evidence collection automation port (T4.4.2, cluster I).
  *
- * Pure-library port of `bin/lib/evidence-collector.js`. Public surface
+ * Public surface
  * preserved verbatim:
  *
  *   - `defaultState()`, `loadState(stateFile?)`, `saveState(state, stateFile?)`
@@ -10,14 +10,12 @@
  *   - `getStatus(options?)` => StatusResult
  *   - `EVIDENCE_TYPES`
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/evidence.json`.
  *   - Default output dir: `.jumpstart/evidence/`.
  *   - 9 evidence types preserved verbatim.
  *   - M3 hardening: shape-validated JSON; rejects __proto__.
  *
- * @see bin/lib/evidence-collector.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.2
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';

@@ -18,8 +18,6 @@
  * Pattern: each leaf command is a `defineCommand` exported as
  * `<name>Command`. Pure logic lives in `<name>Impl(deps, args)`.
  *
- * @see bin/cli.js (lines 979–1215 — legacy reference)
- * @see specs/implementation-plan.md T4.7.2
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

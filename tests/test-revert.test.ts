@@ -9,7 +9,6 @@
  *   - revertArtifact git-restore best-effort behavior
  *
  * @see src/lib/revert.ts
- * @see bin/lib/revert.mjs (legacy reference)
  */
 
 import { execFileSync } from 'node:child_process';

@@ -8,7 +8,6 @@
  *   - applyTemplate writes the canonical `.jumpstart/state/enterprise-template.json`
  *
  * @see src/lib/enterprise-templates.ts
- * @see bin/lib/enterprise-templates.js (legacy reference)
  */
 
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';

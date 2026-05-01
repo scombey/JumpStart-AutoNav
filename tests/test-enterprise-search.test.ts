@@ -8,7 +8,6 @@
  *   - SEARCHABLE_TYPES enum contents
  *
  * @see src/lib/enterprise-search.ts
- * @see bin/lib/enterprise-search.js (legacy reference)
  */
 
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';

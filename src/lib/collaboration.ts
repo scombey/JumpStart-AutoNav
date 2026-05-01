@@ -1,7 +1,7 @@
 /**
  * collaboration.ts — Real-Time Collaboration Sessions port (T4.4.3, cluster L).
  *
- * Pure-library port of `bin/lib/collaboration.js`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `PARTICIPANT_ROLES` (constant array)
@@ -12,14 +12,12 @@
  *   - `releaseLock(lockId, options?)` => LockResult
  *   - `getStatus(options?)` => StatusResult
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/collaboration.json`.
  *   - Default participant role on join: editor.
  *   - JSON parse failures load defaults silently.
  *   - JSON shape validation rejects `__proto__` / `constructor` / `prototype`.
  *
- * @see bin/lib/collaboration.js (legacy reference)
- * @see specs/implementation-plan.md T4.4.3
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

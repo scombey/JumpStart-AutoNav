@@ -2,7 +2,6 @@
  * test-diff.test.ts — T4.1.5 unit tests for the diff.ts port.
  *
  * @see src/lib/diff.ts
- * @see bin/lib/diff.mjs (legacy reference)
  */
 
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';

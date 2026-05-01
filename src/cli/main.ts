@@ -9,13 +9,13 @@
  *
  * Public surface preserved by the eventual full decomposition (T4.7.2):
  *
- *   - Every `bin/cli.js` `subcommand === '<name>'` branch becomes a
- *     `src/cli/commands/<group>.ts` module exporting a default
- *     `defineCommand`-shaped object.
- *   - `--help` output remains byte-identical (NFR-R02; gated by
- *     `scripts/diff-cli-help.mjs` at T4.7.3).
- *   - Exit codes preserved (per ADR-006 — only this file and
- *     `runIpc` may call `process.exit`).
+ * - Every `bin/cli.js` `subcommand === '<name>'` branch becomes a
+ * `src/cli/commands/<group>.ts` module exporting a default
+ * `defineCommand`-shaped object.
+ * - `--help` output remains byte-identical (NFR-R02; gated by
+ * `scripts/diff-cli-help.mjs` at T4.7.3).
+ * - Exit codes preserved (per ADR-006 — only this file and
+ * `runIpc` may call `process.exit`).
  *
  * **Lazy loading**: every entry in `subCommands` is a thunk that
  * dynamically imports the leaf module. `node dist/cli.js --version`
@@ -36,7 +36,6 @@
  *
  * @see specs/decisions/adr-002-cli-framework.md (citty + lazy subCommands)
  * @see specs/architecture.md §System Components — CLI Dispatcher
- * @see specs/implementation-plan.md T4.7.1
  */
 
 import { createRequire } from 'node:module';
@@ -49,19 +48,13 @@ import { createRealDeps, type Deps } from './deps.js';
 
 /**
  * Framework version — read at runtime from `package.json` so it
- * cannot drift from the canonical source.
+ * cannot drift from the canonical source. A previous hardcoded
+ * `'1.1.14'` constant + matching test assertion was silent-drift-prone:
+ * a version bump in package.json wouldn't have caused either to fail.
  *
- * Pit Crew M8 MED (QA 4) fix: pre-fix used a hardcoded `'1.1.14'`
- * constant + matching test assertion. A version bump in package.json
- * would NOT have caused either to fail; the version contract was
- * silent-drift-prone. Post-fix: `createRequire(import.meta.url)` reads
- * the canonical value at module-load time. The `version` field in
- * package.json is the spec's source of truth.
- *
- * M9 ESM cutover: replaced the strangler-phase bare `require()` (which
- * was permitted by the legacy CJS tsconfig) with the ESM-canonical
- * `createRequire(import.meta.url)` form. From `dist/cli/main.mjs` the
- * relative path resolves to `<package-root>/package.json` whether
+ * Uses `createRequire(import.meta.url)` because ESM doesn't support
+ * `import` of JSON without an assertion flag. From `dist/cli/main.mjs`
+ * the relative path resolves to `<package-root>/package.json` whether
  * running from source under tsx or from the published tarball.
  */
 const require = createRequire(import.meta.url);
@@ -84,15 +77,15 @@ const FRAMEWORK_VERSION = readPackageVersion();
  *
  * Pattern (T4.7.2 onward):
  *
- *   verify: () => import('./commands/verify.js').then((m) => m.default),
+ * verify: () => import('./commands/verify.js').then((m) => m.default),
  *
  * For now (T4.7.1), only the seed `version-tag` command is wired —
  * just enough to prove the citty plumbing typechecks and runs.
  */
 /** Lazy command loader. The cast widens each command's tightly-inferred
- *  CommandDef<{...specific args...}> shape into the map's
- *  CommandDef<any> index signature without losing type-safety inside
- *  each command's own module. */
+ * CommandDef<{...specific args...}> shape into the map's
+ * CommandDef<any> index signature without losing type-safety inside
+ * each command's own module. */
 function lazy<T>(loader: () => Promise<T>): () => Promise<CommandDef> {
   return async () => (await loader()) as unknown as CommandDef;
 }

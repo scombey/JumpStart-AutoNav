@@ -1,7 +1,7 @@
 /**
  * graph.ts — spec-graph dependency map port (T4.2.5).
  *
- * Pure-library port of `bin/lib/graph.js`. Public surface preserved
+ * Public surface preserved
  * verbatim by name + signature:
  *
  *   - `loadGraph(graphPath)`
@@ -13,7 +13,7 @@
  *   - `getCoverage(graph)`
  *   - `auditTaskDependencies(graph)`
  *
- * Behavior parity:
+ * Invariants:
  *   - Initial graph shape: `{ version:'1.0.0', generated, nodes:{}, edges:[] }`.
  *   - `saveGraph` mutates `graph.lastUpdated` in place AND auto-creates
  *     parent dirs (legacy quirk preserved).
@@ -22,8 +22,6 @@
  *   - `auditTaskDependencies` returns DFS-detected cycles plus
  *     parallel-group level assignments and milestone inversions.
  *
- * @see bin/lib/graph.js (legacy reference)
- * @see specs/implementation-plan.md T4.2.5
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

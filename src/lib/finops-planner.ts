@@ -1,9 +1,7 @@
 /**
- * finops-planner.ts — FinOps-Aware Architecture Planning port (M11 batch 5).
+ * finops-planner.ts — FinOps-Aware Architecture Planning.
  *
- * Pure-library port of `bin/lib/finops-planner.js` (CJS) to a typed ES
- * module. Public surface preserved verbatim by name + signature:
- *
+ * Public surface:
  *   - `defaultState()` => State
  *   - `loadState(stateFile?)` => State
  *   - `saveState(state, stateFile?)` => void  (sets last_updated)
@@ -13,7 +11,7 @@
  *   - `COST_CATEGORIES` (frozen list)
  *   - `CLOUD_PRICING_ESTIMATES` (per-category low/medium/high rates)
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state file: `.jumpstart/state/finops.json`.
  *   - Estimate IDs: `FIN-${Date.now().toString(36).toUpperCase()}`.
  *   - Storage + monitoring categories use rate * quantity (no hour
@@ -22,21 +20,15 @@
  *     `Math.round(v * 100) / 100`.
  *   - Optimization heuristics: compute > $500 → reserved/spot;
  *     storage > $100 → tiering; ai-ml > $200 → smaller models.
+ *   - Every JSON parse path runs through a recursive shape check that
+ *     rejects __proto__/constructor/prototype keys; on pollution or
+ *     parse failure we fall back to `defaultState()`.
  *
- * M3 hardening: every JSON parse path runs through a recursive shape
- * check that rejects __proto__/constructor/prototype keys; falls back
- * to `defaultState()` on parse failure or pollution detection.
- *
- * Path-safety: this module accepts a caller-supplied `stateFile` path
- * which the CLI cluster constructs via `safeJoin(deps, ...)` — already
- * gated through `assertInsideRoot` upstream. The library itself does
- * not walk the filesystem; it only reads/writes the supplied path. We
- * defensively gate `saveState`'s mkdir and writeFile by re-validating
- * the supplied stateFile against process.cwd() if it's relative —
- * matching the legacy `path.dirname(filePath)` semantics.
- *
- * @see bin/lib/finops-planner.js (legacy reference)
- * @see specs/implementation-plan.md M11 strangler cleanup
+ * Path-safety: callers supply a `stateFile` path which the CLI
+ * cluster constructs via `safeJoin(deps, ...)` (gated through
+ * `assertInsideRoot` upstream). The library itself does not walk the
+ * filesystem; it only reads/writes the supplied path. `saveState`
+ * defensively re-validates relative paths against `process.cwd()`.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';

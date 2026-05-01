@@ -1,17 +1,28 @@
 /**
- * requirements-baseline.ts — Requirements Baseline & Change Control port (M11 batch 6).
+ * requirements-baseline.ts — Requirements Baseline & Change Control.
  *
- * Pure-library port of `bin/lib/requirements-baseline.js` (CJS) to a typed
- * ES module. Public surface preserved verbatim by name + signature.
+ * Public surface:
+ *   - `defaultBaseline()` => Baseline
+ *   - `loadBaseline(baselineFile?)` => Baseline
+ *   - `saveBaseline(baseline, baselineFile?)` => void
+ *   - `hashContent(content)` => string  (sha256 hex)
+ *   - `extractRequirementIds(content)` => string[]
+ *   - `freezeBaseline(...)` => FreezeResult
+ *   - `checkBaseline(...)` => CheckBaselineResult
+ *   - `assessImpact(...)` => ImpactResult
+ *   - `getBaselineStatus(...)` => BaselineStatusResult
+ *   - `ARTIFACT_TYPES` (frozen list)
  *
- * M3 hardening:
- *   - `loadBaseline` runs `rejectPollutionKeys` on parsed JSON before use.
- *   - On parse failure or pollution detection, returns `defaultBaseline()`.
+ * Invariants:
+ *   - Default baseline file: `.jumpstart/state/requirements-baseline.json`.
+ *   - `loadBaseline` runs `rejectPollutionKeys` on parsed JSON before
+ *     use; on parse failure or pollution detection, returns
+ *     `defaultBaseline()`.
  *
- * Path-safety per ADR-009:
- *   - Receives `root` from CLI wiring which routes through assertUserPath.
+ * Path-safety: receives `root` from CLI wiring which routes through
+ * `assertUserPath`. The library does not gate again.
  *
- * @see bin/lib/requirements-baseline.js (legacy reference)
+ * @see specs/decisions/adr-009-ipc-stdin-path-traversal.md
  */
 
 import { createHash } from 'node:crypto';

@@ -1,7 +1,7 @@
 /**
  * state-store.ts — workflow state persistence port (T4.3.2).
  *
- * Pure-library port of `bin/lib/state-store.mjs`. Public surface
+ * Public surface
  * preserved verbatim by name + signature:
  *
  *   - `setTimelineHook(timeline | null)`
@@ -17,7 +17,7 @@
  *   - `pruneCheckpoints(maxCount, statePath?)` =>
  *     {success, removed, remaining}
  *
- * Behavior parity:
+ * Invariants:
  *   - Default state path: `.jumpstart/state/state.json`.
  *   - Phase transitions emit timeline `phase_end` + `phase_start` events.
  *   - Checkpoint hashes use DJB2 (preserved verbatim).
@@ -25,8 +25,6 @@
  *   - `syncPhaseState` calls `setWorkflowCurrentPhase` from
  *     `config-yaml.ts` (TS port via @lib alias).
  *
- * @see bin/lib/state-store.mjs (legacy reference)
- * @see specs/implementation-plan.md T4.3.2
  */
 
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
