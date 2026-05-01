@@ -1,5 +1,4 @@
 {
-  "$schema": "https://code.visualstudio.com/schemas/copilot-hooks.json",
   "description": "AutoNav (JumpStart) VS Code workspace hooks for lifecycle guardrails, traceability, schema validation, and session analytics.",
   "hooks": {
     "SessionStart": [
