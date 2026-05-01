@@ -132,9 +132,19 @@ The following 1.x internal modules are NOT part of the documented `exports` map.
 
 If you depended on any of these, file an issue at https://github.com/scombey/JumpStart-AutoNav/issues with the use case — we'll add it to the `exports` map if appropriate.
 
-### 6. Bootstrap install with conflict-merge
+### 6. Bootstrap install command rename + flag shape
 
-The `npx jumpstart-mode . --conflict merge` flow that merged AGENTS.md / CLAUDE.md content with existing user files lives in `bin/cli.js` in 1.x. In 2.0 this is moving under `npx @scombey/jumpstart-mode init` with the same `--conflict skip|overwrite|merge` semantics; the actual port lands as part of M11 strangler-cleanup. During the soak window, install the 1.x line for first-time merge into a project with existing AGENTS.md content, then upgrade after.
+The 1.x bare-positional bootstrap (`npx jumpstart-mode . --conflict merge`) is replaced in 2.0 by an explicit `bootstrap` subcommand:
+
+```bash
+# 1.x
+npx jumpstart-mode . --name "My Project" --approver "Jane" --type brownfield --conflict merge
+
+# 2.0
+npx @scombey/jumpstart-mode bootstrap . --name "My Project" --approver "Jane" --type brownfield --conflict merge
+```
+
+All conflict strategies — `skip` (default), `overwrite`, and `merge` — preserve their 1.x semantics. The merge flow's `<!-- BEGIN JUMPSTART MERGE: <file> -->` markers and idempotency guarantees are preserved verbatim (see [`src/lib/install-bootstrap.ts`](../src/lib/install-bootstrap.ts) and the test suite at [`tests/test-install-bootstrap.test.ts`](../tests/test-install-bootstrap.test.ts) for the contract).
 
 ## After upgrade — verify
 
