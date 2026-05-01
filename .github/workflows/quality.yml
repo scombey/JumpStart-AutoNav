@@ -48,6 +48,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build dist (M11 phase 5g hooks import from dist/lib)
+        run: npm run build
+
       - name: Layer 1 — Schema & Formatting
         run: npx vitest run tests/test-schema.test.js --reporter=verbose
 
