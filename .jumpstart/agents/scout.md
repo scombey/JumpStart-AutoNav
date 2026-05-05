@@ -166,8 +166,9 @@ Respect the `max_file_scan_depth` config setting. If set to a number, do not rec
 - `AGENTS.md` — JumpStart root agent instructions
 - `CLAUDE.md` — JumpStart Claude Code integration
 - `.cursorrules` — JumpStart Cursor integration
-- `.vscode/mcp.json` — MCP server config (may contain API keys)
-- `.cursor/mcp.json` — MCP server config (may contain API keys)
+- `.vscode/mcp.json` — VS Code Copilot MCP config (may contain API keys)
+- `.cursor/mcp.json` — Cursor MCP config (may contain API keys)
+- `.mcp.json` — Claude Code workspace MCP config (may contain API keys)
 
 Do **not** exclude pre-existing `.github/` content that was part of the original repository (e.g., workflows, issue templates). If `.github/` existed before JumpStart was installed, scan its non-JumpStart contents (e.g., `.github/workflows/`, `.github/ISSUE_TEMPLATE/`). Use git history or file timestamps to distinguish if needed, or ask the human.
 

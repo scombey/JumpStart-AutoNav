@@ -311,7 +311,7 @@ if [ -t 0 ] && [ -t 1 ]; then
                 fi
             fi
 
-            # VS Code (.vscode/mcp.json)
+            # VS Code (in-IDE GitHub Copilot) — `.vscode/mcp.json` with `servers` key
             read -p "  Configure Context7 for VS Code (GitHub Copilot)? (y/n) " use_vscode
             if [[ $use_vscode =~ ^[Yy]$ ]]; then
                 VSCODE_MCP="$TARGET_DIR/.vscode/mcp.json"
@@ -319,29 +319,50 @@ if [ -t 0 ] && [ -t 1 ]; then
                     echo "  [dry-run] Write VS Code MCP config to .vscode/mcp.json"
                 else
                     mkdir -p "$TARGET_DIR/.vscode"
-                    # Create or merge into existing file
-                    if [ -f "$VSCODE_MCP" ]; then
-                        # Simple check: if context7 already exists, skip
-                        if grep -q '"context7"' "$VSCODE_MCP" 2>/dev/null; then
-                            warn "VS Code: context7 already configured in .vscode/mcp.json"
-                        else
-                            # Backup and rewrite (basic approach)
-                            cp "$VSCODE_MCP" "${VSCODE_MCP}.bak"
-                            warn "VS Code: Backed up existing .vscode/mcp.json to .vscode/mcp.json.bak"
-                        fi
-                    fi
-                    if ! grep -q '"context7"' "$VSCODE_MCP" 2>/dev/null; then
+                    if [ -f "$VSCODE_MCP" ] && grep -q '"context7"' "$VSCODE_MCP" 2>/dev/null; then
+                        warn "VS Code: context7 already configured in .vscode/mcp.json"
+                    else
+                        [ -f "$VSCODE_MCP" ] && cp "$VSCODE_MCP" "${VSCODE_MCP}.bak"
                         cat > "$VSCODE_MCP" << VSEOF
 {
   "servers": {
     "context7": {
-      "type": "http",
-      "url": "https://mcp.context7.com/mcp"
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "$context7_key"]
     }
   }
 }
 VSEOF
                         success "VS Code: Context7 MCP configured in .vscode/mcp.json"
+                        CTX7_INSTALLED=true
+                    fi
+                fi
+            fi
+
+            # Claude Code (workspace `.mcp.json`) — picked up automatically by Claude Code at workspace root
+            read -p "  Configure Context7 for Claude Code (workspace .mcp.json)? (y/n) " use_claudecode_ws
+            if [[ $use_claudecode_ws =~ ^[Yy]$ ]]; then
+                CC_WS_MCP="$TARGET_DIR/.mcp.json"
+                if [ "$DRY_RUN" = true ]; then
+                    echo "  [dry-run] Write Claude Code workspace MCP config to .mcp.json"
+                else
+                    if [ -f "$CC_WS_MCP" ] && grep -q '"context7"' "$CC_WS_MCP" 2>/dev/null; then
+                        warn "Claude Code: context7 already configured in .mcp.json"
+                    else
+                        [ -f "$CC_WS_MCP" ] && cp "$CC_WS_MCP" "${CC_WS_MCP}.bak"
+                        cat > "$CC_WS_MCP" << CCEOF
+{
+  "mcpServers": {
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp", "--api-key", "$context7_key"]
+    }
+  }
+}
+CCEOF
+                        success "Claude Code: Context7 MCP configured in workspace .mcp.json"
                         CTX7_INSTALLED=true
                     fi
                 fi
@@ -409,7 +430,7 @@ WEOF
             # Update .gitignore
             if [ "$CTX7_INSTALLED" = true ] && [ "$DRY_RUN" = false ]; then
                 GITIGNORE="$TARGET_DIR/.gitignore"
-                CTX7_IGNORE_ENTRIES=(".vscode/mcp.json" ".cursor/mcp.json")
+                CTX7_IGNORE_ENTRIES=(".mcp.json" ".cursor/mcp.json")
                 for entry in "${CTX7_IGNORE_ENTRIES[@]}"; do
                     if [ -f "$GITIGNORE" ] && grep -qF "$entry" "$GITIGNORE"; then
                         : # Already present

@@ -32,8 +32,10 @@ coverage/
 # Documentation
 /TODO.md
 
-# MCP config (if contains API key)
+# MCP config (uncomment if your generated file contains an API key)
 #.vscode/mcp.json
+#.cursor/mcp.json
+#.mcp.json
 
 # E2E test artifacts
 tests/e2e/.tmp/
@@ -55,3 +57,4 @@ tests/coverage-baseline.candidate.json
 
 # Claude agent state (transient; not worth preserving across runs)
 .claude
+.claude/settings.local.json

@@ -25,6 +25,14 @@ and ~280 stale migration-history comments swept across `src/lib/*.ts`.
 - **17 orphan legacy modules ported** (#55) — finops-planner, sla-slo,
   spec-comments, telemetry-feedback, transcript-ingestion, and 12 others.
   Brings `src/lib/*.ts` to 113 modules; zero `bin/lib/*` survivors.
+- **`claude-code-workspace` Context7 client target** — adds workspace-level
+  `.mcp.json` with the `mcpServers` root key as a separate `CLIENT_CONFIGS`
+  entry alongside the existing `vscode` (`.vscode/mcp.json` + `servers`)
+  and `claude-code` (CLI `claude mcp add`) targets. Each tool now writes
+  to its own canonical workspace path with the upstream-documented JSON
+  shape. `install.sh` prompts for both VS Code and Claude Code workspace
+  separately. `.gitignore` lists all three commented-out hints; the scout
+  watch list tracks all three paths.
 
 ### Changed
 
