@@ -417,22 +417,39 @@ describe('context7-setup — public surface', () => {
     expect(typeof r).toBe('string');
   });
 
-  it('CLIENT_CONFIGS includes all five legacy clients', () => {
+  it('CLIENT_CONFIGS includes every supported client', () => {
     const keys = Object.keys(context7.CLIENT_CONFIGS);
     expect(keys).toContain('vscode');
     expect(keys).toContain('cursor');
     expect(keys).toContain('claude-code');
+    expect(keys).toContain('claude-code-workspace');
     expect(keys).toContain('claude-desktop');
     expect(keys).toContain('windsurf');
   });
 
-  it('installForClient writes a vscode mcp.json with the api key', () => {
+  it('installForClient(vscode) writes .vscode/mcp.json with the `servers` root key', () => {
+    // VS Code's in-IDE Copilot extension reads `.vscode/mcp.json` with
+    // `{ servers: {...} }`. Documented at
+    // https://code.visualstudio.com/docs/copilot/customization/mcp-servers.
     const r = context7.installForClient('vscode', 'ctx7sk-test1234567890', tmp);
     expect(r.success).toBe(true);
     const cfg = path.join(tmp, '.vscode', 'mcp.json');
     expect(existsSync(cfg)).toBe(true);
     const parsed = JSON.parse(readFileSync(cfg, 'utf8')) as Record<string, unknown>;
     expect(parsed.servers).toBeDefined();
+    expect(parsed.mcpServers).toBeUndefined();
+  });
+
+  it('installForClient(claude-code-workspace) writes .mcp.json with the `mcpServers` root key', () => {
+    // Claude Code reads `.mcp.json` at workspace root with
+    // `{ mcpServers: {...} }`. This is distinct from the VS Code path.
+    const r = context7.installForClient('claude-code-workspace', 'ctx7sk-test1234567890', tmp);
+    expect(r.success).toBe(true);
+    const cfg = path.join(tmp, '.mcp.json');
+    expect(existsSync(cfg)).toBe(true);
+    const parsed = JSON.parse(readFileSync(cfg, 'utf8')) as Record<string, unknown>;
+    expect(parsed.mcpServers).toBeDefined();
+    expect(parsed.servers).toBeUndefined();
   });
 
   it('installForClient rejects unknown clients', () => {

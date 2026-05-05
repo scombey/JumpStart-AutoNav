@@ -102,6 +102,16 @@ export interface SetupOutcome {
 const API_KEY_PREFIX = 'ctx7sk-';
 
 // Client configuration templates
+//
+// Each client uses its own workspace path + root key per the upstream
+// tool's docs (verified May 2026):
+//
+//   vscode               .vscode/mcp.json          { servers: {...} }
+//   cursor               .cursor/mcp.json          { mcpServers: {...} }
+//   claude-code-workspace .mcp.json                { mcpServers: {...} }
+//   claude-code          (CLI: `claude mcp add`, writes to ~/.claude.json)
+//   claude-desktop       <platform-specific path>  { mcpServers: {...} }
+//   windsurf             ~/.codeium/.../mcp_config.json  { mcpServers: {...} }
 export const CLIENT_CONFIGS: Record<string, ClientConfig> = {
   vscode: {
     name: 'VS Code (GitHub Copilot)',
@@ -129,7 +139,7 @@ export const CLIENT_CONFIGS: Record<string, ClientConfig> = {
     }),
   },
   'claude-code': {
-    name: 'Claude Code (CLI)',
+    name: 'Claude Code (CLI, user scope)',
     useCli: true,
     cliArgv: (apiKey: string) => [
       'claude',
@@ -143,6 +153,19 @@ export const CLIENT_CONFIGS: Record<string, ClientConfig> = {
       '--api-key',
       apiKey,
     ],
+  },
+  'claude-code-workspace': {
+    name: 'Claude Code (workspace `.mcp.json`)',
+    configFileName: '.mcp.json',
+    generateConfig: (apiKey: string) => ({
+      mcpServers: {
+        context7: {
+          type: 'stdio',
+          command: 'npx',
+          args: ['-y', '@upstash/context7-mcp', '--api-key', apiKey],
+        },
+      },
+    }),
   },
   'claude-desktop': {
     name: 'Claude Desktop',
@@ -595,10 +618,13 @@ function ensureGitignoreEntries(
   const gitignorePath = path.join(targetDir, '.gitignore');
   const entriesToAdd: string[] = [];
 
-  // Map client keys to gitignore patterns
+  // Map client keys to workspace-local gitignore patterns. Only file-based
+  // workspace clients are listed; user-scope configs (claude-code,
+  // claude-desktop, windsurf) live outside the project tree.
   const gitignorePatterns: Record<string, string> = {
     vscode: '.vscode/mcp.json',
     cursor: '.cursor/mcp.json',
+    'claude-code-workspace': '.mcp.json',
   };
 
   for (const clientKey of selectedClients) {

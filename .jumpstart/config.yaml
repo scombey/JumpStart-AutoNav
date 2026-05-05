@@ -178,6 +178,7 @@ agents:
       - ".github/instructions/"
       - ".vscode/mcp.json"
       - ".cursor/mcp.json"
+      - ".mcp.json"
 
   challenger:
     persona_file: "agents/challenger.md"
