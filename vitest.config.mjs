@@ -15,6 +15,11 @@ export default defineConfig({
     root: '.',
     include: ['tests/**/*.test.{js,ts}'],
     exclude: [],
+    // Build dist/ once before any test file loads. Several tests import
+    // from `dist/` at module-evaluation time (e.g., `test-hooks.test.js`
+    // → `.github/hooks/*.mjs` → `dist/lib/validator.mjs`); per-test
+    // `beforeAll` guards run too late for those imports.
+    globalSetup: ['tests/helpers/global-setup.ts'],
     testTimeout: 10000,
     coverage: {
       provider: 'v8',

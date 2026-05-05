@@ -57,6 +57,7 @@ import { mergeTemplatesImpl } from '../src/cli/commands/enterprise.js';
 import { diffImpl } from '../src/cli/commands/handoff.js';
 import { createTestDeps } from '../src/cli/deps.js';
 import { gatherDashboardData } from '../src/lib/dashboard.js';
+import { ensureDistBuilt } from './helpers/ensure-dist-built.js';
 
 const repoRoot = process.cwd();
 const distDir = path.join(repoRoot, 'dist');
@@ -68,9 +69,7 @@ function distExists(rel: string): boolean {
 // Build dist/ once so the bin.ts and cluster-emit checks have something
 // to inspect. The build-smoke test does this too; we share the artifact.
 beforeAll(() => {
-  if (!existsSync(path.join(distDir, 'cli', 'bin.mjs'))) {
-    execFileSync('npx', ['tsdown'], { cwd: repoRoot, stdio: 'pipe' });
-  }
+  ensureDistBuilt(repoRoot);
 }, 60_000);
 
 // ─────────────────────────────────────────────────────────────────────────
