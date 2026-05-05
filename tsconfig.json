@@ -41,6 +41,7 @@
     "src/**/*.ts",
     "scripts/**/*.mjs",
     "tests/**/*.test.ts",
+    "tests/helpers/**/*.ts",
     "tsdown.config.ts",
     "vitest.config.mjs"
   ],

@@ -13,10 +13,10 @@
  * @see specs/decisions/adr-001-build-tool.md
  */
 
-import { execFileSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { ensureDistBuilt } from './helpers/ensure-dist-built.js';
 
 const repoRoot = process.cwd();
 const distDir = path.join(repoRoot, 'dist');
@@ -27,9 +27,7 @@ function exists(rel: string): boolean {
 
 describe('build smoke (tsdown emit pipeline)', () => {
   beforeAll(() => {
-    // execFileSync (not execSync) avoids shell interpolation — safe per
-    // the codebase's child_process pattern guidance.
-    execFileSync('npx', ['tsdown'], { cwd: repoRoot, stdio: 'pipe' });
+    ensureDistBuilt(repoRoot);
   }, 60_000);
 
   it('emits dist/cli/bin.mjs with shebang preserved', () => {
