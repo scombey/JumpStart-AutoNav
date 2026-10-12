@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-10-05T15:05:20.198Z",
+  "generatedAt": "2026-10-12T15:51:06.516Z",
   "status": "ok",
   "windowStart": "2026-04-27T09:03:48.976Z",
-  "windowEnd": "2026-10-05T15:05:19.424Z",
-  "totalRuns": 24,
+  "windowEnd": "2026-10-12T15:51:05.412Z",
+  "totalRuns": 25,
   "totalIncidents": 0,
   "runsWithIncidents": 0,
   "regressionShare": 0,
